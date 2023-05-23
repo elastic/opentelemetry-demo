@@ -3,6 +3,35 @@
 
 The following guide describes how to setup the OpenTelemetry demo with Elastic Observability using [Docker compose](#docker-compose) or [Kubernetes](#kubernetes).
 
+## Devoteam Elastic Cloud setup tldr;
+
+This demo writes Opentelemetry data to multiple outputs:
+* Jaeger
+* Prometheus
+* Elasticsearch APM
+* Opensearch Observability
+
+The configuration has already been setup to write to the DevoTeam Elastic Cloud deployment. See `src/otelcollector/otelcol-config.yml`.
+The docker-compose file has been updated to include a 2-node Opensearch cluster.
+
+How to run locally using docker-compose:
+```
+### Opensearch/Elasticsearch requires a change to some memory config
+
+sudo sysctl -w vm.max_map_count=262144
+docker compose pull
+docker compose up -d
+```
+
+Once everything is running, the following endpoints should be available:
+* Webstore: http://localhost:8080/
+* Grafana: http://localhost:8080/grafana/
+* Feature Flags UI: http://localhost:8080/feature/
+* Load Generator UI: http://localhost:8080/loadgen/
+* Jaeger UI: http://localhost:8080/jaeger/ui/
+* Opensearch Dashboard: http://localhost:5601 (username/pw: admin)
+* Elasticsearch Kibana: https://devoteam-observability.kb.westeurope.azure.elastic-cloud.com:9243
+
 ## Docker compose
 
 1. Start a free trial on [Elastic Cloud](https://cloud.elastic.co/) and copy the `endpoint` and `secretToken` from the Elastic APM setup instructions in your Kibana.
