@@ -13,16 +13,30 @@ receivers:
             - "https://*"
 
 exporters:
+# Jaeger output
   otlp:
     endpoint: "jaeger:4317"
     tls:
       insecure: true
+# Opensearch dataprepper output
+  otlp/2:
+    endpoint: data-prepper:21890
+    tls:
+      insecure: true
+      insecure_skip_verify: true
   logging:
+# Prometheus for grafana
   prometheus:
     endpoint: "otelcol:9464"
     resource_to_telemetry_conversion:
       enabled: true
     enable_open_metrics: true
+# Elastic output
+  otlp/elastic:
+    # !!! Elastic APM https endpoint WITHOUT the "https://" prefix
+    endpoint: "devoteam-observability.apm.westeurope.azure.elastic-cloud.com:443"
+    headers:
+      Authorization: ""
 
 processors:
   batch:
@@ -37,6 +51,8 @@ processors:
         match_type: strict
         metric_names:
           - queueSize
+  spanmetrics/elastic:
+    metrics_exporter: otlp/elastic
 
 connectors:
   spanmetrics:
@@ -46,12 +62,13 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp, logging, spanmetrics]
+      exporters: [otlp, logging, spanmetrics,otlp/elastic,otlp/2]
     metrics:
       receivers: [otlp, spanmetrics]
       processors: [filter, transform, batch]
-      exporters: [prometheus, logging]
+      exporters: [prometheus, logging,otlp/elastic]
     logs:
       receivers: [otlp]
       processors: [batch]
-      exporters: [logging]
+      exporters: [logging,otlp/elastic]
+      

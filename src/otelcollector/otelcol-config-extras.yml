@@ -2,28 +2,28 @@
 # SPDX-License-Identifier: Apache-2.0
 # extra settings to be merged into OpenTelemetry Collector configuration
 # do not delete this file
-exporters:
-  otlp/elastic:
-    # !!! Elastic APM https endpoint WITHOUT the "https://" prefix
-    endpoint: "YOUR_APM_ENDPOINT_WITHOUT_HTTPS_PREFIX"
-    headers:
-      Authorization: "Bearer YOUR_APM_SECRET_TOKEN"
+# exporters:
+#   otlp/elastic:
+#     # !!! Elastic APM https endpoint WITHOUT the "https://" prefix
+#     endpoint: "devoteam-observability.apm.westeurope.azure.elastic-cloud.com:443"
+#     headers:
+#       Authorization: ""
 
-processors:
-  spanmetrics/elastic:
-    metrics_exporter: otlp/elastic
+# processors:
+#   spanmetrics/elastic:
+#     metrics_exporter: otlp/elastic
 
-service:
-  pipelines:
-    traces:
-      receivers: [otlp]
-      processors: [spanmetrics/elastic, batch]
-      exporters: [otlp/elastic]
-    metrics:
-      receivers: [otlp]
-      processors: [filter, transform, batch]
-      exporters: [otlp/elastic]
-    logs:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [otlp/elastic]
+# service:
+#   pipelines:
+#     traces:
+#       receivers: [otlp]
+#       processors: [spanmetrics/elastic, batch]
+#       exporters: [otlp/elastic]
+#     metrics:
+#       receivers: [otlp]
+#       processors: [filter, transform, batch]
+#       exporters: [otlp/elastic]
+#     logs:
+#       receivers: [otlp]
+#       processors: [batch]
+#       exporters: [otlp/elastic]
