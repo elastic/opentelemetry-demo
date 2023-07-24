@@ -13,24 +13,10 @@ receivers:
             - "https://*"
 
 exporters:
-  otlp:
-    endpoint: "jaeger:4317"
-    tls:
-      insecure: true
   logging:
-  prometheus:
-    endpoint: "otelcol:9464"
-    resource_to_telemetry_conversion:
-      enabled: true
-    enable_open_metrics: true
 
 processors:
   batch:
-  transform:
-    metric_statements:
-      - context: metric
-        statements:
-          - set(description, "Measures the duration of inbound HTTP requests") where name == "http.server.duration"
   filter:
     metrics:
       exclude:
@@ -46,11 +32,11 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp, logging, spanmetrics]
+      exporters: [logging, spanmetrics]
     metrics:
       receivers: [otlp, spanmetrics]
-      processors: [filter, transform, batch]
-      exporters: [prometheus, logging]
+      processors: [filter, batch]
+      exporters: [logging]
     logs:
       receivers: [otlp]
       processors: [batch]

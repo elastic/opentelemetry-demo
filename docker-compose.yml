@@ -1,7 +1,6 @@
 # Copyright The OpenTelemetry Authors
 # SPDX-License-Identifier: Apache-2.0
 
-
 version: '3.9'
 x-default-logging: &logging
   driver: "json-file"
@@ -70,7 +69,8 @@ services:
       - OTEL_LOGS_EXPORTER=otlp
       - OTEL_SERVICE_NAME=adservice
     depends_on:
-      - otelcol
+      otelcol:
+        condition: service_started
     logging: *logging
 
   # Cart service
@@ -97,8 +97,10 @@ services:
       - OTEL_SERVICE_NAME=cartservice
       - ASPNETCORE_URLS=http://*:${CART_SERVICE_PORT}
     depends_on:
-      - redis-cart
-      - otelcol
+      redis-cart:
+        condition: service_started
+      otelcol:
+        condition: service_started
     logging: *logging
 
   # Checkout service
@@ -172,7 +174,8 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT
       - OTEL_RESOURCE_ATTRIBUTES=${OTEL_RESOURCE_ATTRIBUTES},service.name=currencyservice   # The C++ SDK does not support OTEL_SERVICE_NAME
     depends_on:
-      - otelcol
+      otelcol:
+        condition: service_started
     logging: *logging
 
   # Email service
@@ -197,7 +200,8 @@ services:
       - OTEL_RESOURCE_ATTRIBUTES
       - OTEL_SERVICE_NAME=emailservice
     depends_on:
-      - otelcol
+      otelcol:
+        condition: service_started
     logging: *logging
 
   # Feature Flag service
@@ -292,15 +296,24 @@ services:
       - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
       - WEB_OTEL_SERVICE_NAME=frontend-web
     depends_on:
-      - adservice
-      - cartservice
-      - checkoutservice
-      - currencyservice
-      - otelcol
-      - productcatalogservice
-      - quoteservice
-      - recommendationservice
-      - shippingservice
+      adservice:
+        condition: service_started
+      cartservice:
+        condition: service_started
+      checkoutservice:
+        condition: service_started
+      currencyservice:
+        condition: service_started
+      productcatalogservice:
+        condition: service_started
+      quoteservice:
+        condition: service_started
+      recommendationservice:
+        condition: service_started
+      shippingservice:
+        condition: service_started
+      otelcol:
+        condition: service_started
     logging: *logging
 
   # Frontend Proxy (Envoy)
@@ -329,13 +342,20 @@ services:
       - JAEGER_SERVICE_PORT
       - JAEGER_SERVICE_HOST
       - OTEL_COLLECTOR_HOST
-      - OTEL_COLLECTOR_PORT
+      - OTEL_COLLECTOR_PORT_GRPC
+      - OTEL_COLLECTOR_PORT_HTTP
       - ENVOY_PORT
     depends_on:
-      - frontend
-      - featureflagservice
-      - loadgenerator
-      - grafana
+      frontend:
+        condition: service_started
+      featureflagservice:
+        condition: service_started
+      loadgenerator:
+        condition: service_started
+      jaeger:
+        condition: service_started
+      grafana:
+        condition: service_started
 
   # Load Generator
   loadgenerator:
@@ -359,12 +379,14 @@ services:
       - LOCUST_HOST
       - LOCUST_HEADLESS
       - LOCUST_AUTOSTART
-      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://${OTEL_COLLECTOR_HOST}:4318/v1/traces
+      - OTEL_EXPORTER_OTLP_ENDPOINT
+      - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
       - OTEL_RESOURCE_ATTRIBUTES
       - OTEL_SERVICE_NAME=loadgenerator
       - PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
     depends_on:
-      - frontend
+      frontend:
+        condition: service_started
     logging: *logging
 
   # Payment service
@@ -390,7 +412,8 @@ services:
       - OTEL_RESOURCE_ATTRIBUTES
       - OTEL_SERVICE_NAME=paymentservice
     depends_on:
-      - otelcol
+      otelcol:
+        condition: service_started
     logging: *logging
 
   # Product Catalog service
@@ -417,7 +440,8 @@ services:
       - OTEL_RESOURCE_ATTRIBUTES
       - OTEL_SERVICE_NAME=productcatalogservice
     depends_on:
-      - otelcol
+      otelcol:
+        condition: service_started
     logging: *logging
 
   # Quote service
@@ -443,7 +467,8 @@ services:
       - OTEL_RESOURCE_ATTRIBUTES
       - OTEL_SERVICE_NAME=quoteservice
     depends_on:
-      - otelcol
+      otelcol:
+        condition: service_started
     logging: *logging
 
   # Recommendation service
@@ -473,9 +498,12 @@ services:
       - OTEL_SERVICE_NAME=recommendationservice
       - PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
     depends_on:
-      - productcatalogservice
-      - otelcol
-      - featureflagservice
+      featureflagservice:
+        condition: service_started
+      productcatalogservice:
+        condition: service_started
+      otelcol:
+        condition: service_started
     logging: *logging
 
   # Shipping service
@@ -501,7 +529,8 @@ services:
       - OTEL_RESOURCE_ATTRIBUTES
       - OTEL_SERVICE_NAME=shippingservice
     depends_on:
-      - otelcol
+      otelcol:
+        condition: service_started
     logging: *logging
 
   # ******************
@@ -601,12 +630,12 @@ services:
 
   # Grafana
   grafana:
-    image: grafana/grafana:9.1.0
+    image: grafana/grafana:9.4.7
     container_name: grafana
     deploy:
       resources:
         limits:
-          memory: 75M
+          memory: 100M
     volumes:
       - ./src/grafana/grafana.ini:/etc/grafana/grafana.ini
       - ./src/grafana/provisioning/:/etc/grafana/provisioning/
@@ -616,16 +645,22 @@ services:
 
   # OpenTelemetry Collector
   otelcol:
-    image: otel/opentelemetry-collector-contrib:0.75.0
+    image: ${IMAGE_NAME}:${IMAGE_VERSION}-otelcol
     container_name: otel-col
+    build:
+      context: ./
+      dockerfile: ./src/otelcollector/Dockerfile
+      cache_from:
+        - ${IMAGE_NAME}:${IMAGE_VERSION}-otelcol
     deploy:
       resources:
         limits:
           memory: 125M
     restart: unless-stopped
-    command: [ "--feature-gates=service.connectors", "--config=/etc/otelcol-config.yml", "--config=/etc/otelcol-config-extras.yml" ]
+    command: [ "--config=/etc/otelcol-config.yml", "--config=/etc/otelcol-observability.yml", "--config=/etc/otelcol-config-extras.yml" ]
     volumes:
       - ./src/otelcollector/otelcol-config.yml:/etc/otelcol-config.yml
+      - ./src/otelcollector/otelcol-observability.yml:/etc/otelcol-observability.yml
       - ./src/otelcollector/otelcol-config-extras.yml:/etc/otelcol-config-extras.yml
     ports:
       - "4317"          # OTLP over gRPC receiver
@@ -711,3 +746,97 @@ services:
       - recommendationservice
       - shippingservice
       - quoteservice
+
+  # Tracebased Tests
+  traceBasedTests:
+    image: ${IMAGE_NAME}:${IMAGE_VERSION}-traceBasedTests
+    container_name: traceBasedTests
+    profiles:
+      - tests
+    build:
+      context: ./
+      dockerfile: ./test/tracetesting/Dockerfile
+    environment:
+      - AD_SERVICE_ADDR
+      - CART_SERVICE_ADDR
+      - CHECKOUT_SERVICE_ADDR
+      - CURRENCY_SERVICE_ADDR
+      - EMAIL_SERVICE_ADDR
+      - FRONTEND_ADDR
+      - PAYMENT_SERVICE_ADDR
+      - PRODUCT_CATALOG_SERVICE_ADDR
+      - RECOMMENDATION_SERVICE_ADDR
+      - SHIPPING_SERVICE_ADDR
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      tracetest-server:
+        condition: service_healthy
+      # adding demo services as dependencies
+      frontend:
+        condition: service_started
+      adservice:
+        condition: service_started
+      cartservice:
+        condition: service_started
+      checkoutservice:
+        condition: service_started
+      currencyservice:
+        condition: service_started
+      emailservice:
+        condition: service_started
+      paymentservice:
+        condition: service_started
+      productcatalogservice:
+        condition: service_started
+      recommendationservice:
+        condition: service_started
+      shippingservice:
+        condition: service_started
+      quoteservice:
+        condition: service_started
+
+  tracetest-server:
+    image: kubeshop/tracetest:latest
+    platform: linux/amd64
+    container_name: tracetest-server
+    profiles:
+      - tests
+    volumes:
+      - type: bind
+        source: ./test/tracetesting/tracetest-config.yaml
+        target: /app/tracetest.yaml
+      - type: bind
+        source: ./test/tracetesting/tracetest-provision.yaml
+        target: /app/provision.yaml
+    command: --provisioning-file /app/provision.yaml
+    ports:
+      - 11633:11633
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      tracetest-postgres:
+        condition: service_healthy
+      otelcol:
+        condition: service_started
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "localhost:11633" ]
+      interval: 1s
+      timeout: 3s
+      retries: 60
+
+  tracetest-postgres:
+    image: postgres:14
+    container_name: tracetest-postgres
+    profiles:
+      - tests
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+    healthcheck:
+      test: pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
+      interval: 1s
+      timeout: 5s
+      retries: 60
+    ports:
+      - 5432

@@ -3,47 +3,44 @@
 using System;
 
 using cartservice.cartstore;
+using cartservice.featureflags;
 using cartservice.services;
 
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Hosting;
 
-using OpenTelemetry.Extensions.Docker.Resources;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.ResourceDetectors.Container;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 string redisAddress = builder.Configuration["REDIS_ADDR"];
-RedisCartStore cartStore = null;
 if (string.IsNullOrEmpty(redisAddress))
 {
     Console.WriteLine("REDIS_ADDR environment variable is required.");
     Environment.Exit(1);
 }
-cartStore = new RedisCartStore(redisAddress);
+var cartStore = new RedisCartStore(redisAddress);
 
 // Initialize the redis store
 await cartStore.InitializeAsync();
 Console.WriteLine("Initialization completed");
 
 builder.Services.AddSingleton<ICartStore>(cartStore);
+builder.Services.AddSingleton<FeatureFlagHelper>();
 
 // see https://opentelemetry.io/docs/instrumentation/net/getting-started/
 
-var appResourceBuilder = ResourceBuilder
-    .CreateDefault()
-    .AddTelemetrySdk()
-    .AddEnvironmentVariableDetector()
-    .AddDetector(new DockerResourceDetector());
+Action<ResourceBuilder> appResourceBuilder =
+    resource => resource
+        .AddDetector(new ContainerResourceDetector());
 
 builder.Services.AddOpenTelemetry()
-    .WithTracing(builder => builder
-        .SetResourceBuilder(appResourceBuilder)
+    .ConfigureResource(appResourceBuilder)
+    .WithTracing(tracerBuilder => tracerBuilder
         .AddRedisInstrumentation(
             cartStore.GetConnection(),
             options => options.SetVerboseDatabaseStatements = true)
@@ -51,8 +48,7 @@ builder.Services.AddOpenTelemetry()
         .AddGrpcClientInstrumentation()
         .AddHttpClientInstrumentation()
         .AddOtlpExporter())
-    .WithMetrics(builder => builder
-        .SetResourceBuilder(appResourceBuilder)
+    .WithMetrics(meterBuilder => meterBuilder
         .AddRuntimeInstrumentation()
         .AddAspNetCoreInstrumentation()
         .AddOtlpExporter());
