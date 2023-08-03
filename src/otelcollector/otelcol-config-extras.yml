@@ -9,19 +9,15 @@ exporters:
     headers:
       Authorization: "Bearer YOUR_APM_SECRET_TOKEN"
 
-processors:
-  spanmetrics/elastic:
-    metrics_exporter: otlp/elastic
-
 service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [spanmetrics/elastic, batch]
-      exporters: [otlp/elastic]
+      processors: [batch]
+      exporters: [otlp/elastic, spanmetrics]
     metrics:
-      receivers: [otlp]
-      processors: [filter, transform, batch]
+      receivers: [otlp, spanmetrics]
+      processors: [filter, batch]
       exporters: [otlp/elastic]
     logs:
       receivers: [otlp]
