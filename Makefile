@@ -72,6 +72,10 @@ install-tools: $(MISSPELL)
 	npm install
 	@echo "All tools installed"
 
+.PHONY: build
+build:
+	docker compose build
+
 .PHONY: build-and-push-dockerhub
 build-and-push-dockerhub:
 	docker compose --env-file .dockerhub.env -f docker-compose.yml build
@@ -97,7 +101,7 @@ run-tests:
 	docker compose run traceBasedTests
 
 run-tracetesting:
-	docker compose run traceBasedTests
+	docker compose run traceBasedTests ${SERVICES_TO_TEST}
 
 .PHONY: generate-protobuf
 generate-protobuf:
@@ -132,6 +136,19 @@ start-minimal:
 	@echo "Go to http://localhost:8080/jaeger/ui for the Jaeger UI."
 	@echo "Go to http://localhost:8080/grafana/ for the Grafana UI."
 	@echo "Go to http://localhost:8080/loadgen/ for the Load Generator UI."
+
+# Observabilty-Driven Development (ODD)
+.PHONY: start-odd
+start-odd:
+	docker compose --profile odd up --force-recreate --remove-orphans --detach
+	@echo ""
+	@echo "OpenTelemetry Demo is running."
+	@echo "Go to http://localhost:8080 for the demo UI."
+	@echo "Go to http://localhost:8080/jaeger/ui for the Jaeger UI."
+	@echo "Go to http://localhost:8080/grafana/ for the Grafana UI."
+	@echo "Go to http://localhost:8080/loadgen/ for the Load Generator UI."
+	@echo "Go to http://localhost:8080/feature/ for the Feature Flag UI."
+	@echo "Go to http://localhost:11633/ for the Tracetest Web UI."
 
 .PHONY: stop
 stop:
