@@ -3,7 +3,7 @@
 
 The following guide describes how to setup the OpenTelemetry demo with Elastic Observability using [Docker compose](#docker-compose) or [Kubernetes](#kubernetes). This fork introduces several changes to the agents used in the demo:
 
-- The Java agent within the [Ad](../src/adservice/Dockerfile#L27) and [Fraud Detection](../src/frauddetectionservice/Dockerfile#L21) services have been replaced with the Elastic distribution of the OpenTelemetry Java Agent. You can find more information about the Elastic distribution in [this blog post](https://www.elastic.co/observability-labs/blog/elastic-distribution-opentelemetry-java-agent).
+- The Java agent within the [Ad](../src/adservice/Dockerfile.elastic) and [Fraud Detection](../src/frauddetectionservice/Dockerfile.elastic) services have been replaced with the Elastic distribution of the OpenTelemetry Java Agent. You can find more information about the Elastic distribution in [this blog post](https://www.elastic.co/observability-labs/blog/elastic-distribution-opentelemetry-java-agent).
 
 ## Docker compose
 
