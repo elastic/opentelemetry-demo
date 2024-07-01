@@ -582,7 +582,8 @@ services:
         limits:
           memory: 200M
     restart: unless-stopped
-    command: [ "--config=/etc/otelcol-config.yml", "--config=/etc/otelcol-config-extras.yml" ]
+    command: ["otel", "--config", "/etc/otelcol-config.yml", "--config", "/etc/otelcol-config-extras.yml" ]
+    entrypoint: [ /usr/share/elastic-agent/elastic-agent ]
     volumes:
       - ${OTEL_COLLECTOR_CONFIG}:/etc/otelcol-config.yml
       - ${OTEL_COLLECTOR_CONFIG_EXTRAS}:/etc/otelcol-config-extras.yml

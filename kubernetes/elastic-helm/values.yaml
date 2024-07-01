@@ -4,6 +4,12 @@ default:
     tag: 1.10.1
 
 opentelemetry-collector:
+  image:
+    repository: docker.elastic.co/beats/elastic-agent
+    tag: 8.15.0-SNAPSHOT
+  command:
+    name: "/usr/share/elastic-agent/elastic-agent"
+    extraArgs: ["otel", "-c", "/etc/elastic-agent/otel.yaml"]
   mode: "deployment"
   presets:
     kubernetesAttributes:
@@ -24,38 +30,23 @@ opentelemetry-collector:
         secretKeyRef:
           name: elastic-secret
           key: elastic_apm_secret_token
-  config:
-    exporters:
-      otlp/elastic:
-        endpoint: ${ELASTIC_APM_ENDPOINT}
-        compression: none
-        headers:
-          Authorization: Bearer ${ELASTIC_APM_SECRET_TOKEN}
-    receivers:
-      otlp:
-        protocols:
-          grpc:
-            endpoint: ${MY_POD_IP}:4317
-          http:
-            cors:
-              allowed_origins:
-              - http://*
-              - https://*
-            endpoint: ${MY_POD_IP}:4318
-    service:
-      pipelines:
-        traces:
-          receivers: [otlp]
-          processors: [batch]
-          exporters: [otlp/elastic]
-        metrics:
-          receivers: [otlp]
-          processors: [batch]
-          exporters: [otlp/elastic]
-        logs:
-          receivers: [otlp]
-          processors: [batch]
-          exporters: [otlp/elastic]
+
+  configMap:
+    create: false
+    existingName: elastic-otelcol-agent
+
+  livenessProbe:
+    httpGet:
+      port: 8888
+      path: metrics
+  readinessProbe:
+    httpGet:
+      port: 8888
+      path: metrics
+
+opensearch:
+  enabled: false
+
 grafana:
   enabled: false
 
