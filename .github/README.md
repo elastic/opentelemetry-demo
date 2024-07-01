@@ -7,15 +7,17 @@ The following guide describes how to setup the OpenTelemetry demo with Elastic O
 - The .NET agent within the [Cart service](../src/cartservice/src/Directory.Build.props) has been replaced with the Elastic distribution of the OpenTelemetry .NET Agent. You can find more information about the Elastic distribution in [this blog post](https://www.elastic.co/observability-labs/blog/elastic-opentelemetry-distribution-dotnet-applications).
 - The Elastic distribution of the OpenTelemetry Node.js Agent has replaced the OpenTelemetry Node.js agent in the [Payment service](../src/paymentservice/package.json). Additional details about the Elastic distribution are available in [this blog post](https://www.elastic.co/observability-labs/blog/elastic-opentelemetry-distribution-node-js).
 
+Additionally, the OpenTelemetry Contrib collector has also been changed to the [Elastic OpenTelemetry Collector distribution](https://github.com/elastic/elastic-agent/blob/main/internal/pkg/otel/README.md). This ensures a more integrated and optimized experience with Elastic Observability.
+
 ## Docker compose
 
 1. Start a free trial on [Elastic Cloud](https://cloud.elastic.co/) and copy the `endpoint` and `secretToken` from the Elastic APM setup instructions in your Kibana.
-1. Open the file `src/otelcollector/otelcol-config-extras.yml` in an editor and replace the following two placeholders:
+1. Open the file `src/otelcollector/otelcol-elastic-config-extras.yaml` in an editor and replace the following two placeholders:
    - `YOUR_APM_ENDPOINT_WITHOUT_HTTPS_PREFIX`: your Elastic APM endpoint (*without* `https://` prefix) that *must* also include the port (example: `1234567.apm.us-west2.gcp.elastic-cloud.com:443`).
    - `YOUR_APM_SECRET_TOKEN`: your Elastic APM secret token.
 1. Start the demo with the following command from the repository's root directory:
    ```
-   docker-compose up -d
+   make start
    ```
 
 ## Kubernetes
