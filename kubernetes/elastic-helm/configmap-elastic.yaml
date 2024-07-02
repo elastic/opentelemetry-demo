@@ -17,7 +17,7 @@ data:
         endpoint: ${ELASTIC_APM_ENDPOINT}
         compression: none
         headers:
-          Authorization: ApiKey ${ELASTIC_APM_SECRET_TOKEN}
+          Authorization: Bearer ${ELASTIC_APM_SECRET_TOKEN}
     extensions:
     processors:
       batch: {}
