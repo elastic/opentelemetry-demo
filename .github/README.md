@@ -48,6 +48,9 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
    # !(when an older helm open-telemetry repo exists) update the open-telemetry helm repo
    helm repo update open-telemetry
 
+   # deploy the configuration for the Elastic OpenTelemetry collector distribution
+   kubectl apply -f configmap-elastic.yaml
+
    # deploy the demo through helm install
    helm install -f values.yaml my-otel-demo open-telemetry/opentelemetry-demo
    ```
