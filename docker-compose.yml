@@ -694,7 +694,9 @@ services:
     restart: unless-stopped
     command: ["otel", "--config", "/etc/otelcol-config.yml", "--config", "/etc/otelcol-config-extras.yml" ]
     entrypoint: [ /usr/share/elastic-agent/elastic-agent ]
+    user: 0:0
     volumes:
+      - ${DOCKER_SOCK}:/var/run/docker.sock:ro
       - ${OTEL_COLLECTOR_CONFIG}:/etc/otelcol-config.yml
       - ${OTEL_COLLECTOR_CONFIG_EXTRAS}:/etc/otelcol-config-extras.yml
     ports:
