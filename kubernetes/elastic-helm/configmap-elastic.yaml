@@ -14,7 +14,7 @@ data:
     exporters:
       debug: {}
       otlp/elastic:
-        endpoint: ${ELASTIC_APM_ENDPOINT}
+        endpoint: ${env:ELASTIC_APM_ENDPOINT}
         compression: none
         headers:
           Authorization: Bearer ${ELASTIC_APM_SECRET_TOKEN}
