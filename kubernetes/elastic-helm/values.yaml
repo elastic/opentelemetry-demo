@@ -6,7 +6,7 @@ default:
 opentelemetry-collector:
   image:
     repository: docker.elastic.co/beats/elastic-agent
-    tag: 8.15.0-7b611e39-SNAPSHOT
+    tag: 8.15.0-SNAPSHOT
   command:
     name: "/usr/share/elastic-agent/elastic-agent"
     extraArgs: ["otel", "-c", "/etc/elastic-agent/otel.yaml"]
