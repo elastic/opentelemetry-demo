@@ -18,6 +18,9 @@ opentelemetry-collector:
       enabled: true
     clusterMetrics:
       enabled: true
+  securityContext:
+    runAsUser: 0
+    runAsGroup: 0
 
   extraEnvs:
     - name: ELASTIC_APM_ENDPOINT
@@ -30,6 +33,41 @@ opentelemetry-collector:
         secretKeyRef:
           name: elastic-secret
           key: elastic_apm_secret_token
+    - name: ELASTIC_ENDPOINT
+      valueFrom:
+        secretKeyRef:
+          name: elastic-secret
+          key: elastic_endpoint
+    - name: ELASTIC_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: elastic-secret
+          key: elastic_api_key
+    - name: K8S_NODE_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.nodeName
+  extraVolumeMounts:
+    - name: varlogpods
+      mountPath: /var/log/pods
+      readOnly: true
+    - name: varlibdockercontainers
+      mountPath: /var/lib/docker/containers
+      readOnly: true
+    - name: hostfs
+      mountPath: /hostfs
+      readOnly: true
+      mountPropagation: HostToContainer
+  extraVolumes:
+    - name: varlogpods
+      hostPath:
+        path: /var/log/pods
+    - name: varlibdockercontainers
+      hostPath:
+        path: /var/lib/docker/containers
+    - name: hostfs
+      hostPath:
+        path: /
 
   configMap:
     create: false

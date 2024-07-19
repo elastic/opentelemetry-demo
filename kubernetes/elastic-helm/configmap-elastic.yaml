@@ -18,10 +18,240 @@ data:
         compression: none
         headers:
           Authorization: Bearer ${ELASTIC_APM_SECRET_TOKEN}
+      elasticsearch:
+        endpoints:
+        - ${env:ELASTIC_ENDPOINT}
+        api_key: ${env:ELASTIC_API_KEY}
+        logs_dynamic_index:
+          enabled: true
+        metrics_dynamic_index:
+          enabled: true
+        mapping:
+          mode: ecs
     extensions:
     processors:
       batch: {}
+      elasticinframetrics:
+        add_system_metrics: true
+        add_k8s_metrics: true
+      resourcedetection/eks:
+        detectors: [env, eks]
+        timeout: 15s
+        override: true
+        eks:
+          resource_attributes:
+            k8s.cluster.name:
+              enabled: true
+      resourcedetection/gcp:
+        detectors: [env, gcp]
+        timeout: 2s
+        override: false
+      resource/k8s:
+        attributes:
+          - key: service.name
+            from_attribute: app.label.component
+            action: insert
+      attributes/k8s_logs_dataset:
+        actions:
+          - key: data_stream.dataset
+            value: "kubernetes.container_logs"
+            action: upsert
+      attributes/dataset:
+        actions:
+          - key: event.dataset
+            from_attribute: data_stream.dataset
+            action: upsert
+      resource/cloud:
+        attributes:
+          - key: cloud.instance.id
+            from_attribute: host.id
+            action: insert
+      resource/process:
+        attributes:
+          - key: process.executable.name
+            action: delete
+          - key: process.executable.path
+            action: delete
+      resourcedetection/system:
+        detectors: ["system", "ec2"]
+        system:
+          hostname_sources: [ "os" ]
+          resource_attributes:
+            host.name:
+              enabled: true
+            host.id:
+              enabled: false
+            host.arch:
+              enabled: true
+            host.ip:
+              enabled: true
+            host.mac:
+              enabled: true
+            host.cpu.vendor.id:
+              enabled: true
+            host.cpu.family:
+              enabled: true
+            host.cpu.model.id:
+              enabled: true
+            host.cpu.model.name:
+              enabled: true
+            host.cpu.stepping:
+              enabled: true
+            host.cpu.cache.l2.size:
+              enabled: true
+            os.description:
+              enabled: true
+            os.type:
+              enabled: true
+        ec2:
+          resource_attributes:
+            host.name:
+              enabled: false
+            host.id:
+              enabled: true
+      k8sattributes:
+        filter:
+          node_from_env_var: K8S_NODE_NAME
+        passthrough: false
+        pod_association:
+          - sources:
+              - from: resource_attribute
+                name: k8s.pod.ip
+          - sources:
+              - from: resource_attribute
+                name: k8s.pod.uid
+          - sources:
+              - from: connection
+        extract:
+          metadata:
+            - "k8s.namespace.name"
+            - "k8s.deployment.name"
+            - "k8s.statefulset.name"
+            - "k8s.daemonset.name"
+            - "k8s.cronjob.name"
+            - "k8s.job.name"
+            - "k8s.node.name"
+            - "k8s.pod.name"
+            - "k8s.pod.uid"
+            - "k8s.pod.start_time"
+          labels:
+            - tag_name: app.label.component
+              key: app.kubernetes.io/component
+              from: pod
     receivers:
+      filelog:
+        retry_on_failure:
+          enabled: true
+        start_at: end
+        exclude:
+        - /var/log/pods/default_elastic-otel-collector-agent*_*/elastic-opentelemetry-collector/*.log
+        include:
+        - /var/log/pods/*/*/*.log
+        include_file_name: false
+        include_file_path: true
+        operators:
+        - id: container-parser
+          type: container
+      hostmetrics:
+        collection_interval: 10s
+        root_path: /hostfs
+        scrapers:
+          cpu:
+            metrics:
+              system.cpu.utilization:
+                enabled: true
+              system.cpu.logical.count:
+                enabled: true
+          memory:
+            metrics:
+              system.memory.utilization:
+                enabled: true
+          process:
+            mute_process_exe_error: true
+            mute_process_io_error: true
+            mute_process_user_error: true
+            metrics:
+              process.threads:
+                enabled: true
+              process.open_file_descriptors:
+                enabled: true
+              process.memory.utilization:
+                enabled: true
+              process.disk.operations:
+                enabled: true
+          network:
+          processes:
+          load:
+          disk:
+          filesystem:
+            exclude_mount_points:
+              mount_points:
+                - /dev/*
+                - /proc/*
+                - /sys/*
+                - /run/k3s/containerd/*
+                - /var/lib/docker/*
+                - /var/lib/kubelet/*
+                - /snap/*
+              match_type: regexp
+            exclude_fs_types:
+              fs_types:
+                - autofs
+                - binfmt_misc
+                - bpf
+                - cgroup2
+                - configfs
+                - debugfs
+                - devpts
+                - devtmpfs
+                - fusectl
+                - hugetlbfs
+                - iso9660
+                - mqueue
+                - nsfs
+                - overlay
+                - proc
+                - procfs
+                - pstore
+                - rpc_pipefs
+                - securityfs
+                - selinuxfs
+                - squashfs
+                - sysfs
+                - tracefs
+              match_type: strict
+      kubeletstats:
+        auth_type: serviceAccount
+        collection_interval: 20s
+        endpoint: ${env:K8S_NODE_NAME}:10250
+        node: '${env:K8S_NODE_NAME}'
+        # Required to work for all CSPs without an issue
+        insecure_skip_verify: true
+        k8s_api_config:
+          auth_type: serviceAccount
+        metrics:
+          k8s.pod.cpu.node.utilization:
+            enabled: true
+          k8s.container.cpu_limit_utilization:
+            enabled: true
+          k8s.pod.cpu_limit_utilization:
+            enabled: true
+          k8s.container.cpu_request_utilization:
+            enabled: true
+          k8s.container.memory_limit_utilization:
+            enabled: true
+          k8s.pod.memory_limit_utilization:
+            enabled: true
+          k8s.container.memory_request_utilization:
+            enabled: true
+          k8s.node.uptime:
+            enabled: true
+          k8s.node.cpu.usage:
+            enabled: true
+          k8s.pod.cpu.usage:
+            enabled: true
+        extra_metadata_labels:
+          - container.id
       httpcheck/frontendproxy:
         targets:
         - endpoint: http://example-frontendproxy:8080
@@ -38,33 +268,26 @@ data:
     service:
       extensions:
       pipelines:
-        logs:
-          exporters:
-          - debug
-          - otlp/elastic
-          processors:
-          - batch
-          receivers:
-          - otlp
-        metrics:
-          exporters:
-          - otlp/elastic
-          - debug
-          processors:
-          - batch
-          receivers:
-          - httpcheck/frontendproxy
-          - otlp
-          - spanmetrics
-        traces:
-          exporters:
-          - otlp/elastic
-          - debug
-          - spanmetrics
-          processors:
-          - batch
-          receivers:
-          - otlp
+        logs/sdk:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [debug]
+        logs/platformlogs:
+          receivers: [filelog]
+          processors: [batch, k8sattributes, resourcedetection/system, resourcedetection/eks, resourcedetection/gcp, resource/k8s, resource/cloud, attributes/k8s_logs_dataset]
+          exporters: [debug, elasticsearch]
+        metrics/sdk:
+          receivers: [otlp, httpcheck/frontendproxy, spanmetrics]
+          processors: [batch]
+          exporters: [debug, otlp/elastic]
+        metrics/host:
+          receivers: [hostmetrics, kubeletstats]
+          processors: [batch, k8sattributes, elasticinframetrics, resourcedetection/system, resourcedetection/eks, resourcedetection/gcp, resource/k8s, resource/cloud, attributes/dataset, resource/process]
+          exporters: [debug, elasticsearch]
+        traces/sdk:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [debug, spanmetrics, otlp/elastic]
       telemetry:
         metrics:
           address: ${env:MY_POD_IP}:8888
