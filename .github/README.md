@@ -31,6 +31,8 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
 1. Create a secret in Kubernetes with the following command.
    ```
    kubectl create secret generic elastic-secret \
+     --from-literal=elastic_endpoint='YOUR_ELASTICSEARCH_ENDPOINT' \
+     --from-literal=elastic_api_key='YOUR_ELASTIC_API_KEY' \
      --from-literal=elastic_apm_endpoint='YOUR_APM_ENDPOINT_WITHOUT_HTTPS_PREFIX' \
      --from-literal=elastic_apm_secret_token='YOUR_APM_SECRET_TOKEN'
    ```
