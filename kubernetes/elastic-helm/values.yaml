@@ -10,13 +10,11 @@ opentelemetry-collector:
   command:
     name: "/usr/share/elastic-agent/elastic-agent"
     extraArgs: ["otel", "-c", "/etc/elastic-agent/otel.yaml"]
-  mode: "deployment"
+  mode: "daemonset"
   presets:
     kubernetesAttributes:
       enabled: true
     kubernetesEvents:
-      enabled: true
-    clusterMetrics:
       enabled: true
   securityContext:
     runAsUser: 0
