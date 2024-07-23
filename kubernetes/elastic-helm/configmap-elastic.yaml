@@ -21,6 +21,11 @@ data:
     extensions:
     processors:
       batch: {}
+      resource:
+        attributes:
+          - key: deployment.environment
+            value: "opentelemetry-demo"
+            action: upsert
     receivers:
       httpcheck/frontendproxy:
         targets:
@@ -63,6 +68,7 @@ data:
           - spanmetrics
           processors:
           - batch
+          - resource
           receivers:
           - otlp
       telemetry:
