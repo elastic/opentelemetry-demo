@@ -33,20 +33,6 @@ opentelemetry-collector:
         secretKeyRef:
           name: elastic-secret
           key: elastic_apm_secret_token
-    - name: ELASTIC_ENDPOINT
-      valueFrom:
-        secretKeyRef:
-          name: elastic-secret
-          key: elastic_endpoint
-    - name: ELASTIC_API_KEY
-      valueFrom:
-        secretKeyRef:
-          name: elastic-secret
-          key: elastic_api_key
-    - name: K8S_NODE_NAME
-      valueFrom:
-        fieldRef:
-          fieldPath: spec.nodeName
   extraVolumeMounts:
     - name: varlogpods
       mountPath: /var/log/pods
