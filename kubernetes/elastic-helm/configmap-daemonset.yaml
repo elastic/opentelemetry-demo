@@ -138,8 +138,6 @@ data:
         exclude:
         # exlude collector logs
         - /var/log/pods/default_otel-daemonset-opentelemetry-collector-agent*_*/opentelemetry-collector/*.log
-        # exlude demo services logs
-        - /var/log/pods/default_my-otel-demo*/*/*.log
         include:
         - /var/log/pods/*/*/*.log
         include_file_name: false
