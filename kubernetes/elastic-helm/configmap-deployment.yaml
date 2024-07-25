@@ -49,6 +49,7 @@ data:
           - otlp/elastic
           processors:
           - batch
+          - resource
           receivers:
           - otlp
         metrics:
@@ -57,6 +58,7 @@ data:
           - debug
           processors:
           - batch
+          - resource
           receivers:
           - httpcheck/frontendproxy
           - otlp

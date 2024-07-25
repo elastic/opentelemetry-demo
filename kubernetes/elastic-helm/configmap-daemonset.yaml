@@ -58,6 +58,11 @@ data:
           - key: cloud.instance.id
             from_attribute: host.id
             action: insert
+      resource/demo:
+        attributes:
+          - key: deployment.environment
+            value: "opentelemetry-demo"
+            action: upsert
       resource/process:
         attributes:
           - key: process.executable.name
@@ -249,11 +254,11 @@ data:
       pipelines:
         logs:
           receivers: [filelog]
-          processors: [batch, k8sattributes, resourcedetection/system, resourcedetection/eks, resourcedetection/gcp, resource/k8s, resource/cloud, attributes/k8s_logs_dataset]
+          processors: [batch, k8sattributes, resourcedetection/system, resourcedetection/eks, resourcedetection/gcp, resource/demo, resource/k8s, resource/cloud, attributes/k8s_logs_dataset]
           exporters: [debug, elasticsearch]
         metrics:
           receivers: [hostmetrics, kubeletstats]
-          processors: [batch, k8sattributes, elasticinframetrics, resourcedetection/system, resourcedetection/eks, resourcedetection/gcp, resource/k8s, resource/cloud, attributes/dataset, resource/process]
+          processors: [batch, k8sattributes, elasticinframetrics, resourcedetection/system, resource/demo, resourcedetection/eks, resourcedetection/gcp, resource/k8s, resource/cloud, attributes/dataset, resource/process]
           exporters: [debug, elasticsearch]
       telemetry:
         metrics:
