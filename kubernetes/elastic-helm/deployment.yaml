@@ -33,27 +33,6 @@ opentelemetry-collector:
         secretKeyRef:
           name: elastic-secret
           key: elastic_apm_secret_token
-  extraVolumeMounts:
-    - name: varlogpods
-      mountPath: /var/log/pods
-      readOnly: true
-    - name: varlibdockercontainers
-      mountPath: /var/lib/docker/containers
-      readOnly: true
-    - name: hostfs
-      mountPath: /hostfs
-      readOnly: true
-      mountPropagation: HostToContainer
-  extraVolumes:
-    - name: varlogpods
-      hostPath:
-        path: /var/log/pods
-    - name: varlibdockercontainers
-      hostPath:
-        path: /var/lib/docker/containers
-    - name: hostfs
-      hostPath:
-        path: /
 
   configMap:
     create: false
