@@ -24,6 +24,10 @@ readinessProbe:
     port: 8888
     path: metrics
 
+securityContext:
+  runAsUser: 0
+  runAsGroup: 0
+
 extraEnvs:
   - name: ELASTIC_ENDPOINT
     valueFrom:
