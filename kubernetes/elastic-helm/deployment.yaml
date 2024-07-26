@@ -18,9 +18,6 @@ opentelemetry-collector:
       enabled: true
     clusterMetrics:
       enabled: true
-  securityContext:
-    runAsUser: 0
-    runAsGroup: 0
 
   extraEnvs:
     - name: ELASTIC_APM_ENDPOINT
