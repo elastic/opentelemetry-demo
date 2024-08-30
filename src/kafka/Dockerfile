@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-FROM apache/kafka:3.7.0
+FROM apache/kafka:3.8.0
 
 USER root
 ARG version=2.4.0
