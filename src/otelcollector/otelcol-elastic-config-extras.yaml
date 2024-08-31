@@ -10,13 +10,13 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [batch]
+      processors: [batch,transform, resource]
       exporters: [spanmetrics, otlp/elastic]
     metrics:
       receivers: [otlp, spanmetrics]
-      processors: [batch]
+      processors: [batch, resource]
       exporters: [otlp/elastic]
     logs:
       receivers: [otlp]
-      processors: [batch]
+      processors: [batch, resource]
       exporters: [otlp/elastic]

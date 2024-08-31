@@ -23,6 +23,18 @@ data:
           Authorization: Bearer ${env:ELASTIC_APM_SECRET_TOKEN}
     processors:
       batch: {}
+    # Transforming span names for easier identification. See: https://github.com/open-telemetry/opentelemetry-demo/issues/1676
+    transform:
+      error_mode: ignore
+      trace_statements:
+        - context: span
+          conditions:
+            - IsString(attributes["http.url"])
+          statements:
+            - merge_maps(attributes, URL(attributes["http.url"]), "upsert")
+            # This pattern should correctly capture the first one or two segments of a URL and assign them to the short_url named group.
+            - merge_maps(attributes, ExtractPatterns(attributes["url.path"], "^(?P<short_url>\\/[^\\/]+(\\/[^\\/]+)?)"), "upsert")
+            - set(name, attributes["short_url"])
       resource:
         attributes:
           - key: deployment.environment
@@ -73,6 +85,7 @@ data:
           - spanmetrics
           processors:
           - batch
+          - transform
           - resource
           receivers:
           - otlp
