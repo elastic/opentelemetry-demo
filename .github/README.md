@@ -22,6 +22,9 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
    ```
 
 ## Kubernetes
+
+In the provided Kubernetes deployment, we have enabled specific feature flags (`paymentServiceFailure`, `adServiceManualGc` and `adServiceHighCpu`) designed to intentionally autogenerate errors. These are implemented to showcase error-handling mechanisms and demonstrate how Elastic Observability responds under various failure scenarios. Learn more about Demo's feature flags by visiting [this link](https://opentelemetry.io/docs/demo/feature-flags/).
+
 ### Prerequisites:
 - Create a Kubernetes cluster. There are no specific requirements, so you can create a local one, or use a managed Kubernetes cluster, such as [GKE](https://cloud.google.com/kubernetes-engine), [EKS](https://aws.amazon.com/eks/), or [AKS](https://azure.microsoft.com/en-us/products/kubernetes-service).
 - Set up [kubectl](https://kubernetes.io/docs/reference/kubectl/).
