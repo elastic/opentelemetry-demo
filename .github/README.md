@@ -70,7 +70,7 @@ In order to add Node level metrics collection we can run an additional Otel coll
      --from-literal=elastic_api_key='YOUR_ELASTICSEARCH_API_KEY'
    ```
    Don't forget to replace
-   - `YOUR_ELASTICSEARCH_ENDPOINT`: your Elasticsearch endpoint (example: `1234567.us-west2.gcp.elastic-cloud.com:443`).
+   - `YOUR_ELASTICSEARCH_ENDPOINT`: your Elasticsearch endpoint (*with* `https://` prefix example: `https://1234567.us-west2.gcp.elastic-cloud.com:443`).
    - `YOUR_ELASTICSEARCH_API_KEY`: your Elasticsearch API Key
 
 2. Execute the following command to deploy the OpenTelemetry Collector to your Kubernetes cluster:
