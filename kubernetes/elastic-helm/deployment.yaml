@@ -2,35 +2,6 @@ default:
   image:
     repository: ghcr.io/elastic/opentelemetry-demo
     tag: 1.11.3
-  envOverrides:
-    - name: OTEL_SERVICE_NAME
-      valueFrom:
-        fieldRef:
-          apiVersion: v1
-          fieldPath: metadata.labels['app.kubernetes.io/component']
-    - name: OTEL_K8S_NAMESPACE
-      valueFrom:
-        fieldRef:
-         apiVersion: v1
-         fieldPath: metadata.namespace
-    - name: OTEL_K8S_NODE_NAME
-      valueFrom:
-        fieldRef:
-          apiVersion: v1
-          fieldPath: spec.nodeName
-    - name: OTEL_K8S_POD_NAME
-      valueFrom:
-        fieldRef:
-          apiVersion: v1
-          fieldPath: metadata.name
-    - name: OTEL_K8S_POD_UID
-      valueFrom:
-        fieldRef:
-          apiVersion: v1
-          fieldPath: metadata.uid
-    - name: OTEL_RESOURCE_ATTRIBUTES
-      value: 'service.name=$(OTEL_SERVICE_NAME),service.instance.id=$(OTEL_K8S_POD_UID),service.namespace=opentelemetry-demo,k8s.namespace.name=$(OTEL_K8S_NAMESPACE),k8s.node.name=$(OTEL_K8S_NODE_NAME),k8s.pod.name=$(OTEL_K8S_POD_NAME)'
-
 
 opentelemetry-collector:
   image:
@@ -59,9 +30,68 @@ opentelemetry-collector:
           name: elastic-secret
           key: elastic_apm_secret_token
 
-  configMap:
-    create: false
-    existingName: elastic-otelcol-agent
+  config:
+    receivers:
+      redis: null
+    exporters:
+      otlphttp/prometheus: null
+      opensearch: null
+      otlp: null
+      otlp/elastic:
+        endpoint: ${env:ELASTIC_APM_ENDPOINT}
+        compression: none
+        headers:
+          Authorization: Bearer ${env:ELASTIC_APM_SECRET_TOKEN}
+    processors:
+      k8sattributes:
+        extract:
+          metadata:
+          - k8s.namespace.name
+          - k8s.deployment.name
+          - k8s.statefulset.name
+          - k8s.daemonset.name
+          - k8s.cronjob.name
+          - k8s.job.name
+          - k8s.node.name
+          - k8s.pod.name
+          - k8s.pod.uid
+          - k8s.pod.start_time
+          - container.image.name
+          - container.image.tag
+          - k8s.container.name
+        passthrough: false
+        pod_association:
+        - sources:
+          - from: resource_attribute
+            name: k8s.pod.ip
+        - sources:
+          - from: resource_attribute
+            name: k8s.pod.uid
+        - sources:
+          - from: connection
+      resource:
+        attributes:
+        - key: service.instance.id
+          from_attribute: k8s.pod.uid
+          action: insert
+        - key: deployment.environment
+          value: "opentelemetry-demo"
+          action: upsert
+
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [k8sattributes, memory_limiter, transform, resource, batch]
+          exporters: [otlp/elastic, spanmetrics]
+        metrics:
+          receivers: [httpcheck/frontendproxy, otlp, spanmetrics]
+          processors: [k8sattributes, memory_limiter, resource, batch]
+          exporters: [otlp/elastic]
+        logs:
+          processors: [k8sattributes, memory_limiter, resource, batch]
+          exporters: [otlp/elastic]
+
 
 opensearch:
   enabled: false
