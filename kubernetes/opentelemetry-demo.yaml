@@ -10313,6 +10313,8 @@ spec:
             value: -Xmx400M -Xms400M
           - name: OTEL_RESOURCE_ATTRIBUTES
             value: service.name=$(OTEL_SERVICE_NAME),service.namespace=opentelemetry-demo,service.version=1.11.1
+          - name: OTEL_INFERRED_SPANS_ENABLED
+            value: false
           resources:
             limits:
               memory: 600Mi
