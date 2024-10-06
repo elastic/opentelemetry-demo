@@ -44,7 +44,7 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
    git clone https://github.com/elastic/opentelemetry-demo
    
    # switch to the kubernetes/elastic-helm directory
-   cd kubernetes/elastic-helm
+   cd opentelemetry-demo/kubernetes/elastic-helm
 
    # !(when running it for the first time) add the open-telemetry Helm repostiroy
    helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
