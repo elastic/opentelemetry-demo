@@ -29,6 +29,21 @@ The OpenTelemetry Root Cause Analysis (RCA) workshop is designed to identify the
 $ helm install --namespace kube-system nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx
 ```
 
+## Fast Track Startup
+
+The fast way to set things up is with the `elastic-setup` script. Before running it set the following environment variables:
+
+```bash
+export OTEL_EXPORTER_OTLP_ENDPOINT "https://YOUR_APM_SERVER_ENDPOINT"
+export OTEL_EXPORTER_OTLP_HEADERS "Authorization=ApiKey YOUR_APM_API_KEY"
+export OTEL_DEMO_ES_ENDPOINT "https://YOUR_ES_URL"
+export OTEL_DEMO_ES_API_KEY "YOUR_ES_API_KEY"
+```
+
+Then, after loading them into your shell run `./elastic-setup`
+
+## Manual Startup
+
 ### Start the Demo
 
 1. Setup Elastic Observability on Elastic Cloud.
@@ -43,15 +58,6 @@ $ helm install --namespace kube-system nginx ingress-nginx --repo https://kubern
    - `YOUR_APM_ENDPOINT_WITHOUT_HTTPS_PREFIX`: your Elastic APM endpoint (_without_ `https://` prefix) that _must_ also include the port (example: `1234567.apm.us-west2.gcp.elastic-cloud.com:443`).
    - `Bearer YOUR_APM_SECRET_TOKEN`: your Elastic APM secret token. Note that in this branch you MUST place either `Bearer` or `ApiKey` in front of the token. On ESS / self-managed you will generally use `Bearer`, on serverless you will generally use `ApiKey`.
 3. Execute the following commands to deploy the OpenTelemetry demo to your Kubernetes cluster:
-
-=======
-
-- `YOUR_APM_ENDPOINT_WITHOUT_HTTPS_PREFIX`: your Elastic APM endpoint (_without_ `https://` prefix) that _must_ also include the port (example: `1234567.apm.us-west2.gcp.elastic-cloud.com:443`).
-- `YOUR_APM_SECRET_TOKEN`: your Elastic APM secret token
-
-3. Execute the following commands to deploy the OpenTelemetry demo to your Kubernetes cluster:
-
-   > > > > > > > origin/rca_ingress_obs
 
    ```
    # clone this repository
@@ -73,19 +79,6 @@ $ helm install --namespace kube-system nginx ingress-nginx --repo https://kubern
 4. Update your `hosts` file to redirect `otel-demo.internal` to `127.0.0.1`.
 
 #### Kubernetes monitoring
-
-## Fast Track
-
-The fast way to set things up is with the `elastic-setup.sh` script. Before running it set the following environment variables:
-
-```bash
-export OTEL_EXPORTER_OTLP_ENDPOINT "https://YOUR_APM_SERVER_ENDPOINT"
-export OTEL_EXPORTER_OTLP_HEADERS "Authorization=ApiKey YOUR_APM_API_KEY"
-export OTEL_DEMO_ES_ENDPOINT "https://YOUR_ES_URL"
-export OTEL_DEMO_ES_API_KEY "YOUR_ES_API_KEY"
-```
-
-Then, after loading them into your shell run `./elastic-setup`
 
 ## Manual
 
