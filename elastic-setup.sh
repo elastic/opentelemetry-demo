@@ -26,7 +26,7 @@ fi
 OTEL_ENDPOINT_NO_PROTO=`echo $OTEL_EXPORTER_OTLP_ENDPOINT | sed -r -e 's/^https?:\/\///'`
 OTEL_AUTH_VALUE=`echo $OTEL_EXPORTER_OTLP_HEADERS | cut -d= -f2-`
 
-kubectl delete secret generic elastic-secret 
+kubectl delete secret elastic-secret 
 kubectl create secret generic elastic-secret \
   --from-literal=elastic_apm_endpoint="$OTEL_ENDPOINT_NO_PROTO" \
   --from-literal=elastic_apm_secret_token="$OTEL_AUTH_VALUE"
