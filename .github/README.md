@@ -74,6 +74,21 @@ $ helm install --namespace kube-system nginx ingress-nginx --repo https://kubern
 
 #### Kubernetes monitoring
 
+## Fast Track
+
+The fast way to set things up is with the `elastic-setup.sh` script. Before running it set the following environment variables:
+
+```bash
+export OTEL_EXPORTER_OTLP_ENDPOINT "https://YOUR_APM_SERVER_ENDPOINT"
+export OTEL_EXPORTER_OTLP_HEADERS "Authorization=ApiKey YOUR_APM_API_KEY"
+export OTEL_DEMO_ES_ENDPOINT "https://YOUR_ES_URL"
+export OTEL_DEMO_ES_API_KEY "YOUR_ES_API_KEY"
+```
+
+Then, after loading them into your shell run `./elastic-setup`
+
+## Manual
+
 This demo already enables cluster level metrics collection with `clusterMetrics` and
 Kubernetes events collection with `kubernetesEvents`.
 
