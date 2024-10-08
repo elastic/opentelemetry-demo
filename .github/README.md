@@ -37,7 +37,7 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
    ```
    Don't forget to replace
    - `YOUR_APM_ENDPOINT_WITHOUT_HTTPS_PREFIX`: your Elastic APM endpoint (*without* `https://` prefix) that *must* also include the port (example: `1234567.apm.us-west2.gcp.elastic-cloud.com:443`).
-   - `YOUR_APM_SECRET_TOKEN`: your Elastic APM secret token
+   - `YOUR_APM_SECRET_TOKEN`: your Elastic APM secret token, include the Bearer or ApiKey but not the "Authorization=" part e.g. Bearer XXXXXX or ApiKey XXXXX
 1. Execute the following commands to deploy the OpenTelemetry demo to your Kubernetes cluster:
    ```
    # clone this repository
