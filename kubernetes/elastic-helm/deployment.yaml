@@ -71,7 +71,7 @@ opentelemetry-collector:
         endpoint: ${env:ELASTIC_APM_ENDPOINT}
         compression: none
         headers:
-          Authorization: Bearer ${env:ELASTIC_APM_SECRET_TOKEN}
+          Authorization: ${env:ELASTIC_APM_SECRET_TOKEN}
     processors:
       batch: {}
       resource:
