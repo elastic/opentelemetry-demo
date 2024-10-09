@@ -12,14 +12,14 @@
   "author": "Jonathan Lui",
   "license": "ISC",
   "dependencies": {
-    "@elastic/opentelemetry-node": "^0.3.0",
-    "@grpc/grpc-js": "1.10.8",
+    "@elastic/opentelemetry-node": "^0.4.0",
+    "@grpc/grpc-js": "1.12.1",
     "@grpc/proto-loader": "0.7.13",
-    "@openfeature/flagd-provider": "0.13.0",
-    "@openfeature/server-sdk": "1.14.0",
-    "@opentelemetry/api": "1.8.0",
-    "grpc-js-health-check": "1.1.0",
-    "pino": "8.16.1",
+    "@openfeature/flagd-provider": "0.13.1",
+    "@openfeature/server-sdk": "1.15.1",
+    "@opentelemetry/api": "1.9.0",
+    "grpc-js-health-check": "1.2.2",
+    "pino": "8.21.0",
     "simple-card-validator": "1.1.0",
     "uuid": "9.0.1"
   }
