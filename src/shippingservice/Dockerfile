@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-FROM --platform=${BUILDPLATFORM} rust:1.76 as builder
+FROM --platform=${BUILDPLATFORM} rust:1.81 as builder
 
 ARG TARGETARCH TARGETPLATFORM BUILDPLATFORM
 
