@@ -1,0 +1,9 @@
+heartbeat.monitors:
+- type: http
+  name: Storefront Homepage Lightweight
+  id: storefront-lightweight
+  enabled: true
+  urls: "http://otel-demo.internal/"
+  schedule: '@every 1m'
+  timeout: 16s
+  alert.status.enabled: true

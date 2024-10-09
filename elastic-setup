@@ -65,6 +65,14 @@ if [ -z "${OTEL_DEMO_ES_API_KEY}" ]; then
   die "You must set OTEL_DEMO_ES_API_KEY"
 fi
 
+if [ -z "${SYNTHETICS_API_KEY}" ]; then
+  die "You must set SYNTHETICS_API_KEY"
+fi
+
+if [ -z "${KIBANA_URL}" ]; then
+  die "You must set KIBANA_URL"
+fi
+
 if minikube status | grep -q "Running"; then
 	title "Minikube is already running, skipping..."
 else
@@ -133,6 +141,12 @@ done
 
 title "Installing nginx ingress"
 helminst nginx-ingress ./ingress
+
+title "Pushing Synthetics project..."
+popd
+cd synthetic-monitors
+npm install
+npx @elastic/synthetics push
 
 title "Setup complete!"
 cat <<-EOF

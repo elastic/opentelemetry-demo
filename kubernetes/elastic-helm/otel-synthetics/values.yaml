@@ -1,0 +1,5 @@
+replicaCount: 1
+image:
+  repository: docker.elastic.co/beats/elastic-agent-complete
+  tag: 7.10.0
+  pullPolicy: IfNotPresent
