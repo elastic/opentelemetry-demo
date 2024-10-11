@@ -42,6 +42,15 @@ components:
             - path: /
               pathType: Prefix
               port: 8080
+        - host: ingress-nginx-controller.ingress-nginx
+          paths:
+            - path: /
+              pathType: Prefix
+              port: 8080
+  loadgenerator:
+    envOverrides:
+      - name: LOCUST_HOST
+        value: "http:/ingress-nginx-controller.ingress-nginx:80"
 
 opentelemetry-collector:
   image:
