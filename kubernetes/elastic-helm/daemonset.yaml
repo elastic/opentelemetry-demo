@@ -20,16 +20,11 @@ securityContext:
 extraEnvs:
   - name: ELASTIC_AGENT_OTEL
     value: "true"
-  - name: ELASTIC_ENDPOINT
+  - name: ELASTIC_PASSWORD
     valueFrom:
       secretKeyRef:
-        name: elastic-secret-ds
-        key: elastic_endpoint
-  - name: ELASTIC_API_KEY
-    valueFrom:
-      secretKeyRef:
-        name: elastic-secret-ds
-        key: elastic_api_key
+        name: elastic-secret-testathon
+        key: elastic_password
   - name: K8S_NODE_NAME
     valueFrom:
       fieldRef:
@@ -61,10 +56,22 @@ config:
   exporters:
     debug:
       verbosity: basic
-    elasticsearch:
+    elasticsearch/apm:
+      user: admin
+      password: ${env:ELASTIC_PASSWORD}
       endpoints:
-      - ${env:ELASTIC_ENDPOINT}
-      api_key: ${env:ELASTIC_API_KEY}
+        - http://57.154.248.70:9200
+      logs_dynamic_index:
+        enabled: true
+      metrics_dynamic_index:
+        enabled: true
+      mapping:
+        mode: ecs
+    elasticsearch/esexporter:
+      user: admin
+      password: ${env:ELASTIC_PASSWORD}
+      endpoints:
+        - http://48.217.113.189:9201
       logs_dynamic_index:
         enabled: true
       metrics_dynamic_index:
@@ -312,11 +319,11 @@ config:
       logs:
         receivers: [filelog]
         processors: [batch, k8sattributes, resourcedetection/system, resourcedetection/eks, resourcedetection/gcp, resource/demo, resource/k8s, resource/cloud, attributes/k8s_logs_dataset]
-        exporters: [debug, elasticsearch]
+        exporters: [debug, elasticsearch/apm, elasticsearch/esexporter]
       metrics:
         receivers: [hostmetrics, kubeletstats]
         processors: [batch, k8sattributes, elasticinframetrics, resourcedetection/system, resource/demo, resourcedetection/eks, resourcedetection/gcp, resource/k8s, resource/cloud, attributes/dataset, resource/process]
-        exporters: [debug, elasticsearch]
+        exporters: [debug, elasticsearch/apm, elasticsearch/esexporter]
       traces: null
     telemetry:
       metrics:

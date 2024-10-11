@@ -26,8 +26,15 @@
    # Create a configmap for flagd errors configuration
    kubectl apply -f flagd-errors.yaml
 
+
    # deploy the demo through helm install
    helm install -f deployment.yaml my-otel-demo open-telemetry/opentelemetry-demo
+
+   # Create the required secrets; replace CHANGE_ME_FOR_THE_ELASTICSEARCH_PASSWORD
+   kubectl create secret generic elastic-secret-testathon --from-literal=elastic_password='CHANGE_ME_FOR_THE_ELASTICSEARCH_PASSWORD'
+
+   # deploy the daemonset collector through helm install
+   helm install otel-daemonset open-telemetry/opentelemetry-collector --values daemonset.yaml
    ```
 2. Generate some traffic:
    ```
