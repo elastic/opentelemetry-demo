@@ -101,6 +101,9 @@ config:
         - key: service.name
           from_attribute: app.label.component
           action: insert
+        - key: service.name
+          from_attribute: k8s.container.name
+          action: insert
     attributes/dataset:
       actions:
         - key: event.dataset
