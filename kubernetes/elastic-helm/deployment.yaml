@@ -1,7 +1,7 @@
 default:
   image:
     repository: ghcr.io/elastic/opentelemetry-demo
-    tag: 1.11.4
+    tag: 1.11.5
   envOverrides:
     - name: OTEL_SERVICE_NAME
       valueFrom:
