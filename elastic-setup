@@ -38,7 +38,7 @@ die () {
 title "Checking environment for $APP_NAME..."
 
 # Check tools
-tools=("helm" "kubectl" "minikube")
+tools=("helm" "kubectl" "minikube" "node" "npx")
 for tool in ${tools[@]}; do
 	if ! command -v $tool 2>&1 >/dev/null
 	then
@@ -65,18 +65,34 @@ if [ -z "${OTEL_DEMO_ES_API_KEY}" ]; then
   die "You must set OTEL_DEMO_ES_API_KEY"
 fi
 
+if [ -z "${OTEL_DEMO_FLEET_URL}" ]; then
+  die "You must set OTEL_DEMO_FLEET_URL"
+fi
+
+if [ -z "${OTEL_DEMO_FLEET_ENROLLMENT_TOKEN}" ]; then
+  die "You must set OTEL_DEMO_FLEET_ENROLLMENT_TOKEN"
+fi
+
+if [ -z "${SYNTHETICS_API_KEY}" ]; then
+  die "You must set SYNTHETICS_API_KEY"
+fi
+
+if [ -z "${KIBANA_URL}" ]; then
+  die "You must set KIBANA_URL"
+fi
+
 if minikube status | grep -q "Running"; then
 	title "Minikube is already running, skipping..."
 else
 	title "Minikube is not running, starting..."
-	minikube start --ports=80:80,443:443
+	minikube start --ports=80:80,443:443 --memory=10g --cpus=4
 	minikube addons enable ingress
 fi
 
 # Check that current kubernetes context is 'minikube'
 if ! kubectl config current-context | grep -q "minikube"
 then
-	die "Current kubernetes context is not 'minikube', please switch to minikube"
+	die "Current kubernetes context is not 'minikube', please switch to minikube by running: kubectl config use-context minikube"
 fi
 
 OTEL_ENDPOINT_NO_PROTO=`echo $OTEL_EXPORTER_OTLP_ENDPOINT | sed -r -e 's/^https?:\/\///'`
@@ -90,7 +106,9 @@ kubectl create secret generic elastic-secret \
 kubectl delete secret elastic-secret-ds
 kubectl create secret generic elastic-secret-ds \
   --from-literal=elastic_endpoint="$OTEL_DEMO_ES_ENDPOINT" \
-  --from-literal=elastic_api_key="$OTEL_DEMO_ES_API_KEY"
+  --from-literal=elastic_api_key="$OTEL_DEMO_ES_API_KEY" \
+  --from-literal=fleet_url="$OTEL_DEMO_FLEET_URL" \
+  --from-literal=fleet_enrollment_token="$OTEL_DEMO_FLEET_ENROLLMENT_TOKEN"
 
 title "Installing/Upgrading helm charts for $APP_NAME..."
 pushd kubernetes/elastic-helm
@@ -126,13 +144,23 @@ fi
 title "Waiting for kubectl pods to finish initializing..."
 # Get the status of all pods in the namespace and grep for "ContainerCreating" or "PodInitializing"
 while kubectl get pods --all-namespaces | grep -q -E "ContainerCreating|PodInitializing"; do
-	initializing=`kubectl get pods --all-namespaces | grep -E "ContainerCreating|PodInitializing" | wc -l | xargs`
+	ini "npx"tializing=`kubectl get pods --all-namespaces | grep -E "ContainerCreating|PodInitializing" | wc -l | xargs`
 	echo "Waiting for $initializing pods to finish initializing..."
 	sleep 5
 done
 
 title "Installing nginx ingress"
 helminst nginx-ingress ./ingress
+
+title "Installing synthetics agent"
+helminst otel-synthetics-agent ./otel-synthetics
+
+title "Pushing Synthetics project..."
+popd
+cd synthetic-monitors
+npm install
+npx @elastic/synthetics push . --params '{"url": "http://ingress-nginx-controller.ingress-nginx.svc.cluster.local"}'
+
 
 title "Setup complete!"
 cat <<-EOF

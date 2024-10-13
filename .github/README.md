@@ -37,10 +37,23 @@ helm install --namespace kube-system nginx ingress-nginx --repo https://kubernet
 The fast way to set things up is with the `elastic-setup` script. This assumes and requires `minikube`. Before running it set the following environment variables:
 
 ```bash
-export OTEL_EXPORTER_OTLP_ENDPOINT "https://YOUR_APM_SERVER_ENDPOINT"
-export OTEL_EXPORTER_OTLP_HEADERS "Authorization=ApiKey YOUR_APM_API_KEY"
-export OTEL_DEMO_ES_ENDPOINT "https://YOUR_ES_URL"
-export OTEL_DEMO_ES_API_KEY "YOUR_ES_API_KEY"
+export OTEL_EXPORTER_OTLP_ENDPOINT="https://YOUR_APM_SERVER_ENDPOINT"
+export OTEL_EXPORTER_OTLP_HEADERS="Authorization=ApiKey YOUR_APM_API_KEY"
+export OTEL_DEMO_ES_ENDPOINT="https://YOUR_ES_URL"
+export OTEL_DEMO_ES_API_KEY="YOUR_ES_API_KEY"
+export KIBANA_URL="HTTP://URL/FOR/KIBANA"
+# Get from the kibana management UI
+export KIBANA_API_KEY="YOURAPIKEY"
+
+# Create a fleet policy (for a synthetics private location) and go through the "add agent" flow for it. Within the policy go through the add agent flow and get these values from there
+set -x OTEL_DEMO_FLEET_URL "https://FLEET_URL"
+set -x OTEL_DEMO_FLEET_ENROLLMENT_TOKEN "YOURTOKEN"
+
+# Get the synthetics API key from the "Project API Key" page in the Synthetics Kibana app
+export SYNTHETICS_API_KEY="YOURSYNTHETICSAPIKEYI"
+# Make sure to create a synthetics private location in the synthetics UI linked to the previously created fleet policy. It should generally be named otel-demo, but you can change it here
+export SYNTHETICS_PRIVATE_LOCATION="otel-demo"
+
 ```
 
 Then, after loading them into your shell run `./elastic-setup`
