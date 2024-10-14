@@ -1,110 +1,140 @@
 <!-- markdownlint-disable-next-line -->
-# Elastic RCA KubeCon Demo Branch - OpenTelemetry Demo
+# <img src="https://opentelemetry.io/img/logos/opentelemetry-logo-nav.png" alt="OTel logo" width="45"> OpenTelemetry Demo
 
-This branch of this demo fork is being developed for a specific RCA demo for November 2024. To run sciripts specific to this RCA demo, see [the scripts/rca-demo directory](./scripts/rca-demo/README.md)
+[![Slack](https://img.shields.io/badge/slack-@cncf/otel/demo-brightgreen.svg?logo=slack)](https://cloud-native.slack.com/archives/C03B4CWV4DA)
+[![Version](https://img.shields.io/github/v/release/open-telemetry/opentelemetry-demo?color=blueviolet)](https://github.com/open-telemetry/opentelemetry-demo/releases)
+[![Commits](https://img.shields.io/github/commits-since/open-telemetry/opentelemetry-demo/latest?color=ff69b4&include_prereleases)](https://github.com/open-telemetry/opentelemetry-demo/graphs/commit-activity)
+[![Downloads](https://img.shields.io/docker/pulls/otel/demo)](https://hub.docker.com/r/otel/demo)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg?color=red)](https://github.com/open-telemetry/opentelemetry-demo/blob/main/LICENSE)
+[![Integration Tests](https://github.com/open-telemetry/opentelemetry-demo/actions/workflows/run-integration-tests.yml/badge.svg)](https://github.com/open-telemetry/opentelemetry-demo/actions/workflows/run-integration-tests.yml)
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/opentelemetry-demo)](https://artifacthub.io/packages/helm/opentelemetry-helm/opentelemetry-demo)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9247/badge)](https://www.bestpractices.dev/en/projects/9247)
 
-The following guide describes how to setup the OpenTelemetry demo with Elastic Observability using [Docker compose](#docker-compose) or [Kubernetes](#kubernetes). This fork introduces several changes to the agents used in the demo:
+## Welcome to the OpenTelemetry Astronomy Shop Demo
 
-- The Java agent within the [Ad](../src/adservice/Dockerfile.elastic), the [Fraud Detection](../src/frauddetectionservice/Dockerfile.elastic) and the [Kafka](../src/kafka/Dockerfile.elastic) services have been replaced with the Elastic distribution of the OpenTelemetry Java Agent. You can find more information about the Elastic distribution in [this blog post](https://www.elastic.co/observability-labs/blog/elastic-distribution-opentelemetry-java-agent).
-- The .NET agent within the [Cart service](../src/cartservice/src/Directory.Build.props) has been replaced with the Elastic distribution of the OpenTelemetry .NET Agent. You can find more information about the Elastic distribution in [this blog post](https://www.elastic.co/observability-labs/blog/elastic-opentelemetry-distribution-dotnet-applications).
-- The Elastic distribution of the OpenTelemetry Node.js Agent has replaced the OpenTelemetry Node.js agent in the [Payment service](../src/paymentservice/package.json). Additional details about the Elastic distribution are available in [this blog post](https://www.elastic.co/observability-labs/blog/elastic-opentelemetry-distribution-node-js).
-- The Elastic distribution for OpenTelemetry Python has replaced the OpenTelemetry Python agent in the [Recommendation service](..src/recommendationservice/requirements.txt). Additional details about the Elastic distribution are available in [this blog post](https://www.elastic.co/observability-labs/blog/elastic-opentelemetry-distribution-python).
+This repository contains the OpenTelemetry Astronomy Shop, a microservice-based
+distributed system intended to illustrate the implementation of OpenTelemetry in
+a near real-world environment.
 
-Additionally, the OpenTelemetry Contrib collector has also been changed to the [Elastic OpenTelemetry Collector distribution](https://github.com/elastic/elastic-agent/blob/main/internal/pkg/otel/README.md). This ensures a more integrated and optimized experience with Elastic Observability.
+Our goals are threefold:
 
-## Root cause analysis workshop
+- Provide a realistic example of a distributed system that can be used to
+  demonstrate OpenTelemetry instrumentation and observability.
+- Build a base for vendors, tooling authors, and others to extend and
+  demonstrate their OpenTelemetry integrations.
+- Create a living example for OpenTelemetry contributors to use for testing new
+  versions of the API, SDK, and other components or enhancements.
 
-The OpenTelemetry Root Cause Analysis (RCA) workshop is designed to identify the underlying causes of incidents or issues within a system instrumented with OpenTelemetry. The goal is to understand why the issue occurred, prevent recurrence, and improve overall system reliability. The workshop was set up to simulate a real-world environment by deploying the OpenTelemetry Demo with the following custom modifications:
+We've already made [huge
+progress](https://github.com/open-telemetry/opentelemetry-demo/blob/main/CHANGELOG.md),
+and development is ongoing. We hope to represent the full feature set of
+OpenTelemetry across its languages in the future.
 
-- **Ingress controller:** Many of our users have logs from nginx ingress controllers. We are, initially, focusing around this as a requirement since it is a rich source of logs data.
-- **Uninstrumented services**: We will initially disable traces from the Ad Service and Product Catalog Service to better simulate real world situations in which tracing is not always available.
+If you'd like to help (**which we would love**), check out our [contributing
+guidance](./CONTRIBUTING.md).
 
-## Fast Track Setup
+If you'd like to extend this demo or maintain a fork of it, read our
+[fork guidance](https://opentelemetry.io/docs/demo/forking/).
 
-See [the setup script docs](./scripts/rca-demo/README.md).
+## Quick start
 
-## Manual Startup
+You can be up and running with the demo in a few minutes. Check out the docs for
+your preferred deployment method:
 
-If you'd rather not use the "Fast Track" startup follow these instructions.
+- [Docker](https://opentelemetry.io/docs/demo/docker_deployment/)
+- [Kubernetes](https://opentelemetry.io/docs/demo/kubernetes_deployment/)
 
-### Start the Demo
+## Documentation
 
-1. Setup Elastic Observability on Elastic Cloud.
-2. Create a secret in Kubernetes with the following command.
-   ```
-   kubectl create secret generic elastic-secret \
-     --from-literal=elastic_apm_endpoint='YOUR_APM_ENDPOINT_WITHOUT_HTTPS_PREFIX' \
-     --from-literal=elastic_apm_secret_token='Bearer YOUR_APM_SECRET_TOKEN'
-   ```
-   Don't forget to replace
-   - `YOUR_APM_ENDPOINT_WITHOUT_HTTPS_PREFIX`: your Elastic APM endpoint (_without_ `https://` prefix) that _must_ also include the port (example: `1234567.apm.us-west2.gcp.elastic-cloud.com:443`).
-   - `Bearer YOUR_APM_SECRET_TOKEN`: your Elastic APM secret token. Note that in this branch you MUST place either `Bearer` or `ApiKey` in front of the token. On ESS / self-managed you will generally use `Bearer`, on serverless you will generally use `ApiKey`.
-3. Execute the following commands to deploy the OpenTelemetry demo to your Kubernetes cluster:
+For detailed documentation, see [Demo Documentation][docs]. If you're curious
+about a specific feature, the [docs landing page][docs] can point you in the
+right direction.
 
-   ```
-   # clone this repository
-   git clone https://github.com/elastic/opentelemetry-demo
+## Demos featuring the Astronomy Shop
 
-   # switch to the kubernetes/elastic-helm directory
-   cd kubernetes/elastic-helm
+We welcome any vendor to fork the project to demonstrate their services and
+adding a link below. The community is committed to maintaining the project and
+keeping it up to date for you.
 
-   # !(when running it for the first time) add the open-telemetry Helm repostiroy
-   helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
+|                                         |                             |                                                                |
+|-----------------------------------------|-----------------------------|----------------------------------------------------------------|
+| [AlibabaCloud LogService][AlibabaCloud] | [Elastic][Elastic]          | [New Relic][NewRelic]                                          |
+| [AppDynamics][AppDynamics]              | [Google Cloud][GoogleCloud] | [OpenSearch][OpenSearch]                                       |
+| [Aspecto][Aspecto]                      | [Grafana Labs][GrafanaLabs] | [Sentry][Sentry]                                               |
+| [Axiom][Axiom]                          | [Guance][Guance]            | [ServiceNow Cloud Observability][ServiceNowCloudObservability] |
+| [Axoflow][Axoflow]                      | [Helios][Helios]            | [Splunk][Splunk]                                               |
+| [Azure Data Explorer][Azure]            | [Honeycomb.io][Honeycombio] | [Sumo Logic][SumoLogic]                                        |
+| [Coralogix][Coralogix]                  | [Instana][Instana]          | [TelemetryHub][TelemetryHub]                                   |
+| [Dash0][Dash0]                          | [Kloudfuse][Kloudfuse]      | [Teletrace][Teletrace]                                         |
+| [Datadog][Datadog]                      | [Liatrio][Liatrio]          | [Tracetest][Tracetest]                                         |
+| [Dynatrace][Dynatrace]                  | [Logz.io][Logzio]           | [Uptrace][Uptrace]                                             |
 
-   # !(when an older helm open-telemetry repo exists) update the open-telemetry helm repo
-   helm repo update open-telemetry
+## Contributing
 
-   # deploy the demo through helm install
-   helm install -f deployment.yaml my-otel-demo open-telemetry/opentelemetry-demo
-   ```
+To get involved with the project see our [CONTRIBUTING](CONTRIBUTING.md)
+documentation. Our [SIG Calls](CONTRIBUTING.md#join-a-sig-call) are every other
+Monday at 8:30 AM PST and anyone is welcome.
 
-4. Update your `hosts` file to redirect `otel-demo.internal` to `127.0.0.1`.
+## Project leadership
 
-#### Kubernetes monitoring
+[Maintainers](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer)
+([@open-telemetry/demo-maintainers](https://github.com/orgs/open-telemetry/teams/demo-maintainers)):
 
-This demo already enables cluster level metrics collection with `clusterMetrics` and
-Kubernetes events collection with `kubernetesEvents`.
+- [Juliano Costa](https://github.com/julianocosta89), Datadog
+- [Mikko Viitanen](https://github.com/mviitane), Dynatrace
+- [Pierre Tessier](https://github.com/puckpuck), Honeycomb
 
-In order to add Node level metrics collection we can run an additional Otel collector Daemonset with the following:
+[Approvers](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver)
+([@open-telemetry/demo-approvers](https://github.com/orgs/open-telemetry/teams/demo-approvers)):
 
-1. Create a secret in Kubernetes with the following command.
+- [Cedric Ziel](https://github.com/cedricziel) Grafana Labs
+- [Penghan Wang](https://github.com/wph95), AppDynamics
+- [Reiley Yang](https://github.com/reyang), Microsoft
+- [Roger Coll](https://github.com/rogercoll), Elastic
+- [Ziqi Zhao](https://github.com/fatsheep9146), Alibaba
 
-   ```
-   kubectl create secret generic elastic-secret-ds \
-     --from-literal=elastic_endpoint='YOUR_ELASTICSEARCH_ENDPOINT' \
-     --from-literal=elastic_api_key='YOUR_ELASTICSEARCH_API_KEY'
-   ```
+Emeritus:
 
-   Don't forget to replace
+- [Austin Parker](https://github.com/austinlparker)
+- [Carter Socha](https://github.com/cartersocha)
+- [Michael Maxwell](https://github.com/mic-max)
+- [Morgan McLean](https://github.com/mtwo)
 
-   - `YOUR_ELASTICSEARCH_ENDPOINT`: your Elasticsearch endpoint (_with_ `https://` prefix example: `https://1234567.us-west2.gcp.elastic-cloud.com:443`).
-   - `YOUR_ELASTICSEARCH_API_KEY`: your Elasticsearch API Key
+### Thanks to all the people who have contributed
 
-2. Execute the following command to deploy the OpenTelemetry Collector to your Kubernetes cluster, in the same directory `kubernetes/elastic-helm` in this repository.
+[![contributors](https://contributors-img.web.app/image?repo=open-telemetry/opentelemetry-demo)](https://github.com/open-telemetry/opentelemetry-demo/graphs/contributors)
 
-```
-# deploy the Elastic OpenTelemetry collector distribution through helm install
-helm install otel-daemonset open-telemetry/opentelemetry-collector --values daemonset.yaml
-```
+[docs]: https://opentelemetry.io/docs/demo/
 
-## Trigger demo scenario
+<!-- Links for Demos featuring the Astronomy Shop section -->
 
-See [the docs for running scripts for this demo](./scripts/rca-demo/README.md).
-
-## Explore and analyze the data With Elastic
-
-### Service map
-
-![Service map](service-map.png "Service map")
-
-### Traces
-
-![Traces](trace.png "Traces")
-
-### Correlation
-
-![Correlation](correlation.png "Correlation")
-
-### Logs
-
-![Logs](logs.png "Logs")
+[AlibabaCloud]: https://github.com/aliyun-sls/opentelemetry-demo
+[AppDynamics]: https://www.appdynamics.com/blog/cloud/how-to-observe-opentelemetry-demo-app-in-appdynamics-cloud/
+[Aspecto]: https://github.com/aspecto-io/opentelemetry-demo
+[Axiom]: https://play.axiom.co/axiom-play-qf1k/dashboards/otel.traces.otel-demo-traces
+[Axoflow]: https://axoflow.com/opentelemetry-support-in-more-detail-in-axosyslog-and-syslog-ng/
+[Azure]: https://github.com/Azure/Azure-kusto-opentelemetry-demo
+[Coralogix]: https://coralogix.com/blog/configure-otel-demo-send-telemetry-data-coralogix
+[Dash0]: https://github.com/dash0hq/opentelemetry-demo
+[Datadog]: https://docs.datadoghq.com/opentelemetry/guide/otel_demo_to_datadog
+[Dynatrace]: https://www.dynatrace.com/news/blog/opentelemetry-demo-application-with-dynatrace/
+[Elastic]: https://github.com/elastic/opentelemetry-demo
+[GoogleCloud]: https://github.com/GoogleCloudPlatform/opentelemetry-demo
+[GrafanaLabs]: https://github.com/grafana/opentelemetry-demo
+[Guance]: https://github.com/GuanceCloud/opentelemetry-demo
+[Helios]: https://otelsandbox.gethelios.dev
+[Honeycombio]: https://github.com/honeycombio/opentelemetry-demo
+[Instana]: https://github.com/instana/opentelemetry-demo
+[Kloudfuse]: https://github.com/kloudfuse/opentelemetry-demo
+[Liatrio]: https://github.com/liatrio/opentelemetry-demo
+[Logzio]: https://logz.io/learn/how-to-run-opentelemetry-demo-with-logz-io/
+[NewRelic]: https://github.com/newrelic/opentelemetry-demo
+[OpenSearch]: https://github.com/opensearch-project/opentelemetry-demo
+[Sentry]: https://github.com/getsentry/opentelemetry-demo
+[ServiceNowCloudObservability]: https://docs.lightstep.com/otel/quick-start-operator#send-data-from-the-opentelemetry-demo
+[Splunk]: https://github.com/signalfx/opentelemetry-demo
+[SumoLogic]: https://www.sumologic.com/blog/common-opentelemetry-demo-application/
+[TelemetryHub]: https://github.com/TelemetryHub/opentelemetry-demo/tree/telemetryhub-backend
+[Teletrace]: https://github.com/teletrace/opentelemetry-demo
+[Tracetest]: https://github.com/kubeshop/opentelemetry-demo
+[Uptrace]: https://github.com/uptrace/uptrace/tree/master/example/opentelemetry-demo
