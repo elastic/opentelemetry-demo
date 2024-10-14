@@ -159,7 +159,7 @@ title "Pushing Synthetics project..."
 popd
 cd synthetic-monitors
 npm install
-npx @elastic/synthetics push . --params '{"url": "http://ingress-nginx-controller.ingress-nginx.svc.cluster.local"}'
+yes | npx @elastic/synthetics push . --params '{"url": "http://ingress-nginx-controller.ingress-nginx.svc.cluster.local"}'
 
 
 title "Setup complete!"

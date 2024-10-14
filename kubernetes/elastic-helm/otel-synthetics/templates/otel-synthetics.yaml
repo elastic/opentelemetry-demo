@@ -12,10 +12,18 @@ spec:
       labels:
         app: otel-synthetics
     spec:
+      volumes:
+        # Add a volume in /state for fleet
+        - name: state
+          emptyDir: {}
       containers:
         - name: otel-synthetics
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+          # Add a volume in /state for fleet
+          volumeMounts:
+            - name: state
+              mountPath: /state
           env:
             - name: FLEET_ENROLL
               value: "1"
