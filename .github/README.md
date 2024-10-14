@@ -21,7 +21,7 @@ The OpenTelemetry Root Cause Analysis (RCA) workshop is designed to identify the
 
 ## Fast Track Setup
 
-See [the setup script docs](./scripts/rca-demo/README.md).
+See [the setup script docs](../scripts/rca-demo/README.md).
 
 ## Manual Startup
 
@@ -89,7 +89,7 @@ helm install otel-daemonset open-telemetry/opentelemetry-collector --values daem
 
 ## Trigger demo scenario
 
-See [the docs for running scripts for this demo](./scripts/rca-demo/README.md).
+See [the docs for running scripts for this demo](../scripts/rca-demo/README.md).
 
 ## Explore and analyze the data With Elastic
 
