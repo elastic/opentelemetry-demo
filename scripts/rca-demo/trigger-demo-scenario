@@ -1,0 +1,23 @@
+#!/bin/bash
+
+action=$1
+
+# Use kubectl to get the command for he opentelemetry-demo-cartservice deployment containers
+oldcommand=`kubectl get deployment my-otel-demo-cartservice -o jsonpath='{.spec.template.spec.containers}'`
+echo "Current command: $oldcommand"
+echo "Replacing cart service command"
+
+# if $action is "restore" then restore the original command
+if [ "$action" == "restore" ]; then
+	echo "Restoring original command"
+	kubectl patch deployment my-otel-demo-cartservice --type='json' -p='[{"op": "remove", "path": "/spec/template/spec/containers/0/command"}]'
+	exit 0
+else
+	echo "Scale the my-otel-demo-cartservice deployment to 0"
+	kubectl scale deployment my-otel-demo-cartservice --replicas=0
+	sleep 5
+	echo "Replacing with bad command"
+	kubectl patch deployment my-otel-demo-cartservice --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/command", "value": ["/bin/sh", "-c", "echo Could not start, bad entrypoint! >&2"]}]'
+	echo "Scale back up"
+	kubectl scale deployment my-otel-demo-cartservice --replicas=1
+fi
