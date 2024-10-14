@@ -1,5 +1,9 @@
 <!-- markdownlint-disable-next-line -->
-# <img src="https://opentelemetry.io/img/logos/opentelemetry-logo-nav.png" alt="OTel logo" width="45"> OpenTelemetry Demo
+# Elastic RCA KubeCon Demo Branch - OpenTelemetry Demo
+
+This branch of this demo fork is being developed for a specific RCA demo for November 2024.
+
+To run sciripts specific to this RCA demo, see bin/rca-demo/README.md
 
 [![Slack](https://img.shields.io/badge/slack-@cncf/otel/demo-brightgreen.svg?logo=slack)](https://cloud-native.slack.com/archives/C03B4CWV4DA)
 [![Version](https://img.shields.io/github/v/release/open-telemetry/opentelemetry-demo?color=blueviolet)](https://github.com/open-telemetry/opentelemetry-demo/releases)
