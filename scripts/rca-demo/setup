@@ -37,6 +37,14 @@ die () {
 
 title "Checking environment for $APP_NAME..."
 
+# Load local user .env file
+ENV_FILE="./.env"
+if [ -f $ENV_FILE ]; then
+	echo "Sourcing env vars from $ENV_FILE ..."
+  source $ENV_FILE
+fi
+
+
 # Check tools
 tools=("helm" "kubectl" "minikube" "node" "npx")
 for tool in ${tools[@]}; do
