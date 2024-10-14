@@ -144,7 +144,7 @@ fi
 title "Waiting for kubectl pods to finish initializing..."
 # Get the status of all pods in the namespace and grep for "ContainerCreating" or "PodInitializing"
 while kubectl get pods --all-namespaces | grep -q -E "ContainerCreating|PodInitializing"; do
-	ini "npx"tializing=`kubectl get pods --all-namespaces | grep -E "ContainerCreating|PodInitializing" | wc -l | xargs`
+	initializing=`kubectl get pods --all-namespaces | grep -E "ContainerCreating|PodInitializing" | wc -l | xargs`
 	echo "Waiting for $initializing pods to finish initializing..."
 	sleep 5
 done

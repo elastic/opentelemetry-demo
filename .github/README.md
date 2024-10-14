@@ -74,7 +74,6 @@ If you'd rather not use the "Fast Track" startup follow these instructions.
      --from-literal=elastic_apm_secret_token='Bearer YOUR_APM_SECRET_TOKEN'
    ```
    Don't forget to replace
-   <<<<<<< HEAD
    - `YOUR_APM_ENDPOINT_WITHOUT_HTTPS_PREFIX`: your Elastic APM endpoint (_without_ `https://` prefix) that _must_ also include the port (example: `1234567.apm.us-west2.gcp.elastic-cloud.com:443`).
    - `Bearer YOUR_APM_SECRET_TOKEN`: your Elastic APM secret token. Note that in this branch you MUST place either `Bearer` or `ApiKey` in front of the token. On ESS / self-managed you will generally use `Bearer`, on serverless you will generally use `ApiKey`.
 3. Execute the following commands to deploy the OpenTelemetry demo to your Kubernetes cluster:
@@ -124,6 +123,18 @@ In order to add Node level metrics collection we can run an additional Otel coll
 # deploy the Elastic OpenTelemetry collector distribution through helm install
 helm install otel-daemonset open-telemetry/opentelemetry-collector --values daemonset.yaml
 ```
+
+## Trigger demo scenario
+
+The `trigger-demo-scenario` script will cause the cart service to fail to start properly. You can use this to test how the solution responds to the problem.
+
+For the full scenario, set up a custom threshold rule like this:
+
+![Custom threshold rule](threshold_rule.png "Custom threshold rule")
+
+This rule will trigger when the demo scenario is activated and will be associated with the nginx ingress controller service. It can be used as a starting point to showcase the different exploration capabilities of the stack.
+
+With `trigger-demo-scenario restore`, the system can be put back into a working state again.
 
 ## Explore and analyze the data With Elastic
 
