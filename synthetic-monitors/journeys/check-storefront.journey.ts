@@ -1,11 +1,9 @@
 import { journey, step, monitor, expect } from "@elastic/synthetics";
 
 journey("Check storefront homepage", ({ page, params }) => {
-  // Only relevant for the push command to create
-  // monitors in Kibana
   monitor.use({
-    id: "example-monitor",
     schedule: 10,
+    id: "check-storefront-homepage",
   });
   step("launch application", async () => {
     await page.goto(params.url);

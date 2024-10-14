@@ -12,10 +12,20 @@ spec:
       labels:
         app: otel-synthetics
     spec:
+      volumes:
+        # Add a volume in /state for fleet
+        - name: state
+          emptyDir: {}
+          size: 1Gi
       containers:
         - name: otel-synthetics
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+          # Add a volume in /state for fleet
+          volumeMounts:
+            - name: state
+              mountPath: /state
+              readOnly: false
           env:
             - name: FLEET_ENROLL
               value: "1"
@@ -29,3 +39,5 @@ spec:
                 secretKeyRef:
                   name: elastic-secret-ds
                   key: fleet_enrollment_token
+            - name: STATE_PATH
+              value: "/state"
