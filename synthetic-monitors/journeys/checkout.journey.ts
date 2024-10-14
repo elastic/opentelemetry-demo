@@ -3,6 +3,7 @@ import { journey, step, monitor } from "@elastic/synthetics";
 journey("Checkout two items", async ({ page, params, context }) => {
   monitor.use({
     schedule: 3,
+    id: "check-storefront-checkout",
   });
 
   step("Go to store home", async () => {

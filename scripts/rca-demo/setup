@@ -160,15 +160,18 @@ done
 title "Installing nginx ingress"
 helminst nginx-ingress ./ingress
 
-title "Installing synthetics agent"
-helminst otel-synthetics-agent ./otel-synthetics
+# If synthetics is configured
+if [ -n "${SYNTHETICS_API_KEY}" ]; then
+	title "Installing synthetics agent helm chart"
+	helminst otel-synthetics-agent ./otel-synthetics
 
-title "Pushing Synthetics project..."
-popd
-cd synthetic-monitors
-npm install
-yes | npx @elastic/synthetics push . --params '{"url": "http://ingress-nginx-controller.ingress-nginx.svc.cluster.local"}'
-
+	
+	title "Pushing Synthetics project..."
+	popd
+	cd synthetic-monitors
+	npm install
+	yes | npx @elastic/synthetics push . --params '{"url": "http://ingress-nginx-controller.ingress-nginx.svc.cluster.local"}'
+fi
 
 title "Setup complete!"
 cat <<-EOF
