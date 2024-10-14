@@ -196,10 +196,8 @@ config:
       log_statements:
         - context: log
           conditions:
-              # ^[EWF]: Matches logs starting with E (Error), W (Warning), or F (Fatal).
-              # \d{4}: Matches the four digits after the log level (representing the date, like 1215 for December 15).
-              # .+: Matches the rest of the log line (the message part, without needing specific timestamp or file format).
-            - IsMatch(body, "^[EWF]\\d{4} .+")
+            # Match on namespace for the demo
+            - resource.attributes["k8s.namespace.name"] == "ingress-nginx"
           statements:
             - merge_maps(attributes, ExtractGrokPatterns(body, "%{LOG_LEVEL:log.level}%{MONTHNUM}%{MONTHDAY} %{HOUR}:%{MINUTE}:%{SECOND}\\.%{MICROS}%{SPACE}%{NUMBER:nginx_ingress_controller.error.thread_id} %{SOURCE_FILE:nginx_ingress_controller.error.source.file}:%{NUMBER:nginx_ingress_controller.error.source.line_number}\\] %{GREEDYMULTILINE:message}", true, ["LOG_LEVEL=[A-Z]", "MONTHNUM=(0[1-9]|1[0-2])", "MONTHDAY=(0[1-9]|[12][0-9]|3[01])", "HOUR=([01][0-9]|2[0-3])", "MINUTE=[0-5][0-9]", "SECOND=[0-5][0-9]", "MICROS=[0-9]{6}", "SOURCE_FILE=[^:]+", "GREEDYMULTILINE=(.|\\n)*"]), "upsert")
 
@@ -213,10 +211,8 @@ config:
       log_statements:
         - context: log
           conditions:
-              #     # ^([0-9a-fA-F:.]+): Matches the remote address (IPv4 or IPv6 format).
-              #     # [^ ]+: Matches the remote user (including the hyphen for missing user).
-              #     # .*[0-9a-fA-F]+$: Ensures the log line ends with a hexadecimal string (request ID).
-            - IsMatch(body, "^([0-9a-fA-F:.]+) - [^ ]+ .*[0-9a-fA-F]+$")
+            # Match on namespace for the demo
+            - resource.attributes["k8s.namespace.name"] == "ingress-nginx"
           statements:
             # Log format: https://github.com/kubernetes/ingress-nginx/blob/nginx-0.30.0/docs/user-guide/nginx-configuration/log-format.md
             # Based on https://github.com/elastic/integrations/blob/main/packages/nginx_ingress_controller/data_stream/access/elasticsearch/ingest_pipeline/default.yml
