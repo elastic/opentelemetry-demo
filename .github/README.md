@@ -1,6 +1,7 @@
 <!-- markdownlint-disable-next-line -->
+# Elastic RCA KubeCon Demo Branch - OpenTelemetry Demo
 
-# <img src="https://opentelemetry.io/img/logos/opentelemetry-logo-nav.png" alt="OTel logo" width="32"> :heavy_plus_sign: <img src="https://images.contentstack.io/v3/assets/bltefdd0b53724fa2ce/blt601c406b0b5af740/620577381692951393fdf8d6/elastic-logo-cluster.svg" alt="OTel logo" width="32"> OpenTelemetry Demo with Elastic Observability
+This branch of this demo fork is being developed for a specific RCA demo for November 2024. To run sciripts specific to this RCA demo, see [the scripts/rca-demo directory](./scripts/rca-demo/README.md)
 
 The following guide describes how to setup the OpenTelemetry demo with Elastic Observability using [Docker compose](#docker-compose) or [Kubernetes](#kubernetes). This fork introduces several changes to the agents used in the demo:
 
@@ -18,47 +19,9 @@ The OpenTelemetry Root Cause Analysis (RCA) workshop is designed to identify the
 - **Ingress controller:** Many of our users have logs from nginx ingress controllers. We are, initially, focusing around this as a requirement since it is a rich source of logs data.
 - **Uninstrumented services**: We will initially disable traces from the Ad Service and Product Catalog Service to better simulate real world situations in which tracing is not always available.
 
-### Prerequisites:
+## Fast Track Setup
 
-On a mac you can easily install these prerequisites with: `brew install minikube helm kubernetes-cli`
-
-- Create a Kubernetes cluster. For local development `minikube` is recommended. There are no specific requirements, so you can create a local one, or use a managed Kubernetes cluster, such as [GKE](https://cloud.google.com/kubernetes-engine), [EKS](https://aws.amazon.com/eks/), or [AKS](https://azure.microsoft.com/en-us/products/kubernetes-service).
-- Set up [kubectl](https://kubernetes.io/docs/reference/kubectl/).
-- Set up [Helm](https://helm.sh/).
-- Install the Nginx Ingress Controller:
-- Set up [Minikube](https://minikube.sigs.k8s.io/docs/)
-
-```
-helm install --namespace kube-system nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx
-```
-
-## Fast Track Startup
-
-The fast way to set things up is with the `elastic-setup` script. This assumes and requires `minikube`. Before running it set the following environment variables:
-
-```bash
-export OTEL_EXPORTER_OTLP_ENDPOINT="https://YOUR_APM_SERVER_ENDPOINT"
-export OTEL_EXPORTER_OTLP_HEADERS="Authorization=ApiKey YOUR_APM_API_KEY"
-export OTEL_DEMO_ES_ENDPOINT="https://YOUR_ES_URL"
-export OTEL_DEMO_ES_API_KEY="YOUR_ES_API_KEY"
-export KIBANA_URL="HTTP://URL/FOR/KIBANA"
-# Get from the kibana management UI
-export KIBANA_API_KEY="YOURAPIKEY"
-
-# Create a fleet policy (for a synthetics private location) and go through the "add agent" flow for it. Within the policy go through the add agent flow and get these values from there
-set -x OTEL_DEMO_FLEET_URL "https://FLEET_URL"
-set -x OTEL_DEMO_FLEET_ENROLLMENT_TOKEN "YOURTOKEN"
-
-# Get the synthetics API key from the "Project API Key" page in the Synthetics Kibana app
-export SYNTHETICS_API_KEY="YOURSYNTHETICSAPIKEYI"
-# Make sure to create a synthetics private location in the synthetics UI linked to the previously created fleet policy. It should generally be named otel-demo, but you can change it here
-export SYNTHETICS_PRIVATE_LOCATION="otel-demo"
-
-```
-
-Then, after loading them into your shell run `./elastic-setup`
-
-You are now done! If you'd like to set things up manually see the "Manual Startup" section below.
+See [the setup script docs](./scripts/rca-demo/README.md).
 
 ## Manual Startup
 
@@ -126,15 +89,7 @@ helm install otel-daemonset open-telemetry/opentelemetry-collector --values daem
 
 ## Trigger demo scenario
 
-The `trigger-demo-scenario` script will cause the cart service to fail to start properly. You can use this to test how the solution responds to the problem.
-
-For the full scenario, set up a custom threshold rule like this:
-
-![Custom threshold rule](threshold_rule.png "Custom threshold rule")
-
-This rule will trigger when the demo scenario is activated and will be associated with the nginx ingress controller service. It can be used as a starting point to showcase the different exploration capabilities of the stack.
-
-With `trigger-demo-scenario restore`, the system can be put back into a working state again.
+See [the docs for running scripts for this demo](./scripts/rca-demo/README.md).
 
 ## Explore and analyze the data With Elastic
 

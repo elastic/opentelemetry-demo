@@ -58,3 +58,6 @@ test/tracetesting/tracetesting-vars.yaml
 /src/currencyservice/proto
 /src/checkoutservice/genproto
 /src/accountingservice/genproto
+
+# RCA demo 2024
+/scripts/rca-demo/.env
