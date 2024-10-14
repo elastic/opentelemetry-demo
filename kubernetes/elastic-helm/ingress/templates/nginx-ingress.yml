@@ -1,7 +1,10 @@
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: my-otel-demo-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/server-alias: ingress-nginx-controller.ingress-nginx.svc.cluster.local
 spec:
   ingressClassName: nginx
   rules:

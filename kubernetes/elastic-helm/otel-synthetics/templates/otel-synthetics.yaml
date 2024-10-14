@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-synthetics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-synthetics
+  template:
+    metadata:
+      labels:
+        app: otel-synthetics
+    spec:
+      containers:
+        - name: otel-synthetics
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+          env:
+            - name: FLEET_ENROLL
+              value: "1"
+            - name: FLEET_URL
+              valueFrom:
+                secretKeyRef:
+                  name: elastic-secret-ds
+                  key: fleet_url
+            - name: FLEET_ENROLLMENT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: elastic-secret-ds
+                  key: fleet_enrollment_token

@@ -1,0 +1,19 @@
+{
+  "name": "otel-demo-monitors",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "push": "npx @elastic/synthetics push"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@elastic/synthetics": "^1.14.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.5"
+  }
+}

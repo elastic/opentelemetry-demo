@@ -1,0 +1,5 @@
+apiVersion: v2
+name: otel-synthetics
+description: A Helm chart for deploying a single ReplicaSet for elastic-agent-complete
+version: 0.1.0
+appVersion: "1.0"
