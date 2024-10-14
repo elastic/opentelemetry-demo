@@ -90,8 +90,6 @@ opentelemetry-collector:
       otlp/elastic:
         endpoint: ${env:ELASTIC_APM_ENDPOINT}
         compression: none
-        tls:
-          insecure: true
         headers:
           Authorization: ${env:ELASTIC_APM_SECRET_TOKEN}
     processors:
