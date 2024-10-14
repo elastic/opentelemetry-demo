@@ -1,0 +1,3 @@
+#!/bin/bash
+
+echo "ATTN: This script has moved to ./scripts/rca-demo/setup"
