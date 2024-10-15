@@ -128,7 +128,6 @@ func main() {
 		}
 		log.Println("Shutdown meter provider")
 	}()
-	openfeature.AddHooks(otelhooks.NewTracesHook())
 	err := openfeature.SetProvider(flagd.NewProvider())
 	if err != nil {
 		log.Fatal(err)
@@ -301,7 +300,7 @@ func (p *productCatalog) checkProductFailure(ctx context.Context, id string) boo
 	if id != "OLJCESPC7Z" {
 		return false
 	}
-
+	openfeature.AddHooks(otelhooks.NewTracesHook())
 	client := openfeature.NewClient("productCatalog")
 	failureEnabled, _ := client.BooleanValue(
 		ctx, "productCatalogFailure", false, openfeature.EvaluationContext{},
