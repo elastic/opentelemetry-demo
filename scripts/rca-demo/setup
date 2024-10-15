@@ -114,7 +114,8 @@ OTEL_AUTH_VALUE=`echo $OTEL_EXPORTER_OTLP_HEADERS | cut -d= -f2-`
 kubectl delete secret elastic-secret 
 kubectl create secret generic elastic-secret \
   --from-literal=elastic_apm_endpoint="$OTEL_ENDPOINT_NO_PROTO" \
-  --from-literal=elastic_apm_secret_token="$OTEL_AUTH_VALUE"
+  --from-literal=elastic_apm_secret_token="$OTEL_AUTH_VALUE" \
+  --from-literal=elastic_apm_tls_insecure="$TLS_INSECURE"
 
 kubectl delete secret elastic-secret-ds
 kubectl create secret generic elastic-secret-ds \

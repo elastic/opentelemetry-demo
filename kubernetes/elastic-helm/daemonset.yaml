@@ -34,6 +34,11 @@ extraEnvs:
     valueFrom:
       fieldRef:
         fieldPath: spec.nodeName
+  - name: TLS_INSECURE
+    valueFrom:
+      secretKeyRef:
+        name: elastic-secret
+        key: elastic_apm_tls_insecure
 
 # kubeletstats additional rules for Node metrics
 clusterRole:
@@ -66,7 +71,7 @@ config:
       - ${env:ELASTIC_ENDPOINT}
       api_key: ${env:ELASTIC_API_KEY}
       tls:
-        insecure: ${env.TLS_INSECURE}
+        insecure: ${env:TLS_INSECURE}
       logs_dynamic_index:
         enabled: true
       metrics_dynamic_index:
@@ -78,7 +83,7 @@ config:
       - ${env:ELASTIC_ENDPOINT}
       api_key: ${env:ELASTIC_API_KEY}
       tls:
-        insecure: ${env.TLS_INSECURE}
+        insecure: ${env:TLS_INSECURE}
       logs_dynamic_index:
         enabled: true
       mapping:

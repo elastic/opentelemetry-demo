@@ -78,6 +78,11 @@ opentelemetry-collector:
         secretKeyRef:
           name: elastic-secret
           key: elastic_apm_secret_token
+    - name: TLS_INSECURE
+      valueFrom:
+        secretKeyRef:
+          name: elastic-secret
+          key: elastic_apm_tls_insecure   
 
   alternateConfig:
     extensions:
@@ -93,7 +98,7 @@ opentelemetry-collector:
         headers:
           Authorization: ${env:ELASTIC_APM_SECRET_TOKEN}
         tls:
-          insecure: ${env.TLS_INSECURE}
+          insecure: ${env:TLS_INSECURE}
     processors:
       filter:
         spans:
