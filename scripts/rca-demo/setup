@@ -73,21 +73,26 @@ if [ -z "${OTEL_DEMO_ES_API_KEY}" ]; then
   die "You must set OTEL_DEMO_ES_API_KEY"
 fi
 
-if [ -z "${OTEL_DEMO_FLEET_URL}" ]; then
-  die "You must set OTEL_DEMO_FLEET_URL"
-fi
-
-if [ -z "${OTEL_DEMO_FLEET_ENROLLMENT_TOKEN}" ]; then
-  die "You must set OTEL_DEMO_FLEET_ENROLLMENT_TOKEN"
-fi
-
 if [ -z "${SYNTHETICS_API_KEY}" ]; then
-  die "You must set SYNTHETICS_API_KEY"
+	echo "No SYNTHETICS_API_KEY set, will skip synthetics setup"
+else
+  echo "By providing a SYNTHETICS_API_KEY value, you are opting IN to synthetics setup"
+	echo "Please remove this env var or set it to \"\" to opt out."
+
+	if [ -z "${KIBANA_URL}" ]; then
+		die "[Synthetics Requirement] You must set KIBANA_URL"
+	fi
+
+	if [ -z "${OTEL_DEMO_FLEET_URL}" ]; then
+		die "[Synthetics Requirement] You must set OTEL_DEMO_FLEET_URL"
+	fi
+
+	if [ -z "${OTEL_DEMO_FLEET_ENROLLMENT_TOKEN}" ]; then
+		die "[Synthetics Requirement] You must set OTEL_DEMO_FLEET_ENROLLMENT_TOKEN"
+	fi
 fi
 
-if [ -z "${KIBANA_URL}" ]; then
-  die "You must set KIBANA_URL"
-fi
+
 
 if minikube status | grep -q "Running"; then
 	title "Minikube is already running, skipping..."
@@ -118,10 +123,9 @@ kubectl create secret generic elastic-secret-ds \
   --from-literal=fleet_url="$OTEL_DEMO_FLEET_URL" \
   --from-literal=fleet_enrollment_token="$OTEL_DEMO_FLEET_ENROLLMENT_TOKEN"
 
-title "Installing/Upgrading helm charts for $APP_NAME..."
-pushd kubernetes/elastic-helm
-helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
-helm repo update open-telemetry
+pushd_helm_dir () {
+	pushd	kubernetes/elastic-helm
+}
 
 # Install or upgrade helm chart
 helminst () {
@@ -136,10 +140,19 @@ helminst () {
 	helm $hcommand $@
 }
 
+title "Installing/Upgrading helm charts for $APP_NAME..."
+
+pushd_helm_dir
+
+helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
+helm repo update open-telemetry
+
 title "Installing $APP_NAME helm chart"
 helminst $APP_NAME -f deployment.yaml $1 open-telemetry/opentelemetry-demo
 title "Installing daemonset helm chart"
 helminst otel-daemonset open-telemetry/opentelemetry-collector --values daemonset.yaml  
+
+popd
 
 # Check if dns entry for otel-demo.internal exists
 if ! grep -q "otel-demo.internal" /etc/hosts
@@ -158,16 +171,18 @@ while kubectl get pods --all-namespaces | grep -q -E "ContainerCreating|PodIniti
 done
 
 title "Installing nginx ingress"
+pushd_helm_dir
 helminst nginx-ingress ./ingress
+popd
 
 # If synthetics is configured
 if [ -n "${SYNTHETICS_API_KEY}" ]; then
 	title "Installing synthetics agent helm chart"
+	pushd_helm_dir
 	helminst otel-synthetics-agent ./otel-synthetics
-
-	
-	title "Pushing Synthetics project..."
 	popd
+
+	title "Pushing Synthetics project..."
 	cd synthetic-monitors
 	npm install
 	yes | npx @elastic/synthetics push . --params '{"url": "http://ingress-nginx-controller.ingress-nginx.svc.cluster.local"}'
