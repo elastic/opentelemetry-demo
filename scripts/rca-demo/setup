@@ -92,38 +92,7 @@ else
 	fi
 fi
 
-local=$1
-
-deployment_yaml="./kubernetes/elastic-helm/deployment.yaml"
-daemonset_yaml="./kubernetes/elastic-helm/daemonset.yaml"
-
-if grep -q '^\s*tls:' "$deployment_yaml" && [[ "$local" != "local" ]]; then
-    read -p "'tls:' is present in the $deployment_yaml. Do you want to continue? (Y/n) " response
-    response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
-
-    if [[ "$response" != "" && "$response" != "y" ]]; then
-        exit 1
-    fi
-fi
-
-if grep -q '^\s*tls:' "$daemonset_yaml" && [[ "$local" != "local" ]]; then
-    read -p "'tls:' is present in the $daemonset_yaml. Do you want to continue? (Y/n) " response
-    response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
-
-    if [[ "$response" != "" && "$response" != "y" ]]; then
-        exit 1
-    fi
-fi
-
-if ! grep -q '^\s*tls:' "$deployment_yaml" && [[ "$local" == "local" ]]; then
-  sed -e '/Authorization: ${env:ELASTIC_APM_SECRET_TOKEN}/a\'$'\n''\ \ \ \ \ \ \ \ tls:\
-  \ \ \ \ \ \ \ \ insecure:\ true' "$deployment_yaml" > temp.yaml && mv temp.yaml "$deployment_yaml"
-fi
-
-if ! grep -q '^\s*tls:' "$daemonset_yaml" && [[ "$local" == "local" ]]; then
-  sed -e '/api_key: ${env:ELASTIC_API_KEY}/a\'$'\n''\ \ \ \ \ \ tls:\
-  \ \ \ \ \ \ insecure:\ true' "$daemonset_yaml" > temp.yaml && mv temp.yaml "$daemonset_yaml"
-fi
+: ${TLS_INSECURE:="false"}
 
 if minikube status | grep -q "Running"; then
 	title "Minikube is already running, skipping..."

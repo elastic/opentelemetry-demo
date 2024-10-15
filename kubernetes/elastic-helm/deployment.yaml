@@ -92,6 +92,8 @@ opentelemetry-collector:
         compression: none
         headers:
           Authorization: ${env:ELASTIC_APM_SECRET_TOKEN}
+        tls:
+          insecure: ${env.TLS_INSECURE}
     processors:
       filter:
         spans:
