@@ -28,11 +28,6 @@ Run the setup script from the repo root:
 ./scripts/rca-demo/setup
 ```
 
-For local setup (ES/Kibana/APM Server), run the script with `local` argument which will add required `tls` setting:
-```
-./scripts/rca-demo/setup local
-```
-
 The output will guide you if you are missing anything required to make this work. You can check the
 status of the pods by running `kubectl get pods`. 
 
