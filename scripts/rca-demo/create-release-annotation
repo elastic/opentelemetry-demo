@@ -1,0 +1,86 @@
+#!/bin/bash
+
+# Define bash colors
+# Reset
+Color_Off='\033[0m'       # Text Reset
+
+# Regular Colors
+Black='\033[0;30m'        # Black
+Red='\033[0;31m'          # Red
+Green='\033[0;32m'        # Green
+Yellow='\033[0;33m'       # Yellow
+Blue='\033[0;34m'         # Blue
+Purple='\033[0;35m'       # Purple
+Cyan='\033[0;36m'         # Cyan
+White='\033[0;37m'        # White
+
+# Bold
+BBlack='\033[1;30m'       # Black
+BRed='\033[1;31m'         # Red
+BGreen='\033[1;32m'       # Green
+BYellow='\033[1;33m'      # Yellow
+BBlue='\033[1;34m'        # Blue
+BPurple='\033[1;35m'      # Purple
+BCyan='\033[1;36m'        # Cyan
+BWhite='\033[1;37m'       # White
+
+die () {
+  echo -e "${BRed}ERROR: $1${Color_Off}"
+  exit 1
+}
+
+if [ -z "${KIBANA_URL}" ]; then
+  die "You must set KIBANA_URL to a valid Kibana URL"
+fi
+
+if [ -z "${KIBANA_API_KEY}" ]; then
+  die "You must set KIBANA_API_KEY to a valid KIBANA API KEY"
+fi
+
+action=$1
+
+service_name="cartservice"
+
+release_timestamp=$(date -u -v-5M +"%Y-%m-%dT%H:%M:%SZ")
+new_service_version="2.0.0"
+
+old_service_version="1.0.0"
+rollback_timestamp=$(date -u -v-1M +"%Y-%m-%dT%H:%M:%SZ")
+
+ANNOTATION_API_ENDPOINT="$KIBANA_URL/api/apm/services/$service_name/annotation"
+
+service_version=$( [[ "$action" == "restore" ]] && echo "$old_service_version" || echo "$new_service_version" )
+message=$( [[ "$action" == "restore" ]] && echo "Version rollback" || echo "New version release" )
+timestamp=$( [[ "$action" == "restore" ]] && echo "$rollback_timestamp" || echo "$release_timestamp" )
+
+REQUEST_BODY=$(cat <<EOF
+{
+    "@timestamp": "$timestamp",
+    "service": {
+        "version": "$service_version"
+    },
+    "message": "$message for $service_name: $service_version"
+}
+EOF
+)
+
+HEADERS=(
+    -H "kbn-xsrf:true" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: $KIBANA_API_KEY"
+)
+
+response=$(curl -s -X POST "${HEADERS[@]}" -d "$REQUEST_BODY" "$ANNOTATION_API_ENDPOINT")
+
+statusCode=$(echo "$response" | jq -r '.statusCode')
+ok=$(echo "$response" | jq -r '.ok')
+
+if [[ "$statusCode" != null && "$statusCode" != 200 ]]; then
+    die "Creating annotation failed: $response"
+fi
+
+if [[ "$ok" != null && "$ok" == false ]]; then
+    die "Creating annotation failed: $response"
+fi
+
+echo "$message for $service_name: $service_version"
