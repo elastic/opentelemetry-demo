@@ -1,5 +1,5 @@
 <Project>
   <ItemGroup>
-    <PackageReference Include="Elastic.OpenTelemetry" Version="1.0.0-alpha.4" />
+    <PackageReference Include="Elastic.OpenTelemetry" Version="1.0.0-alpha.6" />
   </ItemGroup>
 </Project>
