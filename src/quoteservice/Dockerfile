@@ -17,7 +17,7 @@ CMD php public/index.php
 USER www-data
 EXPOSE ${QUOTE_SERVICE_PORT}
 
-FROM composer:2.7 AS vendor
+FROM composer:2.8 AS vendor
 
 WORKDIR /tmp/
 COPY ./src/quoteservice/composer.json .
