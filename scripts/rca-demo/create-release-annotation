@@ -77,7 +77,8 @@ EOF
 )
 
 HEADERS=(
-    -H "kbn-xsrf:true" \
+    -H "kbn-xsrf: true" \
+    -H "elastic-api-version: 2023-10-31" \
     -H "Content-Type: application/json" \
     -H "Authorization: $KIBANA_API_KEY"
 )
