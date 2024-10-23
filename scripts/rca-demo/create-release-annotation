@@ -37,9 +37,21 @@ if [ -z "${KIBANA_API_KEY}" ]; then
   die "You must set KIBANA_API_KEY to a valid KIBANA API KEY"
 fi
 
-action=$1
+if [[ "$1" != -* ]]; then
+    action="$1"
+    shift
+fi
 
-service_name="cartservice"
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -s) service_name="$2"; shift ;;
+    esac
+    shift
+done
+
+if [[ -z "$service_name" ]]; then
+  die "You must specify service name using -s option"
+fi
 
 release_timestamp=$(date -u -v-5M +"%Y-%m-%dT%H:%M:%SZ")
 new_service_version="2.0.0"
