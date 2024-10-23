@@ -11,6 +11,7 @@ echo "Replacing cart service command"
 if [ "$action" == "restore" ]; then
 	echo "Restoring original command"
 	kubectl patch deployment my-otel-demo-cartservice --type='json' -p='[{"op": "remove", "path": "/spec/template/spec/containers/0/command"}]'
+	./scripts/rca-demo/create-release-annotation restore -s cartservice
 	exit 0
 else
 	echo "Scale the my-otel-demo-cartservice deployment to 0"
@@ -20,4 +21,5 @@ else
 	kubectl patch deployment my-otel-demo-cartservice --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/command", "value": ["/bin/sh", "-c", "echo Could not start, bad entrypoint! >&2"]}]'
 	echo "Scale back up"
 	kubectl scale deployment my-otel-demo-cartservice --replicas=1
+	./scripts/rca-demo/create-release-annotation -s cartservice
 fi
