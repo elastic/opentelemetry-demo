@@ -3,7 +3,9 @@
 APP_NAME=my-otel-demo
 
 # source shared utils
+set -a
 source ./shared.sh
+set +a
 
 title "Checking environment for $APP_NAME..."
 
