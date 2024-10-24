@@ -2,19 +2,6 @@
 
 Docs for running scripts in this folder. 
 
-### Prerequisites
-
-On a mac you can easily install these prerequisites with: `brew install minikube helm kubernetes-cli`
-
-- Create a Kubernetes cluster. For local development `minikube` is recommended. There are no specific requirements, so you can create a local one, or use a managed Kubernetes cluster, such as [GKE](https://cloud.google.com/kubernetes-engine), [EKS](https://aws.amazon.com/eks/), or [AKS](https://azure.microsoft.com/en-us/products/kubernetes-service).
-- Set up [kubectl](https://kubernetes.io/docs/reference/kubectl/).
-- Set up [Helm](https://helm.sh/).
-- Install the Nginx Ingress Controller:
-- Set up [Minikube](https://minikube.sigs.k8s.io/docs/)
-
-```
-helm install --namespace kube-system nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx
-```
 
 ## setup
 

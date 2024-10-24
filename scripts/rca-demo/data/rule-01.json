@@ -1,0 +1,52 @@
+{
+  "params": {
+    "criteria": [
+      {
+        "comparator": ">",
+        "metrics": [
+          {
+            "name": "A",
+            "filter": "http.response.status_code:*",
+            "aggType": "count"
+          },
+          {
+            "name": "B",
+            "filter": "http.response.status_code>=500",
+            "aggType": "count"
+          }
+        ],
+        "threshold": [
+          1
+        ],
+        "timeSize": 1,
+        "timeUnit": "m",
+        "equation": "(B/A) * 100",
+        "label": "500 Errors"
+      }
+    ],
+    "alertOnNoData": false,
+    "alertOnGroupDisappear": false,
+    "searchConfiguration": {
+      "query": {
+        "query": "k8s.namespace.name: \"ingress-nginx\" AND url.path: /api/*",
+        "language": "kuery"
+      },
+      "index": "otel_logs_data"
+    },
+    "groupBy": [
+      "service.name",
+      "url.path"
+    ]
+  },
+  "consumer": "logs",
+  "schedule": {
+    "interval": "1m"
+  },
+  "tags": [
+    "demo",
+    "cli-created"
+  ],
+  "name": "NGINX 500s",
+  "rule_type_id": "observability.rules.custom_threshold",
+  "actions": []
+}

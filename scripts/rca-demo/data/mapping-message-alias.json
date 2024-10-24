@@ -1,0 +1,11 @@
+{
+  "properties": {
+    "body_text": {
+      "type": "match_only_text"
+    },
+    "message": {
+      "type": "alias",
+      "path": "body_text"
+    }
+  }
+}
