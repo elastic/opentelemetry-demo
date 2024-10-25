@@ -69,10 +69,15 @@ create_rule 9055220c-8fb1-4f9f-be7c-0a33eb2bafc5 rule-01.json
 echo -e "\n"
 
 # Update mappings in ES
-# NOTE: this will fail if the data stream is not created
-# TODO: Update the component template also, and just swallow errors on this call
-title "Attempting to add message alias for otel logs"
+
+# NOTE: this one will fail if the data stream is not created yet, that's ok
+title "Attempting to add message alias for otel logs index"
 curl -X PUT "$OTEL_DEMO_ES_ENDPOINT/logs-*otel*/_mapping" -H "Authorization: ApiKey $OTEL_DEMO_ES_API_KEY" -H "Content-Type: application/json" -d @$SCRIPTS_DIR/data/mapping-message-alias.json
+
+echo -e "\n"
+
+title "Attempting to add message alias for logs-otel@mappings component template"
+curl -X PUT "$OTEL_DEMO_ES_ENDPOINT/_component_template/logs-otel@mappings" -H "Authorization: ApiKey $OTEL_DEMO_ES_API_KEY" -H "Content-Type: application/json" -d @$SCRIPTS_DIR/data/mapping-component-template-message-alias.json
 
 echo -e "\n"
 
