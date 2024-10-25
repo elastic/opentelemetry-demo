@@ -1,11 +1,12 @@
 #!/bin/bash
 
 SCRIPTS_DIR=$(dirname "${BASH_SOURCE[0]}")
-$SCRIPTS_DIR/autosource.sh
 
 set -a
 source $SCRIPTS_DIR/shared.sh
 set +a
+
+autosource
 
 create_data_view () {
 	ID=$1

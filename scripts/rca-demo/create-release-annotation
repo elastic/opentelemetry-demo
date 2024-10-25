@@ -1,11 +1,12 @@
 #!/bin/bash
 
 SCRIPTS_DIR=$(dirname "${BASH_SOURCE[0]}")
-$SCRIPTS_DIR/autosource.sh
 
 set -a
 source $SCRIPTS_DIR/shared.sh
 set +a
+
+autosource
 
 if [ -z "${KIBANA_URL}" ]; then
   die "You must set KIBANA_URL to a valid Kibana URL"
