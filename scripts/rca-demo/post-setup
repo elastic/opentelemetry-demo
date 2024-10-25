@@ -24,7 +24,7 @@ create_data_view () {
 
 	if [[ $EXISTS == '{"statusCode":404,"error":"Not Found"'* ]]; then
 		title "Creating data view $1 for indices $2"
-		curl -X POST $KIBANA_URL/api/data_views/data_view -u "$KIBANA_USER:$KIBANA_PASSWORD" -H 'kbn-xsrf: bananas' -H 'Content-Type: application/json' -H 'elastic-api-version: 2023-10-31' -d "{\"data_view\": { \"name\": \"$1 (Automated by Demo CLI)\", \"title\": \"$2\", \"id\": \"$1\", \"timeFieldName\": \"@timestamp\" }}"
+		curl -sS -D - -X POST $KIBANA_URL/api/data_views/data_view -u "$KIBANA_USER:$KIBANA_PASSWORD" -H 'kbn-xsrf: bananas' -H 'Content-Type: application/json' -H 'elastic-api-version: 2023-10-31' -d "{\"data_view\": { \"name\": \"$1 (Automated by Demo CLI)\", \"title\": \"$2\", \"id\": \"$1\", \"timeFieldName\": \"@timestamp\" }}" -o /dev/null | head -n1
 	else
 		title "Data view $1 already exists"
 	fi
@@ -36,7 +36,7 @@ create_rule () {
 	
 	title "Attempting to create rule from $DATA_FILE"
 
-	curl -X POST $KIBANA_URL/api/alerting/rule/$ID -u "$KIBANA_USER:$KIBANA_PASSWORD" -H 'kbn-xsrf: bananas' -H 'Content-Type: application/json; elastic-api-version: 2023-10-31' -d @$SCRIPTS_DIR/data/$DATA_FILE
+	curl -sS -D - -X POST $KIBANA_URL/api/alerting/rule/$ID -u "$KIBANA_USER:$KIBANA_PASSWORD" -H 'kbn-xsrf: bananas' -H 'Content-Type: application/json; elastic-api-version: 2023-10-31' -d @$SCRIPTS_DIR/data/$DATA_FILE -o /dev/null | head -n1
 }
 
 title "Setting up Kibana assets for the demo..."
@@ -65,7 +65,9 @@ fi
 OTEL_DEMO_ES_ENDPOINT=$(echo $OTEL_DEMO_ES_ENDPOINT | sed "s/host.minikube.internal/localhost/" | sed "s/host.docker.internal/localhost/")
 
 # Create data views
-# create_data_view otel_logs_data logs-*otel* 
+create_data_view otel_logs_data logs-*otel* 
+
+echo -e "\n"
 
 # Create rules
 create_rule 9055220c-8fb1-4f9f-be7c-0a33eb2bafc5 rule-01.json
