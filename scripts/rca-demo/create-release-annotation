@@ -33,8 +33,12 @@ if [ -z "${KIBANA_URL}" ]; then
   die "You must set KIBANA_URL to a valid Kibana URL"
 fi
 
-if [ -z "${KIBANA_API_KEY}" ]; then
-  die "You must set KIBANA_API_KEY to a valid KIBANA API KEY"
+if [ -z "${KIBANA_USER}" ]; then
+  die "You must set KIBANA_USER to a valid admin Kibana user"
+fi
+
+if [ -z "${KIBANA_PASSWORD}" ]; then
+  die "You must set KIBANA_PASSWORD for the specified user"
 fi
 
 if [[ "$1" != -* ]]; then
@@ -79,11 +83,10 @@ EOF
 HEADERS=(
     -H "kbn-xsrf: true" \
     -H "elastic-api-version: 2023-10-31" \
-    -H "Content-Type: application/json" \
-    -H "Authorization: $KIBANA_API_KEY"
+    -H "Content-Type: application/json"
 )
 
-response=$(curl -s -X POST "${HEADERS[@]}" -d "$REQUEST_BODY" "$ANNOTATION_API_ENDPOINT")
+response=$(curl -s -X POST -u "$KIBANA_USER:$KIBANA_PASSWORD" "${HEADERS[@]}" -d "$REQUEST_BODY" "$ANNOTATION_API_ENDPOINT")
 
 statusCode=$(echo "$response" | jq -r '.statusCode')
 ok=$(echo "$response" | jq -r '.ok')

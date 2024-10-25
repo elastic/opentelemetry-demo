@@ -1,0 +1,8 @@
+{
+  "data_view": { 
+    "name": "logs_otel_test_cli (Automated by Demo CLI)", 
+    "title": "logs-*otel*", 
+    "id": "logs_otel_test_cli",
+    "timeFieldName": "@timestamp" 
+  }
+}

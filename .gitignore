@@ -61,3 +61,5 @@ test/tracetesting/tracetesting-vars.yaml
 
 # RCA demo 2024
 /scripts/rca-demo/.env
+/scripts/rca-demo/.env.*
+!/scripts/rca-demo/.env.example

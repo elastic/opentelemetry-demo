@@ -1,21 +1,30 @@
 #!/bin/bash
 
 SCRIPTS_DIR=$(dirname "${BASH_SOURCE[0]}")
+LOAD_ENV_FILE_PATH=$SCRIPTS_DIR/.env
 
 set -a
 source $SCRIPTS_DIR/shared.sh
-source $SCRIPTS_DIR/.env
 set +a
+
+if [ -n "${ENV_FILE_PATH}" ]; then
+  LOAD_ENV_FILE_PATH=$ENV_FILE_PATH
+fi
+
+title "Sourcing environment variables from $LOAD_ENV_FILE_PATH"
+source $LOAD_ENV_FILE_PATH
 
 create_data_view () {
 	ID=$1
 	INDICES=$2
 
-	EXISTS=$(curl -s $KIBANA_URL/api/data_views/data_view/$ID -H "Authorization: ApiKey $OTEL_DEMO_ES_API_KEY" -H 'elastic-api-version: 2023-10-31')
+	EXISTS=$(curl -s $KIBANA_URL/api/data_views/data_view/$ID -u "$KIBANA_USER:$KIBANA_PASSWORD" -H 'elastic-api-version: 2023-10-31')
+
+	title "Attempting to create data view $ID"
 
 	if [[ $EXISTS == '{"statusCode":404,"error":"Not Found"'* ]]; then
 		title "Creating data view $1 for indices $2"
-		curl -X POST $KIBANA_URL/api/data_views/data_view -H 'kbn-xsrf: bananas' -H 'Content-Type: application/json' -H 'elastic-api-version: 2023-10-31' -H "Authorization: ApiKey $OTEL_DEMO_ES_API_KEY" -d "{\"data_view\": { \"name\": \"$1 (Automated by Demo CLI)\", \"title\": \"$2\", \"id\": \"$1\", \"timeFieldName\": \"@timestamp\" }}"
+		curl -X POST $KIBANA_URL/api/data_views/data_view -u "$KIBANA_USER:$KIBANA_PASSWORD" -H 'kbn-xsrf: bananas' -H 'Content-Type: application/json' -H 'elastic-api-version: 2023-10-31' -d "{\"data_view\": { \"name\": \"$1 (Automated by Demo CLI)\", \"title\": \"$2\", \"id\": \"$1\", \"timeFieldName\": \"@timestamp\" }}"
 	else
 		title "Data view $1 already exists"
 	fi
@@ -24,8 +33,10 @@ create_data_view () {
 create_rule () {
 	ID=$1
 	DATA_FILE=$2
+	
+	title "Attempting to create rule from $DATA_FILE"
 
-	curl -X POST $KIBANA_URL/api/alerting/rule/$ID -H 'kbn-xsrf: bananas' -H "Authorization: ApiKey $OTEL_DEMO_ES_API_KEY" -H 'Content-Type: application/json; elastic-api-version: 2023-10-31' -d @$SCRIPTS_DIR/data/$DATA_FILE
+	curl -X POST $KIBANA_URL/api/alerting/rule/$ID -u "$KIBANA_USER:$KIBANA_PASSWORD" -H 'kbn-xsrf: bananas' -H 'Content-Type: application/json; elastic-api-version: 2023-10-31' -d @$SCRIPTS_DIR/data/$DATA_FILE
 }
 
 title "Setting up Kibana assets for the demo..."
@@ -34,12 +45,27 @@ if [ -z "${KIBANA_URL}" ]; then
   die "You must set KIBANA_URL so that we can post API requests there (please include base path if one exists)"
 fi
 
-if [ -z "${OTEL_DEMO_ES_API_KEY}" ]; then
-  die "You must set OTEL_DEMO_ES_API_KEY (must be valid API key for ES and Kibana APIs)"
+if [ -z "${OTEL_DEMO_ES_ENDPOINT}" ]; then
+  die "You must set OTEL_DEMO_ES_ENDPOINT"
 fi
 
+if [ -z "${OTEL_DEMO_ES_API_KEY}" ]; then
+  die "You must set OTEL_DEMO_ES_API_KEY (must be valid API key for ES APIs)"
+fi
+
+if [ -z "${KIBANA_USER}" ]; then
+  die "You must set KIBANA_USER to an admin user"
+fi
+
+if [ -z "${KIBANA_PASSWORD}" ]; then
+  die "You must set KIBANA_PASSWORD for the specified user"
+fi
+
+# Replace kubernetes internal host pattern with localhost
+OTEL_DEMO_ES_ENDPOINT=$(echo $OTEL_DEMO_ES_ENDPOINT | sed "s/host.minikube.internal/localhost/" | sed "s/host.docker.internal/localhost/")
+
 # Create data views
-create_data_view otel_logs_data logs-*otel* 
+# create_data_view otel_logs_data logs-*otel* 
 
 # Create rules
 create_rule 9055220c-8fb1-4f9f-be7c-0a33eb2bafc5 rule-01.json
@@ -50,10 +76,10 @@ echo -e "\n"
 # NOTE: this will fail if the data stream is not created
 # TODO: Update the component template also, and just swallow errors on this call
 title "Attempting to add message alias for otel logs"
-curl -X PUT http://localhost:9200/logs-*otel*/_mapping -H "Authorization: ApiKey $OTEL_DEMO_ES_API_KEY" -H "Content-Type: application/json" -d @$SCRIPTS_DIR/data/mapping-message-alias.json
+curl -X PUT "$OTEL_DEMO_ES_ENDPOINT/logs-*otel*/_mapping" -H "Authorization: ApiKey $OTEL_DEMO_ES_API_KEY" -H "Content-Type: application/json" -d @$SCRIPTS_DIR/data/mapping-message-alias.json
 
 echo -e "\n"
 
 # Enable EEM
 title "Attempting to enable EEM"
-curl -X PUT -H "Authorization: ApiKey $OTEL_DEMO_ES_API_KEY" -H "kbn-xsrf: bananas" $KIBANA_URL/internal/entities/managed/enablement
+curl -X PUT -u "$KIBANA_USER:$KIBANA_PASSWORD" -H "kbn-xsrf: bananas" -H "x-elastic-internal-origin: Kibana" $KIBANA_URL/internal/entities/managed/enablement

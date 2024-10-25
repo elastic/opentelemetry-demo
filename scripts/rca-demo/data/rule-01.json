@@ -31,7 +31,7 @@
         "query": "k8s.namespace.name: \"ingress-nginx\" AND url.path: /api/*",
         "language": "kuery"
       },
-      "index": "otel_logs_data"
+      "index": "apm_static_data_view_id_default"
     },
     "groupBy": [
       "service.name",

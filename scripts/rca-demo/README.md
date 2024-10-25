@@ -1,34 +1,45 @@
 # RCA KubeCon Demo Scripts
 
-Docs for running scripts in this folder. 
+Docs for running scripts in this folder. It is highly recommended to run these scripts while you are in the root of the repo, e.g. `./scripts/rca-demo/{script_name}`
 
+### Environment variables
+
+Please be sure to check the latest docs in the `.env.example` file in this folder to explain the required env vars needed for these scripts to run.
+
+Most of these scripts require env vars that can be set most easily by creating a local ".env" file in this directory (it will be ignored by git and auto-sourced by the script). You can create more .env.* files and they will also be ignored. To change which file gets auto-sourced, use:
+
+```
+ENV_FILE_PATH=./scripts/rca-demo/.env.{suffix} ./scripts/rca-demo/{script_name}
+```
 
 ## setup
 
-The fast way to set things up is with the `setup` script. Before running it, be sure to copy 
-[the .env.example file](./.env.example) and add all of the required values. Each script file SHOULD
-source this .env file for you, but if it doesn't, run `$ source scripts/rca-demo/.env` to make sure.
-
-Run the setup script from the repo root:
+This will primarily set up **the k8s otel demo cluster**.
 
 ```
 ./scripts/rca-demo/setup
 ```
 
-The output will guide you if you are missing anything required to make this work. You can check the
-status of the pods by running `kubectl get pods`. 
+The output will guide you if you are missing anything required to make this work. You can check the status of the pods by running `kubectl get pods`. 
 
-Assuming everything is now running correctly, you should be able to visit the Astronomy Shop in
-your browser at http://otel-demo.internal, and see signals in your configured ES/Kibana.
+Assuming everything is now running correctly, you should be able to visit the Astronomy Shop in your browser at http://otel-demo.internal, and see signals in your configured ES/Kibana.
+
+## post-setup
+
+This script sets up assets in Kibana and Elasticsearch related to this demo, without needing to do the full kubernetes + helm install process. It will install alerting rules, data views, mapping updates, and advanced configuration settings required for the demo to work. Many of the definitions used for creating these assets can be found in the `scripts/rca-demo/data` directory.
+
+```
+./scripts/rca-demo/post-setup
+```
+
+Remember: you can create more .env.other files with different sets of values to run this script against a different ES/Kibana set up (e.g. keep .env for your local set up and .env.cloud for a cloud setup, etc.). To auto-source a different env file, run this like this:
+
+```
+ENV_FILE_PATH=./scripts/rca-demo/.env.cloud ./scripts/rca-demo/post-setup
+```
 
 ## trigger-demo scenario
 
 The `trigger-demo-scenario` script will cause the cart service to fail to start properly. You can use this to test how the solution responds to the problem.
 
-For the full scenario, set up a custom threshold rule like this:
-
-![Custom threshold rule](threshold_rule.png "Custom threshold rule")
-
-This rule will trigger when the demo scenario is activated and will be associated with the nginx ingress controller service. It can be used as a starting point to showcase the different exploration capabilities of the stack.
-
-With `trigger-demo-scenario restore`, the system can be put back into a working state again.
+Use `trigger-demo-scenario restore` to put the cart service back into a working state again.
