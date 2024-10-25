@@ -71,8 +71,8 @@ echo -e "\n"
 # Update mappings in ES
 # NOTE: this will fail if the data stream is not created
 # TODO: Update the component template also, and just swallow errors on this call
-title "Attempting to add message alias for otel logs"
-curl -X PUT "$OTEL_DEMO_ES_ENDPOINT/logs-*otel*/_mapping" -H "Authorization: ApiKey $OTEL_DEMO_ES_API_KEY" -H "Content-Type: application/json" -d @$SCRIPTS_DIR/data/mapping-message-alias.json
+title "Skipping message alias for otel logs, not needed anymore"
+# curl -X PUT "$OTEL_DEMO_ES_ENDPOINT/logs-*otel*/_mapping" -H "Authorization: ApiKey $OTEL_DEMO_ES_API_KEY" -H "Content-Type: application/json" -d @$SCRIPTS_DIR/data/mapping-message-alias.json
 
 echo -e "\n"
 
