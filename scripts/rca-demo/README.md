@@ -6,7 +6,7 @@ Docs for running scripts in this folder. It is highly recommended to run these s
 
 Please be sure to check the latest docs in the `.env.example` file in this folder to explain the required env vars needed for these scripts to run.
 
-Most of these scripts require env vars that can be set most easily by creating a local ".env" file in this directory (it will be ignored by git and auto-sourced by the script). You can create more .env.* files and they will also be ignored. To change which file gets auto-sourced, use:
+Most of these scripts require env vars that should be set in a copy of `.env.example` that you've named `.env` and placed in this directory. You can create more .env.* files. By default, scripts will auto-source `.env` in this directory. To change which file gets auto-sourced, use:
 
 ```
 ENV_FILE_PATH=./scripts/rca-demo/.env.{suffix} ./scripts/rca-demo/{script_name}
