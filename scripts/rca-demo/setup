@@ -1,25 +1,15 @@
 #!/bin/bash
 
-APP_NAME=my-otel-demo
+SCRIPTS_DIR=$(dirname "${BASH_SOURCE[0]}")
+$SCRIPTS_DIR/autosource.sh
 
-# source shared utils
 set -a
-source ./shared.sh
+source $SCRIPTS_DIR/shared.sh
 set +a
 
+APP_NAME=my-otel-demo
+
 title "Checking environment for $APP_NAME..."
-
-# Load local user .env file
-LOAD_ENV_FILE_PATH="./scripts/rca-demo/.env"
-
-if [ -n "${ENV_FILE_PATH}" ]; then
-  LOAD_ENV_FILE_PATH=$ENV_FILE_PATH
-fi
-
-if [ -f $LOAD_ENV_FILE_PATH ]; then
-	title "Sourcing environment variables from $LOAD_ENV_FILE_PATH"
-	source $LOAD_ENV_FILE_PATH
-fi
 
 # Check tools
 tools=("helm" "kubectl" "minikube" "node" "npx")
