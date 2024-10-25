@@ -1,21 +1,15 @@
 #!/bin/bash
 
-APP_NAME=my-otel-demo
+SCRIPTS_DIR=$(dirname "${BASH_SOURCE[0]}")
+$SCRIPTS_DIR/autosource.sh
 
-# source shared utils
 set -a
-source ./shared.sh
+source $SCRIPTS_DIR/shared.sh
 set +a
 
+APP_NAME=my-otel-demo
+
 title "Checking environment for $APP_NAME..."
-
-# Load local user .env file
-ENV_FILE="./scripts/rca-demo/.env"
-if [ -f $ENV_FILE ]; then
-	echo "Sourcing env vars from $ENV_FILE ..."
-  source $ENV_FILE
-fi
-
 
 # Check tools
 tools=("helm" "kubectl" "minikube" "node" "npx")
@@ -43,25 +37,6 @@ fi
 
 if [ -z "${OTEL_DEMO_ES_API_KEY}" ]; then
   die "You must set OTEL_DEMO_ES_API_KEY"
-fi
-
-if [ -z "${SYNTHETICS_API_KEY}" ]; then
-	echo "No SYNTHETICS_API_KEY set, will skip synthetics setup"
-else
-  echo "By providing a SYNTHETICS_API_KEY value, you are opting IN to synthetics setup"
-	echo "Please remove this env var or set it to \"\" to opt out."
-
-	if [ -z "${KIBANA_URL}" ]; then
-		die "[Synthetics Requirement] You must set KIBANA_URL"
-	fi
-
-	if [ -z "${OTEL_DEMO_FLEET_URL}" ]; then
-		die "[Synthetics Requirement] You must set OTEL_DEMO_FLEET_URL"
-	fi
-
-	if [ -z "${OTEL_DEMO_FLEET_ENROLLMENT_TOKEN}" ]; then
-		die "[Synthetics Requirement] You must set OTEL_DEMO_FLEET_ENROLLMENT_TOKEN"
-	fi
 fi
 
 : ${TLS_INSECURE:="false"}
@@ -147,19 +122,6 @@ title "Installing nginx ingress"
 pushd_helm_dir
 helminst nginx-ingress ./ingress
 popd
-
-# If synthetics is configured
-if [ -n "${SYNTHETICS_API_KEY}" ]; then
-	title "Installing synthetics agent helm chart"
-	pushd_helm_dir
-	helminst otel-synthetics-agent ./otel-synthetics
-	popd
-
-	title "Pushing Synthetics project..."
-	cd synthetic-monitors
-	npm install
-	yes | npx @elastic/synthetics push . --params '{"url": "http://ingress-nginx-controller.ingress-nginx.svc.cluster.local"}'
-fi
 
 title "Setup complete!"
 cat <<-EOF

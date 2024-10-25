@@ -27,6 +27,10 @@ title () {
 	echo -e ${Cyan}"<[${BBlue} $1 ${Cyan}]>${Color_Off}"
 }
 
+warn () {
+	echo -e ${Yellow}"<[${BYellow} $1 ${Yellow}]>${Color_Off}"
+}
+
 die () {
 	echo -e "${BRed}ERROR: $1${Color_Off}"
 	exit 1
