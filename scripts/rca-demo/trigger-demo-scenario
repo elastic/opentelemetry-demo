@@ -14,12 +14,10 @@ if [ "$action" == "restore" ]; then
 	./scripts/rca-demo/create-release-annotation restore -s cartservice
 	exit 0
 else
-	echo "Scale the my-otel-demo-cartservice deployment to 0"
-	kubectl scale deployment my-otel-demo-cartservice --replicas=0
-	sleep 5
-	echo "Replacing with bad command"
-	kubectl patch deployment my-otel-demo-cartservice --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/command", "value": ["/bin/sh", "-c", "echo Could not start, bad entrypoint! >&2"]}]'
-	echo "Scale back up"
-	kubectl scale deployment my-otel-demo-cartservice --replicas=1
+    echo "Breaking container entrypoint"
+	# Script sleeps for 20s to fool k8s into thinking it has actually started, preventing it from not switching over
+	# from the other replica
+	kubectl patch deployment my-otel-demo-cartservice --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/command", "value": ["/bin/sh", "-c", "echo FATAL: Could not start, bad entrypoint! >&2 && sleep 20 && echo exiting... && exit 1"]}]'
+	echo "Creating annotation"
 	./scripts/rca-demo/create-release-annotation -s cartservice
 fi
