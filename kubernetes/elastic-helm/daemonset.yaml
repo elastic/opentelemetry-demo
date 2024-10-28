@@ -59,19 +59,12 @@ config:
   exporters:
     debug:
       verbosity: basic
-    debug/vvv:
-      verbosity: detailed
-    elasticsearch/apm:
-      user: admin
-      password: ${env:ELASTIC_PASSWORD}
-      endpoints:
-        - http://57.154.248.70:9200
-      logs_dynamic_index:
-        enabled: true
-      metrics_dynamic_index:
-        enabled: true
-      mapping:
-        mode: ecs
+    # debug/vvv:
+    #   verbosity: detailed
+    otlp/apm:
+      endpoint: "http://57.154.248.70:8200"
+      tls:
+        insecure: true
     elasticsearch/esexporter:
       user: admin
       password: ${env:ELASTIC_PASSWORD}
@@ -347,11 +340,11 @@ config:
       logs:
         receivers: [filelog]
         processors: [batch, k8sattributes, resourcedetection/system, resourcedetection/eks, resourcedetection/gcp, resource/demo, resource/k8s, resource/cloud, attributes/k8s_logs_dataset]
-        exporters: [debug, elasticsearch/apm, elasticsearch/esexporter]
+        exporters: [debug, otlp/apm, elasticsearch/esexporter]
       metrics:
         receivers: [hostmetrics, kubeletstats]
-        processors: [batch, k8sattributes, elasticinframetrics, resourcedetection/system, resource/demo, resourcedetection/eks, resourcedetection/gcp, resource/k8s, resource/cloud, attributes/dataset, resource/process]
-        exporters: [debug, elasticsearch/apm]
+        processors: [batch, k8sattributes, resourcedetection/system, resource/demo, resourcedetection/eks, resourcedetection/gcp, resource/k8s, resource/cloud, attributes/dataset, resource/process]
+        exporters: [debug, otlp/apm]
       metrics/esotel:
         receivers: [hostmetrics, kubeletstats]
         processors: [batch, k8sattributes, elasticinframetrics/drop, resourcedetection/system, resource/demo, resourcedetection/eks, resourcedetection/gcp, resource/k8s, resource/cloud, attributes/dataset, resource/process]
@@ -359,7 +352,7 @@ config:
       metrics/otel:
         receivers: [kubeletstats]
         processors: [batch, k8sattributes, resourcedetection/system, resourcedetection/gcp, resource/k8s, resource/cloud]
-        exporters: [debug/vvv, elasticsearch/esexporterotel]
+        exporters: [debug, elasticsearch/esexporterotel]
       traces: null
     telemetry:
       metrics:
