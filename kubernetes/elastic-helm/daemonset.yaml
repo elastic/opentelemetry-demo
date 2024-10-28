@@ -12,7 +12,7 @@ presets:
 image:
   repository: docker.elastic.co/beats/elastic-agent
   tag: 8.16.0-SNAPSHOT
-  pullPolicy: always
+  pullPolicy: Always
 
 securityContext:
   runAsUser: 0
@@ -69,7 +69,7 @@ config:
       verbosity: basic
     elasticsearch:
       endpoints:
-      - ${env:ELASTIC_ENDPOINT}
+        - ${env:ELASTIC_ENDPOINT}
       api_key: ${env:ELASTIC_API_KEY}
       tls:
         insecure: ${env:TLS_INSECURE}
@@ -81,7 +81,7 @@ config:
         mode: ecs
     elasticsearch/otlp:
       endpoints:
-      - ${env:ELASTIC_ENDPOINT}
+        - ${env:ELASTIC_ENDPOINT}
       api_key: ${env:ELASTIC_API_KEY}
       tls:
         insecure: ${env:TLS_INSECURE}
@@ -138,7 +138,7 @@ config:
     resourcedetection/system:
       detectors: ["system", "ec2"]
       system:
-        hostname_sources: [ "os" ]
+        hostname_sources: ["os"]
         resource_attributes:
           host.name:
             enabled: true
@@ -228,7 +228,6 @@ config:
             # Based on https://github.com/elastic/integrations/blob/main/packages/nginx_ingress_controller/data_stream/access/elasticsearch/ingest_pipeline/default.yml
             - merge_maps(attributes, ExtractGrokPatterns(body, "(%{NGINX_HOST} )?\"?(?:%{NGINX_ADDRESS_LIST:nginx_ingress_controller.access.remote_ip_list}|%{NOTSPACE:source.address}) - (-|%{DATA:user.name}) \\[%{HTTPDATE:nginx_ingress_controller.access.time}\\] \"%{DATA:nginx_ingress_controller.access.info}\" %{NUMBER:http.response.status_code:long} %{NUMBER:http.response.body.size:long} \"(-|%{DATA:http.request.referrer})\" \"(-|%{DATA:user_agent.original})\" %{NUMBER:http.request.size:long} %{NUMBER:http.request.time:double} \\[%{DATA:upstream.name}\\] \\[%{DATA:upstream.alternative_name}\\] (%{UPSTREAM_ADDRESS_LIST:upstream.address}|-) (%{UPSTREAM_RESPONSE_SIZE_LIST:upstream.response.size_list}|-) (%{UPSTREAM_RESPONSE_TIME_LIST:upstream.response.time_list}|-) (%{UPSTREAM_RESPONSE_STATUS_CODE_LIST:upstream.response.status_code_list}|-) %{GREEDYDATA:http.request.id}", true, ["NGINX_HOST=(?:%{IP:destination.ip}|%{NGINX_NOTSEPARATOR:destination.domain})(:%{NUMBER:destination.port})?", "NGINX_NOTSEPARATOR=[^\t ,:]+", "NGINX_ADDRESS_LIST=(?:%{IP}|%{WORD}) (\"?,?\\s*(?:%{IP}|%{WORD}))*", "UPSTREAM_ADDRESS_LIST=(?:%{IP}(:%{NUMBER})?)(\"?,?\\s*(?:%{IP}(:%{NUMBER})?))*", "UPSTREAM_RESPONSE_SIZE_LIST=(?:%{NUMBER})(\"?,?\\s*(?:%{NUMBER}))*", "UPSTREAM_RESPONSE_TIME_LIST=(?:%{NUMBER})(\"?,?\\s*(?:%{NUMBER}))*", "UPSTREAM_RESPONSE_STATUS_CODE_LIST=(?:%{NUMBER})(\"?,?\\s*(?:%{NUMBER}))*", "IP=(?:\\[?%{IPV6}\\]?|%{IPV4})"]), "upsert")
 
-
             - merge_maps(attributes, ExtractGrokPatterns(attributes["nginx_ingress_controller.access.info"], "%{WORD:http.request.method} %{DATA:url.original} HTTP/%{NUMBER:http.version}", true), "upsert")
             - delete_key(attributes, "nginx_ingress_controller.access.info")
 
@@ -249,7 +248,7 @@ config:
 
         - context: log
           conditions:
-              # Extract user agent when not empty
+            # Extract user agent when not empty
             - attributes["user_agent.original"] != nil
           statements:
             # Extract UserAgent
@@ -293,15 +292,15 @@ config:
         enabled: true
       start_at: end
       exclude:
-      # exlude collector logs
-      - /var/log/pods/*/opentelemetry-collector/*.log
+        # exlude collector logs
+        - /var/log/pods/*/opentelemetry-collector/*.log
       include:
-      - /var/log/pods/*/*/*.log
+        - /var/log/pods/*/*/*.log
       include_file_name: false
       include_file_path: true
       operators:
-      - id: container-parser
-        type: container
+        - id: container-parser
+          type: container
     hostmetrics:
       collection_interval: 10s
       root_path: /hostfs
@@ -374,7 +373,7 @@ config:
       auth_type: serviceAccount
       collection_interval: 20s
       endpoint: ${env:K8S_NODE_NAME}:10250
-      node: '${env:K8S_NODE_NAME}'
+      node: "${env:K8S_NODE_NAME}"
       # Required to work for all CSPs without an issue
       insecure_skip_verify: true
       k8s_api_config:
@@ -409,11 +408,36 @@ config:
     pipelines:
       logs:
         receivers: [filelog]
-        processors: [batch, k8sattributes, resourcedetection/system, resourcedetection/eks, resourcedetection/gcp, resource/demo, resource/k8s, resource/cloud,transform/parse_nginx_ingress_access/log, transform/parse_nginx_ingress_error/log]
+        processors:
+          [
+            batch,
+            k8sattributes,
+            resourcedetection/system,
+            resourcedetection/eks,
+            resourcedetection/gcp,
+            resource/demo,
+            resource/k8s,
+            resource/cloud,
+            transform/parse_nginx_ingress_access/log,
+            transform/parse_nginx_ingress_error/log,
+          ]
         exporters: [debug, elasticsearch/otlp]
       metrics:
         receivers: [hostmetrics, kubeletstats]
-        processors: [batch, k8sattributes, elasticinframetrics, resourcedetection/system, resource/demo, resourcedetection/eks, resourcedetection/gcp, resource/k8s, resource/cloud, attributes/dataset, resource/process]
+        processors:
+          [
+            batch,
+            k8sattributes,
+            elasticinframetrics,
+            resourcedetection/system,
+            resource/demo,
+            resourcedetection/eks,
+            resourcedetection/gcp,
+            resource/k8s,
+            resource/cloud,
+            attributes/dataset,
+            resource/process,
+          ]
         exporters: [debug, elasticsearch]
       traces: null
     telemetry:
