@@ -50,7 +50,7 @@ components:
   loadgenerator:
     envOverrides:
       - name: LOCUST_HOST
-        value: "http:/ingress-nginx-controller.ingress-nginx.svc.cluster.local:80"
+        value: "http://ingress-nginx-controller.ingress-nginx.svc.cluster.local:80"
 
 opentelemetry-collector:
   image:
