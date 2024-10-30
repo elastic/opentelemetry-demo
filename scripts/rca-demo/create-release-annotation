@@ -67,15 +67,4 @@ HEADERS=(
 
 response=$(curl -s -X POST -u "$KIBANA_USER:$KIBANA_PASSWORD" "${HEADERS[@]}" -d "$REQUEST_BODY" "$ANNOTATION_API_ENDPOINT")
 
-statusCode=$(echo "$response" | jq -r '.statusCode')
-ok=$(echo "$response" | jq -r '.ok')
-
-if [[ "$statusCode" != null && "$statusCode" != 200 ]]; then
-    die "Creating annotation failed: $response"
-fi
-
-if [[ "$ok" != null && "$ok" == false ]]; then
-    die "Creating annotation failed: $response"
-fi
-
-echo "$message for $service_name: $service_version"
+echo "$response"
