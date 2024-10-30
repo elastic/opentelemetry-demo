@@ -65,17 +65,10 @@ HEADERS=(
     -H "Content-Type: application/json"
 )
 
-response=$(curl -s -X POST -u "$KIBANA_USER:$KIBANA_PASSWORD" "${HEADERS[@]}" -d "$REQUEST_BODY" "$ANNOTATION_API_ENDPOINT")
+response=$(curl -s -D - -X POST -u "$KIBANA_USER:$KIBANA_PASSWORD" "${HEADERS[@]}" -d "$REQUEST_BODY" "$ANNOTATION_API_ENDPOINT" | head -n1)
 
-statusCode=$(echo "$response" | jq -r '.statusCode')
-ok=$(echo "$response" | jq -r '.ok')
-
-if [[ "$statusCode" != null && "$statusCode" != 200 ]]; then
-    die "Creating annotation failed: $response"
+if [[ "$response" == *"200"* ]]; then
+  echo "Created annotation: $message for $service_name: $service_version"
+else
+  die "Could not create annotation: $response"
 fi
-
-if [[ "$ok" != null && "$ok" == false ]]; then
-    die "Creating annotation failed: $response"
-fi
-
-echo "$message for $service_name: $service_version"
