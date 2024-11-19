@@ -11,8 +11,7 @@ presets:
 
 image:
   repository: docker.elastic.co/beats/elastic-agent
-  tag: 8.16.0-SNAPSHOT
-  pullPolicy: Always
+  tag: 8.16.0
 
 securityContext:
   runAsUser: 0

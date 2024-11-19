@@ -1,7 +1,7 @@
 default:
   image:
     repository: ghcr.io/elastic/opentelemetry-demo
-    tag: 1.11.4
+    tag: 1.12.1
   envOverrides:
     - name: OTEL_SERVICE_NAME
       valueFrom:
@@ -55,8 +55,7 @@ components:
 opentelemetry-collector:
   image:
     repository: docker.elastic.co/beats/elastic-agent
-    tag: 8.16.0-SNAPSHOT
-    pullPolicy: Always
+    tag: 8.16.0
   mode: "deployment"
   presets:
     kubernetesAttributes:

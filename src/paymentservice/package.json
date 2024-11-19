@@ -12,7 +12,7 @@
   "author": "Jonathan Lui",
   "license": "ISC",
   "dependencies": {
-    "@elastic/opentelemetry-node": "^0.3.0",
+    "@elastic/opentelemetry-node": "^0.5.0",
     "@grpc/grpc-js": "1.10.8",
     "@grpc/proto-loader": "0.7.13",
     "@openfeature/flagd-provider": "0.13.0",

@@ -37,16 +37,20 @@ If you'd rather not use the "Fast Track" startup follow these instructions.
      --from-literal=elastic_apm_secret_token='Bearer YOUR_APM_SECRET_TOKEN'
    ```
    Don't forget to replace
-   - `YOUR_APM_ENDPOINT_WITHOUT_HTTPS_PREFIX`: your Elastic APM endpoint (_without_ `https://` prefix) that _must_ also include the port (example: `1234567.apm.us-west2.gcp.elastic-cloud.com:443`).
-   - `Bearer YOUR_APM_SECRET_TOKEN`: your Elastic APM secret token. Note that in this branch you MUST place either `Bearer` or `ApiKey` in front of the token. On ESS / self-managed you will generally use `Bearer`, on serverless you will generally use `ApiKey`.
-3. Execute the following commands to deploy the OpenTelemetry demo to your Kubernetes cluster:
-
+   - `YOUR_APM_ENDPOINT_WITHOUT_HTTPS_PREFIX`: your Elastic APM endpoint (*without* `https://` prefix) that *must* also include the port (example: `1234567.apm.us-west2.gcp.elastic-cloud.com:443`).
+   - `YOUR_APM_SECRET_TOKEN`: your Elastic APM secret token, include the Bearer or ApiKey but not the "Authorization=" part e.g. Bearer XXXXXX or ApiKey XXXXX below is an example:
+   ```
+   kubectl create secret generic elastic-secret \
+     --from-literal=elastic_apm_endpoint='12345.apm.us-west2.gcp.elastic-cloud.com:443' \
+     --from-literal=elastic_apm_secret_token='Bearer 123456789123456YE2'
+   ```
+1. Execute the following commands to deploy the OpenTelemetry demo to your Kubernetes cluster:
    ```
    # clone this repository
    git clone https://github.com/elastic/opentelemetry-demo
 
    # switch to the kubernetes/elastic-helm directory
-   cd kubernetes/elastic-helm
+   cd opentelemetry-demo/kubernetes/elastic-helm
 
    # !(when running it for the first time) add the open-telemetry Helm repostiroy
    helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
