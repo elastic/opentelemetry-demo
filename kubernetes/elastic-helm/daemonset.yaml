@@ -61,10 +61,6 @@ config:
       verbosity: basic
     # debug/vvv:
     #   verbosity: detailed
-    otlp/apm:
-      endpoint: "http://57.154.248.70:8200"
-      tls:
-        insecure: true
     elasticsearch/esexporter:
       user: admin
       password: ${env:ELASTIC_PASSWORD}
@@ -340,17 +336,17 @@ config:
       logs:
         receivers: [filelog]
         processors: [batch, k8sattributes, resourcedetection/system, resourcedetection/eks, resourcedetection/gcp, resource/demo, resource/k8s, resource/cloud, attributes/k8s_logs_dataset]
-        exporters: [debug, otlp/apm, elasticsearch/esexporter]
+        exporters: [debug, elasticsearch/esexporter]
       metrics:
         receivers: [hostmetrics, kubeletstats]
         processors: [batch, k8sattributes, resourcedetection/system, resource/demo, resourcedetection/eks, resourcedetection/gcp, resource/k8s, resource/cloud, attributes/dataset, resource/process]
-        exporters: [debug, otlp/apm]
+        exporters: [debug]
       metrics/esotel:
         receivers: [hostmetrics, kubeletstats]
         processors: [batch, k8sattributes, elasticinframetrics/drop, resourcedetection/system, resource/demo, resourcedetection/eks, resourcedetection/gcp, resource/k8s, resource/cloud, attributes/dataset, resource/process]
         exporters: [debug, elasticsearch/esexporter]
       metrics/otel:
-        receivers: [kubeletstats]
+        receivers: [hostmetrics, kubeletstats]
         processors: [batch, k8sattributes, resourcedetection/system, resourcedetection/gcp, resource/k8s, resource/cloud]
         exporters: [debug, elasticsearch/esexporterotel]
       traces: null

@@ -68,10 +68,6 @@ opentelemetry-collector:
         endpoint: ${env:MY_POD_IP}:13133
     exporters:
       debug: {}
-      otlp/apm:
-        endpoint: "http://57.154.248.70:8200"
-        tls:
-          insecure: true
       otlp/esexporter:
         retry_on_failure:
           enabled: false
@@ -211,7 +207,6 @@ opentelemetry-collector:
         logs:
           exporters:
           - debug
-          - otlp/apm
           - otlp/esexporter
           processors:
           - batch
@@ -220,7 +215,6 @@ opentelemetry-collector:
           - otlp
         metrics:
           exporters:
-          - otlp/apm
           - otlp/esexporter
           - debug
           processors:
@@ -232,7 +226,6 @@ opentelemetry-collector:
           - prometheus
         traces:
           exporters:
-          - otlp/apm
           - otlp/esexporter
           - debug
           processors:
