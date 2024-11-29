@@ -30,6 +30,8 @@ extraEnvs:
     valueFrom:
       fieldRef:
         fieldPath: spec.nodeName
+  - name: HOST_PROC_MOUNTINFO
+    value: ""
 
 # kubeletstats additional rules for Node metrics
 clusterRole:
