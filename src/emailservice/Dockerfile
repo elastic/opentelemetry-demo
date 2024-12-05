@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-FROM ruby:3.2.2-slim AS base
+FROM ruby:3.3.6-slim AS base
 
 FROM base AS builder
 
