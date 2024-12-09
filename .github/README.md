@@ -12,11 +12,11 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
 
 ## Docker compose
 
-1. Start a free trial on [Elastic Cloud](https://cloud.elastic.co/) and copy the `endpoint` and `secretToken` from the Elastic APM setup instructions in your Kibana.
-1. Open the file `src/otelcollector/otelcol-elastic-config-extras.yaml` in an editor and replace the following two placeholders:
-   - `YOUR_APM_ENDPOINT_WITHOUT_HTTPS_PREFIX`: your Elastic APM endpoint (*without* `https://` prefix) that *must* also include the port (example: `1234567.apm.us-west2.gcp.elastic-cloud.com:443`).
-   - `YOUR_APM_SECRET_TOKEN`: your Elastic APM secret token.
-1. Start the demo with the following command from the repository's root directory:
+1. Start a free trial on [Elastic Cloud](https://cloud.elastic.co/) and copy the `Elasticsearch endpoint` and the `API Key` from the `Help -> Connection details` drop down instructions in your Kibana. These variables will be used by the [elasticsearch exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticsearchexporter#elasticsearch-exporter) to authenticate and transmit data to your Elasticsearch instance.
+2. Open the file `src/otelcollector/otelcol-elastic-config.yaml` in an editor and replace the following two placeholders:
+   - `YOUR_ELASTICSEARCH_ENDPOINT`: your Elasticsearch endpoint (*with* `https://` prefix example: `https://1234567.us-west2.gcp.elastic-cloud.com:443`).
+   - `YOUR_ELASTICSEARCH_API_KEY`: your Elasticsearch API Key
+3. Start the demo with the following command from the repository's root directory:
    ```
    make start
    ```
@@ -27,27 +27,23 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
 - Set up [kubectl](https://kubernetes.io/docs/reference/kubectl/).
 - Set up [Helm](https://helm.sh/).
 
-### Start the Demo
+
+### Start the Demo (Kubernetes deployment)
 1. Setup Elastic Observability on Elastic Cloud.
-1. Create a secret in Kubernetes with the following command.
+2. Create a secret in Kubernetes with the following command.
    ```
-   kubectl create secret generic elastic-secret \
-     --from-literal=elastic_apm_endpoint='YOUR_APM_ENDPOINT_WITHOUT_HTTPS_PREFIX' \
-     --from-literal=elastic_apm_secret_token='YOUR_APM_SECRET_TOKEN'
+   kubectl create secret generic elastic-secret-otel \
+     --from-literal=elastic_endpoint='YOUR_ELASTICSEARCH_ENDPOINT' \
+     --from-literal=elastic_api_key='YOUR_ELASTICSEARCH_API_KEY'
    ```
    Don't forget to replace
-   - `YOUR_APM_ENDPOINT_WITHOUT_HTTPS_PREFIX`: your Elastic APM endpoint (*without* `https://` prefix) that *must* also include the port (example: `1234567.apm.us-west2.gcp.elastic-cloud.com:443`).
-   - `YOUR_APM_SECRET_TOKEN`: your Elastic APM secret token, include the Bearer or ApiKey but not the "Authorization=" part e.g. Bearer XXXXXX or ApiKey XXXXX below is an example:
-   ```
-   kubectl create secret generic elastic-secret \
-     --from-literal=elastic_apm_endpoint='12345.apm.us-west2.gcp.elastic-cloud.com:443' \
-     --from-literal=elastic_apm_secret_token='Bearer 123456789123456YE2'
-   ```
-1. Execute the following commands to deploy the OpenTelemetry demo to your Kubernetes cluster:
+   - `YOUR_ELASTICSEARCH_ENDPOINT`: your Elasticsearch endpoint (*with* `https://` prefix example: `https://1234567.us-west2.gcp.elastic-cloud.com:443`).
+   - `YOUR_ELASTICSEARCH_API_KEY`: your Elasticsearch API Key
+3. Execute the following commands to deploy the OpenTelemetry demo to your Kubernetes cluster:
    ```
    # clone this repository
    git clone https://github.com/elastic/opentelemetry-demo
-   
+
    # switch to the kubernetes/elastic-helm directory
    cd opentelemetry-demo/kubernetes/elastic-helm
 
@@ -61,29 +57,28 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
    helm install -f deployment.yaml my-otel-demo open-telemetry/opentelemetry-demo
    ```
 
-#### Kubernetes monitoring
+Additionally, this EDOT Collector configuration includes the following components for comprehensive Kubernetes monitoring:
+  - [K8s Objects Receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/k8sobjectsreceiver): Captures detailed information about Kubernetes objects.
+  - [K8s Cluster Receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/k8sclusterreceiver): Collects metrics and metadata about the overall cluster state.
 
-This demo already enables cluster level metrics collection with `clusterMetrics` and
-Kubernetes events collection with `kubernetesEvents`.
+#### Kubernetes monitoring (daemonset)
 
-In order to add Node level metrics collection we can run an additional Otel collector Daemonset with the following:
+The `daemonset` EDOT collector is configured with the components to monitor node-level metrics and logs, ensuring detailed insights into individual Kubernetes nodes:
 
-1. Create a secret in Kubernetes with the following command.
-   ```
-   kubectl create secret generic elastic-secret-ds \
-     --from-literal=elastic_endpoint='YOUR_ELASTICSEARCH_ENDPOINT' \
-     --from-literal=elastic_api_key='YOUR_ELASTICSEARCH_API_KEY'
-   ```
-   Don't forget to replace
-   - `YOUR_ELASTICSEARCH_ENDPOINT`: your Elasticsearch endpoint (*with* `https://` prefix example: `https://1234567.us-west2.gcp.elastic-cloud.com:443`).
-   - `YOUR_ELASTICSEARCH_API_KEY`: your Elasticsearch API Key
+- [Host Metrics Receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetrics): Collects system-level metrics such as CPU, memory, and disk usage from the host.
+- [Kubelet Stats Receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/kubeletstats): Gathers pod and container metrics directly from the kubelet.
+- [Filelog Receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/filelog): Ingests and parses log files from nodes, providing detailed log analysis.
 
-2. Execute the following command to deploy the OpenTelemetry Collector to your Kubernetes cluster, in the same directory `kubernetes/elastic-helm` in this repository.
+To deploy the EDOT Collector to your Kubernetes cluster, ensure the `elastic-secret-otel` Kubernetes secret is created (if it doesn't already exist). Then, run the following command from the `kubernetes/elastic-helm` directory in this repository.
 
 ```
 # deploy the Elastic OpenTelemetry collector distribution through helm install
 helm install otel-daemonset open-telemetry/opentelemetry-collector --values daemonset.yaml
 ```
+
+#### Kubernetes architecture diagram
+
+![Deployment architecture](../kubernetes/elastic-helm/elastic-architecture.png "K8s architecture")
 
 ## Explore and analyze the data With Elastic
 

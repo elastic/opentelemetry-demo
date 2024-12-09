@@ -18,17 +18,20 @@ securityContext:
   runAsGroup: 0
 
 extraEnvs:
+  # Work around for open /mounts error: https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/35990
+  - name: HOST_PROC_MOUNTINFO
+    value: ""
   - name: ELASTIC_AGENT_OTEL
     value: "true"
   - name: ELASTIC_ENDPOINT
     valueFrom:
       secretKeyRef:
-        name: elastic-secret-ds
+        name: elastic-secret-otel
         key: elastic_endpoint
   - name: ELASTIC_API_KEY
     valueFrom:
       secretKeyRef:
-        name: elastic-secret-ds
+        name: elastic-secret-otel
         key: elastic_api_key
   - name: K8S_NODE_NAME
     valueFrom:
@@ -61,7 +64,7 @@ config:
   exporters:
     debug:
       verbosity: basic
-    elasticsearch:
+    elasticsearch/ecs:
       endpoints:
       - ${env:ELASTIC_ENDPOINT}
       api_key: ${env:ELASTIC_API_KEY}
@@ -71,32 +74,55 @@ config:
         enabled: true
       mapping:
         mode: ecs
+    elasticsearch/otel:
+      endpoints:
+      - ${env:ELASTIC_ENDPOINT}
+      api_key: ${env:ELASTIC_API_KEY}
+      logs_dynamic_index:
+        enabled: true
+      metrics_dynamic_index:
+        enabled: true
+      mapping:
+        mode: otel
   processors:
     batch: {}
     elasticinframetrics:
       add_system_metrics: true
       add_k8s_metrics: true
-    resourcedetection/eks:
-      detectors: [env, eks]
+      drop_original: true
+    resourcedetection/cluster:
+      detectors: [env, eks, gcp, aks, eks, k8snode]
       timeout: 15s
       override: true
+      k8snode:
+        auth_type: serviceAccount
       eks:
         resource_attributes:
           k8s.cluster.name:
             enabled: true
-    resourcedetection/gcp:
-      detectors: [env, gcp]
-      timeout: 2s
-      override: true
-    resource/k8s:
+      aks:
+        resource_attributes:
+          k8s.cluster.name:
+            enabled: true
+    resource/k8s: # Resource attributes tailored for services within Kubernetes.
       attributes:
-        - key: service.name
-          from_attribute: app.label.component
+        - key: service.name # Set the service.name resource attribute based on the well-known app.kubernetes.io/name label
+          from_attribute: app.label.name
           action: insert
-    attributes/k8s_logs_dataset:
-      actions:
-        - key: data_stream.dataset
-          value: "kubernetes.container_logs"
+        - key: service.name # Set the service.name resource attribute based on the k8s.container.name attribute
+          from_attribute: k8s.container.name
+          action: insert
+        - key: app.label.name # Delete app.label.name attribute previously used for service.name
+          action: delete
+        - key: service.version # Set the service.version resource attribute based on the well-known app.kubernetes.io/version label
+          from_attribute: app.label.version
+          action: insert
+        - key: app.label.version # Delete app.label.version attribute previously used for service.version
+          action: delete
+    resource/hostname:
+      attributes:
+        - key: host.name
+          from_attribute: k8s.node.name
           action: upsert
     attributes/dataset:
       actions:
@@ -311,12 +337,16 @@ config:
     pipelines:
       logs:
         receivers: [filelog]
-        processors: [batch, k8sattributes, resourcedetection/system, resourcedetection/eks, resourcedetection/gcp, resource/demo, resource/k8s, resource/cloud, attributes/k8s_logs_dataset]
-        exporters: [debug, elasticsearch]
+        processors: [batch, k8sattributes, resourcedetection/cluster, resource/hostname, resource/demo, resource/k8s, resource/cloud]
+        exporters: [debug, elasticsearch/otel]
       metrics:
         receivers: [hostmetrics, kubeletstats]
-        processors: [batch, k8sattributes, elasticinframetrics, resourcedetection/system, resource/demo, resourcedetection/eks, resourcedetection/gcp, resource/k8s, resource/cloud, attributes/dataset, resource/process]
-        exporters: [debug, elasticsearch]
+        processors: [batch, k8sattributes, elasticinframetrics, resourcedetection/cluster, resource/hostname, resource/demo, resource/k8s, resource/cloud, attributes/dataset, resource/process]
+        exporters: [debug, elasticsearch/ecs]
+      metrics/otel:
+        receivers: [kubeletstats]
+        processors: [batch, k8sattributes, resourcedetection/cluster, resource/hostname, resource/demo, resource/k8s, resource/cloud]
+        exporters: [debug, elasticsearch/otel]
       traces: null
     telemetry:
       metrics:
