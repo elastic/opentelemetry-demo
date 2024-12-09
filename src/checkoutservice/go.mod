@@ -2,7 +2,7 @@ module github.com/open-telemetry/opentelemetry-demo/src/checkoutservice
 
 go 1.22.7
 
-toolchain go1.22.9
+toolchain go1.23.4
 
 require (
 	github.com/IBM/sarama v1.43.3
