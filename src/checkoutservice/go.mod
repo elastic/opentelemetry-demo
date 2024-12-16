@@ -2,7 +2,7 @@ module github.com/open-telemetry/opentelemetry-demo/src/checkoutservice
 
 go 1.22.7
 
-toolchain go1.22.9
+toolchain go1.23.4
 
 require (
 	github.com/IBM/sarama v1.43.3
@@ -22,7 +22,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.33.0
 	google.golang.org/grpc v1.69.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.5.1
-	google.golang.org/protobuf v1.35.2
+	google.golang.org/protobuf v1.36.0
 )
 
 require (
