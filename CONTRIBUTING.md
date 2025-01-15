@@ -73,7 +73,7 @@ cd opentelemetry-demo/
 - Navigate to the Java Ad Service folder to install and update Gradle:
 
 ```shell
-cd .\src\adservice\
+cd .\src\ad\
 .\gradlew installDist
 .\gradlew wrapper --gradle-version 7.4.2
 ```
@@ -102,6 +102,11 @@ The Demo team is committed to keeping the demo up to date. That means the
 documentation as well as the code. When making changes to any service or feature
 remember to find the related docs and update those as well. Most (but not all)
 documentation can be found on the OTel website under [Demo docs][docs].
+
+### Running the React Native example
+
+If you are interested in running the React Native example app in this repo please
+review [these instructions](src/react-native-app/README.md).
 
 ## Create Your First Pull Request
 

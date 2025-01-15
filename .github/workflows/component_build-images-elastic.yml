@@ -28,80 +28,80 @@ jobs:
       fail-fast: false
       matrix:
         file_tag:
-          - file: ./src/accountingservice/Dockerfile
-            tag_suffix: accountingservice
+          - file: ./src/accounting/Dockerfile
+            tag_suffix: accounting
             context: ./
             setup-qemu: true
-          - file: ./src/adservice/Dockerfile.elastic
-            tag_suffix: adservice
+          - file: ./src/ad/Dockerfile.elastic
+            tag_suffix: ad
             context: ./
             setup-qemu: true
-          - file: ./src/cartservice/src/Dockerfile
-            tag_suffix: cartservice
+          - file: ./src/cart/src/Dockerfile
+            tag_suffix: cart
             context: ./
             setup-qemu: false
-          - file: ./src/checkoutservice/Dockerfile
-            tag_suffix: checkoutservice
+          - file: ./src/checkout/Dockerfile
+            tag_suffix: checkout
             context: ./
             setup-qemu: true
-          - file: ./src/currencyservice/Dockerfile
-            tag_suffix: currencyservice
+          - file: ./src/currency/Dockerfile
+            tag_suffix: currency
             context: ./
             setup-qemu: true
-          - file: ./src/emailservice/Dockerfile
-            tag_suffix: emailservice
+          - file: ./src/email/Dockerfile
+            tag_suffix: email
             context: ./
             setup-qemu: true
           - file: ./src/flagd-ui/Dockerfile
-            tag_suffix: flagdui
+            tag_suffix: flagd-ui
             context: ./
             setup-qemu: true
-          - file: ./src/frauddetectionservice/Dockerfile.elastic
-            tag_suffix: frauddetectionservice
+          - file: ./src/fraud-detection/Dockerfile.elastic
+            tag_suffix: fraud-detection
             context: ./
             setup-qemu: true
           - file: ./src/frontend/Dockerfile
             tag_suffix: frontend
             context: ./
             setup-qemu: true
-          - file: ./src/frontendproxy/Dockerfile
-            tag_suffix: frontendproxy
+          - file: ./src/frontend-proxy/Dockerfile
+            tag_suffix: frontend-proxy
             context: ./
             setup-qemu: true
           - file: ./src/frontend/Dockerfile.cypress
             tag_suffix: frontend-tests
             context: ./
             setup-qemu: true
-          - file: ./src/imageprovider/Dockerfile
-            tag_suffix: imageprovider
+          - file: ./src/image-provider/Dockerfile
+            tag_suffix: image-provider
             context: ./
             setup-qemu: true
           - file: ./src/kafka/Dockerfile.elastic
             tag_suffix: kafka
             context: ./
             setup-qemu: true
-          - file: ./src/loadgenerator/Dockerfile
-            tag_suffix: loadgenerator
+          - file: ./src/load-generator/Dockerfile
+            tag_suffix: load-generator
             context: ./
             setup-qemu: true
-          - file: ./src/paymentservice/Dockerfile
-            tag_suffix: paymentservice
+          - file: ./src/payment/Dockerfile
+            tag_suffix: payment
             context: ./
             setup-qemu: true
-          - file: ./src/productcatalogservice/Dockerfile
-            tag_suffix: productcatalogservice
+          - file: ./src/product-catalog/Dockerfile
+            tag_suffix: product-catalog
             context: ./
             setup-qemu: true
-          - file: ./src/quoteservice/Dockerfile
-            tag_suffix: quoteservice
+          - file: ./src/quote/Dockerfile
+            tag_suffix: quote
             context: ./
             setup-qemu: true
-          - file: ./src/recommendationservice/Dockerfile
-            tag_suffix: recommendationservice
+          - file: ./src/recommendation/Dockerfile
+            tag_suffix: recommendation
             context: ./
             setup-qemu: true
-          - file: ./src/shippingservice/Dockerfile
-            tag_suffix: shippingservice
+          - file: ./src/shipping/Dockerfile
+            tag_suffix: shipping
             context: ./
             setup-qemu: true
           - file: ./test/tracetesting/Dockerfile
