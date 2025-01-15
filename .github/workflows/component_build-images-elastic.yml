@@ -40,8 +40,8 @@ jobs:
             tag_suffix: cart
             context: ./
             setup-qemu: false
-          - file: ./src/checkoutservice/Dockerfile
-            tag_suffix: checkoutservice
+          - file: ./src/checkout/Dockerfile
+            tag_suffix: checkout
             context: ./
             setup-qemu: true
           - file: ./src/currency/Dockerfile
@@ -53,7 +53,7 @@ jobs:
             context: ./
             setup-qemu: true
           - file: ./src/flagd-ui/Dockerfile
-            tag_suffix: flagdui
+            tag_suffix: flagd-ui
             context: ./
             setup-qemu: true
           - file: ./src/fraud-detection/Dockerfile.elastic
@@ -64,8 +64,8 @@ jobs:
             tag_suffix: frontend
             context: ./
             setup-qemu: true
-          - file: ./src/frontendproxy/Dockerfile
-            tag_suffix: frontendproxy
+          - file: ./src/frontend-proxy/Dockerfile
+            tag_suffix: frontend-proxy
             context: ./
             setup-qemu: true
           - file: ./src/frontend/Dockerfile.cypress
@@ -88,8 +88,8 @@ jobs:
             tag_suffix: payment
             context: ./
             setup-qemu: true
-          - file: ./src/productcatalogservice/Dockerfile
-            tag_suffix: productcatalogservice
+          - file: ./src/product-catalog/Dockerfile
+            tag_suffix: product-catalog
             context: ./
             setup-qemu: true
           - file: ./src/quote/Dockerfile
