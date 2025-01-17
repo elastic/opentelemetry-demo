@@ -11,7 +11,7 @@ presets:
 
 image:
   repository: docker.elastic.co/beats/elastic-agent
-  tag: 8.16.0
+  tag: 8.17.0
 
 securityContext:
   runAsUser: 0

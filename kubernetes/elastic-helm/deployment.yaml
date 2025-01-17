@@ -35,7 +35,7 @@ default:
 opentelemetry-collector:
   image:
     repository: docker.elastic.co/beats/elastic-agent
-    tag: 8.16.0
+    tag: 8.17.0
   mode: "deployment"
   presets:
     kubernetesAttributes:
