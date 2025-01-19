@@ -87,7 +87,7 @@ spec:
             #    - SYS_ADMIN
           resources:
             limits:
-              memory: 950Mi
+              memory: 1200Mi
             requests:
               cpu: 100m
               memory: 400Mi
