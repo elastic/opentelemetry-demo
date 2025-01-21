@@ -11,7 +11,7 @@
   "dependencies": {
     "@vercel/otel": "^1.10.0",
     "ajv": "^8.17.1",
-    "next": "14.2.5",
+    "next": "14.2.23",
     "react": "^18",
     "react-dom": "^18"
   },
@@ -22,7 +22,7 @@
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^8",
-    "eslint-config-next": "14.2.5",
+    "eslint-config-next": "14.2.23",
     "postcss": "^8.4.41",
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.6",
