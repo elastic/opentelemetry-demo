@@ -13,7 +13,7 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
 ## Docker compose
 
 1. Start a free trial on [Elastic Cloud](https://cloud.elastic.co/) and copy the `Elasticsearch endpoint` and the `API Key` from the `Help -> Connection details` drop down instructions in your Kibana. These variables will be used by the [elasticsearch exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticsearchexporter#elasticsearch-exporter) to authenticate and transmit data to your Elasticsearch instance.
-2. Open the file `src/otelcollector/otelcol-elastic-config.yaml` in an editor and replace the following two placeholders:
+2. Open the file `src/otelcollector/otelcol-elastic-config.yaml` in an editor and replace all occurrences the following two placeholders:
    - `YOUR_ELASTICSEARCH_ENDPOINT`: your Elasticsearch endpoint (*with* `https://` prefix example: `https://1234567.us-west2.gcp.elastic-cloud.com:443`).
    - `YOUR_ELASTICSEARCH_API_KEY`: your Elasticsearch API Key
 3. Start the demo with the following command from the repository's root directory:
