@@ -110,7 +110,7 @@ processors:
   batch:
   elasticinframetrics:
     add_system_metrics: true
-    add_k8s_metrics: true
+    add_k8s_metrics: false
     drop_original: true
   resource/process:
     attributes:
@@ -118,6 +118,11 @@ processors:
         action: delete
       - key: process.executable.path
         action: delete
+  attributes/dataset:
+    actions:
+      - key: event.dataset
+        from_attribute: data_stream.dataset
+        action: upsert
   resourcedetection/system:
     detectors: ["system"]
     system:
@@ -431,6 +436,7 @@ service:
         - batch
         - elasticinframetrics
         - resourcedetection/system
+        - attributes/dataset
         - resource/process
       receivers:
         - hostmetrics
