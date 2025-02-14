@@ -107,6 +107,9 @@ receivers:
           match_type: strict
 
 processors:
+  batch/aggs:
+    send_batch_size: 16384 # 2x the default
+    timeout: 10s
   batch:
   elasticinframetrics:
     add_system_metrics: true
@@ -176,6 +179,11 @@ processors:
         statements:
           - set(resource.attributes["metricset.interval"], "10m")
           - set(attributes["data_stream.dataset"], Concat([attributes["metricset.name"], "10m"], "."))
+          - set(attributes["processor.event"], "metric")
+      - duration: 60m
+        statements:
+          - set(resource.attributes["metricset.interval"], "60m")
+          - set(attributes["data_stream.dataset"], Concat([attributes["metricset.name"], "60m"], "."))
           - set(attributes["processor.event"], "metric")
 
 connectors:
@@ -476,7 +484,7 @@ service:
       receivers:
         - signaltometrics
       processors:
-        - batch
+        - batch/aggs
         - lsminterval
       exporters:
         - debug

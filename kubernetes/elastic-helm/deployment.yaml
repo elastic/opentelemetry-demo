@@ -335,6 +335,9 @@ opentelemetry-collector:
           mode: otel
     processors:
       batch: {}
+      batch/aggs:
+        send_batch_size: 16384 # 2x the default
+        timeout: 10s
       resource:
         attributes:
           - key: deployment.environment
@@ -364,6 +367,11 @@ opentelemetry-collector:
             statements:
               - set(resource.attributes["metricset.interval"], "10m")
               - set(attributes["data_stream.dataset"], Concat([attributes["metricset.name"], "10m"], "."))
+              - set(attributes["processor.event"], "metric")
+          - duration: 60m
+            statements:
+              - set(resource.attributes["metricset.interval"], "60m")
+              - set(attributes["data_stream.dataset"], Concat([attributes["metricset.name"], "60m"], "."))
               - set(attributes["processor.event"], "metric")
       # [Resource Detection Processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/resourcedetectionprocessor)
       resourcedetection/eks:
@@ -551,7 +559,7 @@ opentelemetry-collector:
           receivers:
             - signaltometrics
           processors:
-            - batch
+            - batch/aggs
             - lsminterval
           exporters:
             - debug
