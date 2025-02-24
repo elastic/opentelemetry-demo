@@ -86,6 +86,10 @@ config:
         mode: otel
   processors:
     batch: {}
+    batch/metrics:
+      # explicitly set send_batch_max_size to 0, as splitting metrics requests may cause version_conflict_engine_exception in TSDB
+      send_batch_max_size: 0
+      timeout: 1s
     elasticinframetrics:
       add_system_metrics: true
       add_k8s_metrics: true
@@ -341,11 +345,11 @@ config:
         exporters: [debug, elasticsearch/otel]
       metrics:
         receivers: [hostmetrics, kubeletstats]
-        processors: [batch, k8sattributes, elasticinframetrics, resourcedetection/cluster, resource/hostname, resource/demo, resource/k8s, resource/cloud, attributes/dataset, resource/process]
+        processors: [batch/metrics, k8sattributes, elasticinframetrics, resourcedetection/cluster, resource/hostname, resource/demo, resource/k8s, resource/cloud, attributes/dataset, resource/process]
         exporters: [debug, elasticsearch/ecs]
       metrics/otel:
         receivers: [kubeletstats]
-        processors: [batch, k8sattributes, resourcedetection/cluster, resource/hostname, resource/demo, resource/k8s, resource/cloud]
+        processors: [batch/metrics, k8sattributes, resourcedetection/cluster, resource/hostname, resource/demo, resource/k8s, resource/cloud]
         exporters: [debug, elasticsearch/otel]
       traces: null
     telemetry:

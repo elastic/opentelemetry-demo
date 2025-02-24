@@ -111,6 +111,10 @@ processors:
     send_batch_size: 16384 # 2x the default
     timeout: 10s
   batch:
+  batch/metrics:
+    # explicitly set send_batch_max_size to 0, as splitting metrics requests may cause version_conflict_engine_exception in TSDB
+    send_batch_max_size: 0
+    timeout: 1s
   elasticinframetrics:
     add_system_metrics: true
     add_k8s_metrics: false
@@ -441,7 +445,7 @@ service:
         - elasticsearch/ecs
         - debug
       processors:
-        - batch
+        - batch/metrics
         - elasticinframetrics
         - resourcedetection/system
         - attributes/dataset
@@ -453,7 +457,7 @@ service:
         - elasticsearch/otel
         - debug
       processors:
-        - batch
+        - batch/metrics
         - resourcedetection/system
       receivers:
         - hostmetrics
@@ -463,7 +467,7 @@ service:
         - signaltometrics
         - debug
       processors:
-        - batch
+        - batch/metrics
       receivers:
         - httpcheck/frontendproxy
         - otlp

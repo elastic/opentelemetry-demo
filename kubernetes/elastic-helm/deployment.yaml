@@ -335,6 +335,10 @@ opentelemetry-collector:
           mode: otel
     processors:
       batch: {}
+      batch/metrics:
+        # explicitly set send_batch_max_size to 0, as splitting metrics requests may cause version_conflict_engine_exception in TSDB
+        send_batch_max_size: 0
+        timeout: 1s
       batch/aggs:
         send_batch_size: 16384 # 2x the default
         timeout: 10s
@@ -536,7 +540,7 @@ opentelemetry-collector:
             - signaltometrics
             - debug
           processors:
-            - batch
+            - batch/metrics
             - resource
           receivers:
             - httpcheck/frontendproxy
