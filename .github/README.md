@@ -18,7 +18,7 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
    - `YOUR_ELASTICSEARCH_ENDPOINT`: your Elasticsearch endpoint (*with* `https://` prefix example: `https://1234567.us-west2.gcp.elastic-cloud.com:443`).
    - `YOUR_ELASTICSEARCH_API_KEY`: your Elasticsearch API Key
 
-### Elastic Cloud Native OpenTelemetry Endpoint
+### Managed Ingest Endpoint
 1. Sign up for a free trial on [Elastic Cloud](https://cloud.elastic.co/) and start an Elastic Cloud Serverless Observability type project. Select Application and then OpenTelemetry.
 2. Copy the OTEL_EXPORTER_OTLP_ENDPOINT URL and replace `.apm` with `.ingest`.
 3. Click "Create an API Key" to create one.
@@ -90,7 +90,7 @@ helm install otel-daemonset open-telemetry/opentelemetry-collector --values daem
 ```
 </details>
 
-### Elastic Cloud Native OpenTelemetry Endpoint
+### Managed Ingest Endpoint
 
 <details>
 
