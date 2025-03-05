@@ -23,16 +23,16 @@ extraEnvs:
     value: ""
   - name: ELASTIC_AGENT_OTEL
     value: "true"
-  - name: ELASTIC_ENDPOINT
+  - name: ELASTIC_OTLP_ENDPOINT
     valueFrom:
       secretKeyRef:
         name: elastic-secret-otel
-        key: elastic_endpoint
-  - name: ELASTIC_API_KEY
+        key: elastic_otlp_endpoint
+  - name: ELASTIC_OTLP_TOKEN
     valueFrom:
       secretKeyRef:
         name: elastic-secret-otel
-        key: elastic_api_key
+        key: elastic_otlp_token
   - name: K8S_NODE_NAME
     valueFrom:
       fieldRef:
@@ -64,26 +64,10 @@ config:
   exporters:
     debug:
       verbosity: basic
-    elasticsearch/ecs:
-      endpoints:
-      - ${env:ELASTIC_ENDPOINT}
-      api_key: ${env:ELASTIC_API_KEY}
-      logs_dynamic_index:
-        enabled: true
-      metrics_dynamic_index:
-        enabled: true
-      mapping:
-        mode: ecs
-    elasticsearch/otel:
-      endpoints:
-      - ${env:ELASTIC_ENDPOINT}
-      api_key: ${env:ELASTIC_API_KEY}
-      logs_dynamic_index:
-        enabled: true
-      metrics_dynamic_index:
-        enabled: true
-      mapping:
-        mode: otel
+    otlphttp/elastic:
+      endpoint: "${env:ELASTIC_OTLP_ENDPOINT}"
+      headers:
+        Authorization: "ApiKey ${env:ELASTIC_OTLP_TOKEN}"
   processors:
     batch: {}
     batch/metrics:
@@ -342,15 +326,15 @@ config:
       logs:
         receivers: [filelog]
         processors: [batch, k8sattributes, resourcedetection/cluster, resource/hostname, resource/demo, resource/k8s, resource/cloud]
-        exporters: [debug, elasticsearch/otel]
+        exporters: [debug, otlphttp/elastic]
       metrics:
         receivers: [hostmetrics, kubeletstats]
         processors: [batch/metrics, k8sattributes, elasticinframetrics, resourcedetection/cluster, resource/hostname, resource/demo, resource/k8s, resource/cloud, attributes/dataset, resource/process]
-        exporters: [debug, elasticsearch/ecs]
+        exporters: [debug, otlphttp/elastic]
       metrics/otel:
         receivers: [kubeletstats]
         processors: [batch/metrics, k8sattributes, resourcedetection/cluster, resource/hostname, resource/demo, resource/k8s, resource/cloud]
-        exporters: [debug, elasticsearch/otel]
+        exporters: [debug, otlphttp/elastic]
       traces: null
     telemetry:
       metrics:
