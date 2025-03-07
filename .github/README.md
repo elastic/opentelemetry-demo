@@ -98,7 +98,7 @@ helm install otel-daemonset open-telemetry/opentelemetry-collector --values daem
 
 1. Sign up for a free trial on [Elastic Cloud](https://cloud.elastic.co/) and start an Elastic Cloud Serverless Observability type project. Select Application and then OpenTelemetry.
 2. Copy the OTEL_EXPORTER_OTLP_ENDPOINT URL and replace `.apm` with `.ingest`.
-3. Click "Create an API Key" to create one..
+3. Click "Create an API Key" to create one.
 4. Create a secret in Kubernetes with the following command.
    ```
    kubectl create secret generic elastic-secret-otel \
