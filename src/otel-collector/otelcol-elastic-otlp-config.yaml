@@ -415,18 +415,6 @@ service:
         - batch
       receivers:
         - otlp
-    # metrics/infra/ecs:
-    #   exporters:
-    #     - elasticsearch/ecs
-    #     - debug
-    #   processors:
-    #     - batch
-    #     - elasticinframetrics
-    #     - resourcedetection/system
-    #     - attributes/dataset
-    #     - resource/process
-    #   receivers:
-    #     - hostmetrics
     metrics/infra/otel:
       exporters:
         - otlphttp/elastic
