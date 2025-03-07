@@ -159,6 +159,11 @@ processors:
           - set(resource.attributes["metricset.interval"], "10m")
           - set(attributes["data_stream.dataset"], Concat([attributes["metricset.name"], "10m"], "."))
           - set(attributes["processor.event"], "metric")
+      - duration: 60m
+        statements:
+          - set(resource.attributes["metricset.interval"], "60m")
+          - set(attributes["data_stream.dataset"], Concat([attributes["metricset.name"], "60m"], "."))
+          - set(attributes["processor.event"], "metric")
 
 connectors:
   spanmetrics:
