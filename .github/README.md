@@ -123,7 +123,7 @@ helm install otel-daemonset open-telemetry/opentelemetry-collector --values daem
    helm repo update open-telemetry
 
    # deploy the demo through helm install
-   helm install -f deploymen-otlp.yaml my-otel-demo open-telemetry/opentelemetry-demo
+   helm install -f deployment-otlp.yaml my-otel-demo open-telemetry/opentelemetry-demo
    ```
 
 Additionally, this EDOT Collector configuration includes the following components for comprehensive Kubernetes monitoring:
