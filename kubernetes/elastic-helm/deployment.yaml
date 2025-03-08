@@ -532,6 +532,7 @@ opentelemetry-collector:
           processors:
             - batch
             - resource
+            - resource/hostname
           receivers:
             - otlp
         metrics:
@@ -542,6 +543,7 @@ opentelemetry-collector:
           processors:
             - batch/metrics
             - resource
+            - resource/hostname
           receivers:
             - httpcheck/frontendproxy
             - otlp
