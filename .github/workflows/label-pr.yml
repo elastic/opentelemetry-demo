@@ -19,7 +19,7 @@ jobs:
 
       - name: Check for changed files
         id: file_changes
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@0bc4621a3135347011ad047f9ecf449bf72ce2bd  #v3
         with:
           list-files: shell
           filters: |
