@@ -19,7 +19,7 @@ receivers:
   httpcheck/frontendproxy:
     targets:
       - endpoint: http://frontendproxy:${env:ENVOY_PORT}
-  hostmetrics/system:
+  hostmetrics:
     collection_interval: 10s
     root_path: /hostfs
     scrapers:
