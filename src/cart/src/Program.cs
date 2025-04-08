@@ -11,14 +11,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Instrumentation.StackExchangeRedis;
-using OpenTelemetry.Logs;
 using OpenTelemetry;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using OpenFeature;
 using OpenFeature.Contrib.Providers.Flagd;
 using OpenFeature.Contrib.Hooks.Otel;
+using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 string valkeyAddress = builder.Configuration["VALKEY_ADDR"];
@@ -27,6 +25,14 @@ if (string.IsNullOrEmpty(valkeyAddress))
     Console.WriteLine("VALKEY_ADDR environment variable is required.");
     Environment.Exit(1);
 }
+
+builder.AddElasticOpenTelemetry(otelBuilder => otelBuilder
+    .WithTracing(tracerBuilder => tracerBuilder
+        .AddSource("OpenTelemetry.Demo.Cart")
+        .AddRedisInstrumentation(
+            options => options.SetVerboseDatabaseStatements = true))
+    .WithMetrics(meterBuilder => meterBuilder
+        .AddMeter("OpenTelemetry.Demo.Cart")));
 
 builder.Logging
     .AddConsole();
@@ -52,23 +58,7 @@ builder.Services.AddSingleton(x =>
         x.GetRequiredService<IFeatureClient>()
 ));
 
-
-Action<ResourceBuilder> appResourceBuilder =
-    resource => resource
-        .AddContainerDetector()
-        .AddHostDetector();
-
-builder.Services.AddOpenTelemetry()
-    .ConfigureResource(appResourceBuilder)
-    .WithTracing(tracerBuilder => tracerBuilder
-        .AddSource("OpenTelemetry.Demo.Cart")
-        .AddRedisInstrumentation(
-            options => options.SetVerboseDatabaseStatements = true)
-        .AddAspNetCoreInstrumentation())
-    .WithMetrics(meterBuilder => meterBuilder
-        .AddAspNetCoreInstrumentation());
-
-OpenFeature.Api.Instance.AddHooks(new TracingHook());
+Api.Instance.AddHooks(new TracingHook());
 builder.Services.AddGrpc();
 builder.Services.AddGrpcHealthChecks()
     .AddCheck("Sample", () => HealthCheckResult.Healthy());
