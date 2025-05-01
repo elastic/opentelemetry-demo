@@ -2,7 +2,7 @@ enabled: true
 default:
   image:
     repository: ghcr.io/elastic/opentelemetry-demo
-    tag: 2.0.3
+    tag: 2.0.4
   envOverrides:
     - name: OTEL_COLLECTOR_NAME
       value: "opentelemetry-kube-stack-daemon-collector.opentelemetry-operator-system.svc.cluster.local"
