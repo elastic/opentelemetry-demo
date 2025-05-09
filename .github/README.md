@@ -29,7 +29,7 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
 4. Open the file `src/otel-collector/otelcol-elastic-otlp-config.yaml` in an editor and replace all occurrences the following two placeholders:
    - `YOUR_OTEL_EXPORTER_OTLP_ENDPOINT`: your OTEL_EXPORTER_OTLP_ENDPOINT_URL.
    - `YOUR_OTEL_EXPORTER_OTLP_TOKEN`: your Elastic OTLP endpoint token. This is what comes after `ApiKey=`.
-5. Open `.env.override` and add `src/otel-collector/otelcol-elastic-otlp-config.yaml` as `OTEL_COLLECTOR_CONFIG`  
+5. Open `.env.override` and add `src/otel-collector/otelcol-elastic-otlp-config.yaml` as `OTEL_COLLECTOR_CONFIG`
 6. Start the demo with the following command from the repository's root directory:
    ```
    make start
@@ -48,6 +48,24 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
   ```
   helm install my-otel-demo open-telemetry/opentelemetry-demo -f kubernetes/elastic-helm/demo.yml
   ```
+
+#### Enabling Browser Traffic Generation
+
+In the installed configuration, browser-based load generation is disabled by default to avoid CORS (Cross-Origin Resource Sharing) issues when sending telemetry data from simulated browser clients to the OpenTelemetry Collector. If you'd like to enable browser traffic in the load generator again:
+
+1. Set LOCUST_BROWSER_TRAFFIC_ENABLED to "true" in kubernetes/elastic-helm/demo.yml.
+2. Modify the OTLP HTTP receiver in the DaemonSet OpenTelemetry Collector values file (used in the [EDOT Quick Start Guide](https://elastic.github.io/opentelemetry/quickstart/)) to include CORS support:
+   ```yaml
+   eceivers:
+     otlp:
+       protocols:
+         http:
+           cors:
+             allowed_origins:
+               - http://frontend-proxy:8080
+   ```
+   This configuration allows the OTLP HTTP endpoint to accept trace data from browser-based sources running at http://frontend-proxy:8080.
+3. Upgrade the EDOT Quick Start deployment.
 
 #### Kubernetes architecture diagram
 

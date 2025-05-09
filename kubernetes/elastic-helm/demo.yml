@@ -8,6 +8,10 @@ default:
       value: "opentelemetry-kube-stack-daemon-collector.opentelemetry-operator-system.svc.cluster.local"
 
 components:
+  load-generator:
+    envOverrides:
+      - name: LOCUST_BROWSER_TRAFFIC_ENABLED
+        value: "false"
   flagd:
     sidecarContainers:
       - name: flagd-ui
