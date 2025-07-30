@@ -765,6 +765,8 @@ services:
       - OTEL_COLLECTOR_PORT_GRPC
       - OTEL_COLLECTOR_PORT_HTTP
       - ELASTIC_AGENT_OTEL
+      - ELASTICSEARCH_ENDPOINT
+      - ELASTICSEARCH_API_KEY
 
   # Prometheus
   prometheus:
