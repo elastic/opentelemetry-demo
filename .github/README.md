@@ -14,7 +14,7 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
 
 ### Elasticsearch exporter (default)
 1. Start a free trial on [Elastic Cloud](https://cloud.elastic.co/) and copy the `Elasticsearch endpoint` and the `API Key` from the `Help -> Connection details` drop down instructions in your Kibana. These variables will be used by the [elasticsearch exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticsearchexporter#elasticsearch-exporter) to authenticate and transmit data to your Elasticsearch instance.
-2. Open the file `src/otel-collector/otelcol-elastic-config.yaml` in an editor and replace all occurrences the following two placeholders:
+2. Open the file `.env.override` in an editor and replace all occurrences the following two placeholders:
    - `YOUR_ELASTICSEARCH_ENDPOINT`: your Elasticsearch endpoint (*with* `https://` prefix example: `https://1234567.us-west2.gcp.elastic-cloud.com:443`).
    - `YOUR_ELASTICSEARCH_API_KEY`: your Elasticsearch API Key
 3. Start the demo with the following command from the repository's root directory:
@@ -26,10 +26,10 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
 1. Sign up for a free trial on [Elastic Cloud](https://cloud.elastic.co/) and start an Elastic Cloud Serverless Observability type project. Select Application and then OpenTelemetry.
 2. Copy the OTEL_EXPORTER_OTLP_ENDPOINT URL and replace `.apm` with `.ingest`.
 3. Click "Create an API Key" to create one.
-4. Open the file `src/otel-collector/otelcol-elastic-otlp-config.yaml` in an editor and replace all occurrences the following two placeholders:
+4. Open the file `.env.override` in an editor and replace all occurrences the following two placeholders:
    - `YOUR_OTEL_EXPORTER_OTLP_ENDPOINT`: your OTEL_EXPORTER_OTLP_ENDPOINT_URL.
    - `YOUR_OTEL_EXPORTER_OTLP_TOKEN`: your Elastic OTLP endpoint token. This is what comes after `ApiKey=`.
-5. Open `.env.override` and add `src/otel-collector/otelcol-elastic-otlp-config.yaml` as `OTEL_COLLECTOR_CONFIG`
+5. Add `src/otel-collector/otelcol-elastic-otlp-config.yaml` as `OTEL_COLLECTOR_CONFIG`
 6. Start the demo with the following command from the repository's root directory:
    ```
    make start
