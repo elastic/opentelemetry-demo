@@ -205,7 +205,6 @@ service:
         - debug
       processors:
         - batch/metrics
-        - elastictrace
         - resourcedetection/system
       receivers:
         - hostmetrics
@@ -216,7 +215,6 @@ service:
         - debug
       processors:
         - batch/metrics
-        - elastictrace
       receivers:
         - httpcheck/frontendproxy
         - otlp
