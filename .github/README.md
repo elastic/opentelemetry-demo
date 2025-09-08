@@ -23,8 +23,8 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
    ```
 
 ### Managed Ingest Endpoint
-1. Sign up for a free trial on [Elastic Cloud](https://cloud.elastic.co/) and start an Elastic Cloud Serverless Observability type project. Select Application and then OpenTelemetry.
-2. Copy the OTEL_EXPORTER_OTLP_ENDPOINT URL and replace `.apm` with `.ingest`.
+1. Sign up for a free trial on [Elastic Cloud](https://cloud.elastic.co/) and start an Elastic Cloud Serverless Observability type project. Select Add data, Application and then OpenTelemetry.
+2. Copy the OTEL_EXPORTER_OTLP_ENDPOINT URL.
 3. Click "Create an API Key" to create one.
 4. Open the file `.env.override` in an editor and replace all occurrences the following two placeholders:
    - `YOUR_OTEL_EXPORTER_OTLP_ENDPOINT`: your OTEL_EXPORTER_OTLP_ENDPOINT_URL.
