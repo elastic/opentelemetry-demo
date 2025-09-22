@@ -25,11 +25,11 @@ COLLECTOR_CONTRIB_IMAGE=docker.elastic.co/elastic-agent/elastic-agent:$ELASTIC_S
 
 
 # Variables
-ELASTIC_DEPLOYMENT_TYPE=""
-PLATFORM=""
-DESTROY="false"
-ELASTICSEARCH_ENDPOINT=""
-ELASTICSEARCH_API_KEY=""
+deployment_type=""
+platform=""
+destroy="false"
+elasticsearch_endpoint=""
+elasticsearch_api_key=""
 
 usage() {
     echo "Usage: $0 [cloud-hosted|serverless] [docker|k8s] | destroy [docker|k8s]"
@@ -42,16 +42,16 @@ parse_args() {
   fi
 
   if [ "$1" = "destroy" ]; then
-    DESTROY="true"
+    destroy="true"
     if [ $# -ge 2 ]; then
-      PLATFORM="$2"
+      platform="$2"
     fi
     return
   fi
 
-  ELASTIC_DEPLOYMENT_TYPE="$1"
+  deployment_type="$1"
   if [ $# -ge 2 ]; then
-    PLATFORM="$2"
+    platform="$2"
   fi
 }
 
@@ -66,20 +66,20 @@ update_env_var() {
 }
 
 ensure_env_values() {
-  if [ -z "$ELASTICSEARCH_ENDPOINT" ]; then
+  if [ -z "$elasticsearch_endpoint" ]; then
     printf "Enter your Elastic endpoint: "
-    read ELASTICSEARCH_ENDPOINT
+    read elasticsearch_endpoint
   fi
 
-  if [ -z "$ELASTICSEARCH_API_KEY" ]; then
+  if [ -z "$elasticsearch_api_key" ]; then
     printf "Enter your Elastic API key: "
-    read ELASTICSEARCH_API_KEY
+    read elasticsearch_api_key
   fi
 }
 
-# Resolve OTEL Collector config path for Docker based on ELASTIC_DEPLOYMENT_TYPE
+# Resolve OTEL Collector config path for Docker based on deployment_type
 set_docker_collector_config() {
-  case "$ELASTIC_DEPLOYMENT_TYPE" in
+  case "$deployment_type" in
     cloud-hosted)
       OTEL_COLLECTOR_CONFIG=$DOCKER_COLLECTOR_CONFIG_CLOUD
       ;;
@@ -93,8 +93,8 @@ start_docker() {
   set_docker_collector_config
   ensure_env_values
 
-  update_env_var "ELASTICSEARCH_ENDPOINT" "$ELASTICSEARCH_ENDPOINT"
-  update_env_var "ELASTICSEARCH_API_KEY" "$ELASTICSEARCH_API_KEY"
+  update_env_var "ELASTICSEARCH_ENDPOINT" "$elasticsearch_endpoint"
+  update_env_var "ELASTICSEARCH_API_KEY" "$elasticsearch_api_key"
   update_env_var "OTEL_COLLECTOR_CONFIG" "$OTEL_COLLECTOR_CONFIG"
   update_env_var "COLLECTOR_CONTRIB_IMAGE" "$COLLECTOR_CONTRIB_IMAGE"
 
@@ -110,26 +110,26 @@ ensure_k8s_prereqs() {
 
 apply_k8s_secret() {
   ensure_env_values
-  case "$ELASTIC_DEPLOYMENT_TYPE" in
+  case "$deployment_type" in
     cloud-hosted)
       kubectl create secret generic "$SECRET_NAME" \
         --namespace "$NAMESPACE" \
-        --from-literal=elastic_endpoint="$ELASTICSEARCH_ENDPOINT" \
-        --from-literal=elastic_api_key="$ELASTICSEARCH_API_KEY" \
+        --from-literal=elastic_endpoint="$elasticsearch_endpoint" \
+        --from-literal=elastic_api_key="$elasticsearch_api_key" \
         --dry-run=client -o yaml | kubectl apply -f -
       ;;
     serverless)
       kubectl create secret generic "$SECRET_NAME" \
         --namespace "$NAMESPACE" \
-        --from-literal=elastic_otlp_endpoint="$ELASTICSEARCH_ENDPOINT" \
-        --from-literal=elastic_api_key="$ELASTICSEARCH_API_KEY" \
+        --from-literal=elastic_otlp_endpoint="$elasticsearch_endpoint" \
+        --from-literal=elastic_api_key="$elasticsearch_api_key" \
         --dry-run=client -o yaml | kubectl apply -f -
       ;;
   esac
 }
 
 install_kube_stack() {
-  case "$ELASTIC_DEPLOYMENT_TYPE" in
+  case "$deployment_type" in
     cloud-hosted)
       VALUES_URL="$KUBE_STACK_VALUES_URL_CLOUD"
       ;;
@@ -169,8 +169,8 @@ destroy_k8s() {
 main() {
   parse_args "$@"
 
-  if [ "$DESTROY" = "true" ]; then
-    if [ -z "$PLATFORM" ]; then
+  if [ "$destroy" = "true" ]; then
+    if [ -z "$platform" ]; then
       echo "Destroying Docker and Kubernetes resources..."
       destroy_docker
       destroy_k8s
@@ -178,14 +178,14 @@ main() {
       return 0
     fi
 
-    if [ "$PLATFORM" = "docker" ]; then
+    if [ "$platform" = "docker" ]; then
       echo "Destroying Docker resources..."
       destroy_docker
       echo "Done! Destroyed Docker resources."
       return 0
     fi
 
-    if [ "$PLATFORM" = "k8s" ]; then
+    if [ "$platform" = "k8s" ]; then
       echo "Destroying Kubernetes resources..."
       destroy_k8s
       echo "Done! Destroyed Kubernetes resources."
@@ -195,21 +195,21 @@ main() {
     usage
   fi
 
-  if [ "$ELASTIC_DEPLOYMENT_TYPE" != "cloud-hosted" ] && [ "$ELASTIC_DEPLOYMENT_TYPE" != "serverless" ]; then
+  if [ "$deployment_type" != "cloud-hosted" ] && [ "$deployment_type" != "serverless" ]; then
     usage
   fi
 
-  if [ "$PLATFORM" != "docker" ] && [ "$PLATFORM" != "k8s" ]; then
+  if [ "$platform" != "docker" ] && [ "$platform" != "k8s" ]; then
     usage
   fi
 
-  echo "Starting '$ELASTIC_DEPLOYMENT_TYPE' on '$PLATFORM'..."
-  if [ "$PLATFORM" = "docker" ]; then
+  echo "Starting '$deployment_type' on '$platform'..."
+  if [ "$platform" = "docker" ]; then
     start_docker
   else
     start_k8s
   fi
-  echo "Done! '$ELASTIC_DEPLOYMENT_TYPE' started on '$PLATFORM'."
+  echo "Done! '$deployment_type' started on '$platform'."
 }
 
 main "$@"
