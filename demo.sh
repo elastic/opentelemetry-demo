@@ -65,20 +65,35 @@ update_env_var() {
   fi
 }
 
+# Read a secret from the terminal without echo and assign it to a variable by name
+# Usage: read_secret variable_name "Prompt: "
+read_secret() {
+  var_name="$1"
+  prompt="$2"
+  printf "%s" "$prompt"
+  stty -echo 2>/dev/null || :
+  trap 'stty echo 2>/dev/null' 0 INT TERM HUP
+  read -r "${var_name?}"
+  stty echo 2>/dev/null || :
+  trap - 0 INT TERM HUP
+  echo
+}
+
 ensure_env_values() {
+  echo
   if [ -z "$elasticsearch_endpoint" ]; then
-    if [ $deployment_type = "serverless" ]; then
-      printf "Enter your Elastic OTLP endpoint: "
+    if [ "$deployment_type" = "serverless" ]; then
+      printf "🔑 Enter your Elastic OTLP endpoint: "
     else
-      printf "Enter your Elastic endpoint: "
+      printf "🔑 Enter your Elastic endpoint: "
     fi
-    read elasticsearch_endpoint
+    read -r elasticsearch_endpoint
   fi
 
   if [ -z "$elasticsearch_api_key" ]; then
-    printf "Enter your Elastic API key: "
-    read elasticsearch_api_key
+    read_secret elasticsearch_api_key "🔑 Enter your Elastic API key: "
   fi
+  echo
 }
 
 # Resolve OTEL Collector config path for Docker based on deployment_type
@@ -107,9 +122,7 @@ start_docker() {
 
 ensure_k8s_prereqs() {
   helm repo add "$HELM_REPO_NAME" "$HELM_REPO_URL" --force-update
-  if ! kubectl get namespace "$NAMESPACE" >/dev/null 2>&1; then
-    kubectl create namespace "$NAMESPACE"
-  fi
+  kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
 }
 
 apply_k8s_secret() {
@@ -160,39 +173,48 @@ start_k8s() {
 }
 
 destroy_docker() {
+  echo
   make stop
+  echo
 }
 
+
 destroy_k8s() {
+  echo
   helm uninstall "$DEMO_RELEASE" --ignore-not-found
   helm uninstall "$KUBE_STACK_RELEASE" -n "$NAMESPACE" --ignore-not-found
   kubectl delete secret "$SECRET_NAME" -n "$NAMESPACE" --ignore-not-found
   kubectl delete namespace "$NAMESPACE" --ignore-not-found --wait=false --timeout=60s
+  echo
 }
 
 main() {
   parse_args "$@"
 
+  echo '----------------------------------------------------'
+  echo '🚀 OpenTelemetry Demo with Elastic Observability'
+  echo '----------------------------------------------------'
+
   if [ "$destroy" = "true" ]; then
     if [ -z "$platform" ]; then
-      echo "Destroying Docker and Kubernetes resources..."
+      echo "⌛️ Destroying Docker and Kubernetes resources..."
       destroy_docker
       destroy_k8s
-      echo "Done! Destroyed Docker and Kubernetes resources."
+      echo "✅ Done! Destroyed Docker and Kubernetes resources."
       return 0
     fi
 
     if [ "$platform" = "docker" ]; then
-      echo "Destroying Docker resources..."
+      echo "⌛️ Destroying Docker resources..."
       destroy_docker
-      echo "Done! Destroyed Docker resources."
+      echo "✅ Done! Destroyed Docker resources."
       return 0
     fi
 
     if [ "$platform" = "k8s" ]; then
-      echo "Destroying Kubernetes resources..."
+      echo "⌛️ Destroying Kubernetes resources..."
       destroy_k8s
-      echo "Done! Destroyed Kubernetes resources."
+      echo "✅ Done! Destroyed Kubernetes resources."
       return 0
     fi
 
@@ -207,13 +229,15 @@ main() {
     usage
   fi
 
-  echo "Starting '$deployment_type' on '$platform'..."
+  echo "⌛️ Starting OTel Demo + EDOT on '$platform' → Elastic ($deployment_type)..."
+  echo
   if [ "$platform" = "docker" ]; then
     start_docker
   else
     start_k8s
   fi
-  echo "Done! '$deployment_type' started on '$platform'."
+  echo
+  echo "🎉 OTel Demo and EDOT are running on '$platform'; data is flowing to Elastic ($deployment_type)."
 }
 
 main "$@"
