@@ -66,7 +66,7 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
 - Set up [kubectl](https://kubernetes.io/docs/reference/kubectl/).
 - Set up [Helm](https://helm.sh/).
 
-### Automated Script
+### Automated Installation
 
 - **Elasticsearch exporter:** Run `./demo.sh cloud-hosted k8s`
 - **Managed Ingest Endpoint:** Run `./demo.sh serverless k8s`
