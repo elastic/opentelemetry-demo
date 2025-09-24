@@ -31,7 +31,7 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
 4. Run `./demo.sh serverless docker`
 
 
-### Manual Configuration
+### Manual Installation
 <details> 
 
 #### Elasticsearch exporter
