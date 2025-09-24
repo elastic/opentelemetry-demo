@@ -67,7 +67,11 @@ update_env_var() {
 
 ensure_env_values() {
   if [ -z "$elasticsearch_endpoint" ]; then
-    printf "Enter your Elastic endpoint: "
+    if [ $deployment_type = "serverless" ]; then
+      printf "Enter your Elastic OTLP endpoint: "
+    else
+      printf "Enter your Elastic endpoint: "
+    fi
     read elasticsearch_endpoint
   fi
 
