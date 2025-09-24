@@ -71,7 +71,7 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
 - **Elasticsearch exporter:** Run `./demo.sh cloud-hosted k8s`
 - **Managed Ingest Endpoint:** Run `./demo.sh serverless k8s`
 
-### Manual Configuration
+### Manual Installation
 
 <details>
 
