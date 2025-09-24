@@ -17,7 +17,7 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
 - Install [Docker](https://docs.docker.com/get-started/get-docker/)
 - Install [Docker Compose](https://docs.docker.com/compose/install/)
 
-### Automated script
+### Automated Installation
 
 #### Elasticsearch exporter (default)
 
