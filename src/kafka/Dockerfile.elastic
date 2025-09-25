@@ -6,7 +6,7 @@
 # fetch latest published snapshot of the Elastic OpenTelemetry Java agent, using xq to parse XML
 FROM debian:stable-slim AS intermediate
 RUN <<-EOF
-    apt-get update && apt-get install -y xq
+    apt-get update && apt-get install -y curl xq
     artifact='elastic-otel-javaagent'
     base_url="https://central.sonatype.com/repository/maven-snapshots/co/elastic/otel/${artifact}"
     snapshot_version="$(curl -s "${base_url}/maven-metadata.xml" | xq -e metadata/versioning/latest)"
