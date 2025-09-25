@@ -16,6 +16,22 @@ RUN ./gradlew installDist -PprotoSourceDir=./proto
 
 # -----------------------------------------------------------------------------
 
+# fetch latest published snapshot of the Elastic OpenTelemetry Java agent, using xq to parse XML
+FROM eclipse-temurin:21-jre AS intermediate
+RUN <<-EOF
+    apt-get update && apt-get install -y xq
+    artifact='elastic-otel-javaagent'
+    base_url="https://central.sonatype.com/repository/maven-snapshots/co/elastic/otel/${artifact}"
+    snapshot_version="$(curl -s "${base_url}/maven-metadata.xml" | xq -e metadata/versioning/latest)"
+    snapshot_timestamp="$(curl -s "${base_url}/${snapshot_version}/maven-metadata.xml" | xq -e metadata/versioning/snapshot/timestamp)"
+    snapshot_buildnumber="$(curl -s "${base_url}/${snapshot_version}/maven-metadata.xml" | xq -e metadata/versioning/snapshot/buildNumber)"
+    curl \
+        -o /opentelemetry-javaagent.jar \
+        "${base_url}/${snapshot_version}/${artifact}-${snapshot_version%-SNAPSHOT}-${snapshot_timestamp}-${snapshot_buildnumber}.jar"
+EOF
+
+# -----------------------------------------------------------------------------
+
 FROM eclipse-temurin:21-jre
 
 # ARG version=0.4.0
@@ -25,19 +41,7 @@ WORKDIR /usr/src/app/
 
 COPY --from=builder /usr/src/app/ ./
 
-# fetch latest published snapshot of the Elastic OpenTelemetry Java agent, using xq to parse XML
-RUN <<-EOF
-    apt update && apt install -y xq
-    artifact='elastic-otel-javaagent'
-    base_url="https://central.sonatype.com/repository/maven-snapshots/co/elastic/otel/${artifact}"
-    snapshot_version="$(curl -s "${base_url}/maven-metadata.xml" | xq -e metadata/versioning/latest)"
-    snapshot_timestamp="$(curl -s "${base_url}/${snapshot_version}/maven-metadata.xml" | xq -e metadata/versioning/snapshot/timestamp)"
-    snapshot_buildnumber="$(curl -s "${base_url}/${snapshot_version}/maven-metadata.xml" | xq -e metadata/versioning/snapshot/buildNumber)"
-    curl \
-        -o /usr/src/app/opentelemetry-javaagent.jar \
-        "${base_url}/${snapshot_version}/${artifact}-${snapshot_version%-SNAPSHOT}-${snapshot_timestamp}-${snapshot_buildnumber}.jar"
-    chmod 644 /usr/src/app/opentelemetry-javaagent.jar
-EOF
+COPY --from=intermediate /opentelemetry-javaagent.jar /usr/src/app/opentelemetry-javaagent.jar
 
 ENV JAVA_TOOL_OPTIONS=-javaagent:/usr/src/app/opentelemetry-javaagent.jar
 ENV OTEL_INFERRED_SPANS_ENABLED=true
