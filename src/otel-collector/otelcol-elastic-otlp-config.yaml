@@ -1,9 +1,9 @@
 exporters:
   debug:
   otlphttp/elastic:
-    endpoint: "YOUR_OTEL_EXPORTER_OTLP_ENDPOINT"
+    endpoint: ${env:ELASTICSEARCH_ENDPOINT}
     headers:
-      Authorization: "ApiKey YOUR_OTEL_EXPORTER_OTLP_API_KEY"
+      Authorization: "ApiKey ${env:ELASTICSEARCH_API_KEY}"
 
 receivers:
   otlp:
