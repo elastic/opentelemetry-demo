@@ -17,7 +17,7 @@ RUN ./gradlew installDist -PprotoSourceDir=./proto
 # -----------------------------------------------------------------------------
 
 # fetch latest published snapshot of the Elastic OpenTelemetry Java agent, using xq to parse XML
-FROM eclipse-temurin:21-jre AS intermediate
+FROM debian:stable-slim AS intermediate
 RUN <<-EOF
     apt-get update && apt-get install -y xq
     artifact='elastic-otel-javaagent'
