@@ -107,10 +107,6 @@ only want the demo services in Docker.
      docker.elastic.co/apm/apm-server:9.1.0
    ```
 
-   > On Linux, pass `--add-host=host.docker.internal:host-gateway` to the demo's
-   > compose file or `/etc/docker/daemon.json` if Docker does not provide the host
-   > gateway automatically.
-
 4. Edit `src/otel-collector/otelcol-config-extras.yml` so the traces pipeline
    keeps the built-in exporters and appends the Elastic endpoint:
 
