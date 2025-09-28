@@ -70,9 +70,7 @@ only want the demo services in Docker.
    curl -X POST "http://localhost:9200/_security/api_key" \
      -u elastic:changeme \
      -H "Content-Type: application/json" \
-     -d'{
-       "name": "my_api_key"
-     }'
+     -d'{ "name": "my_api_key" }'
    ```
 
 2. Update `.env.override` so the collector can reach Elasticsearch:
