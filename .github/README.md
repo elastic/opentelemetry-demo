@@ -1,4 +1,5 @@
 <!-- markdownlint-disable-next-line -->
+
 # <img src="https://opentelemetry.io/img/logos/opentelemetry-logo-nav.png" alt="OTel logo" width="32"> :heavy_plus_sign: <img src="https://images.contentstack.io/v3/assets/bltefdd0b53724fa2ce/blt601c406b0b5af740/620577381692951393fdf8d6/elastic-logo-cluster.svg" alt="OTel logo" width="32"> OpenTelemetry Demo with Elastic Observability
 
 The following guide describes how to setup the OpenTelemetry demo with Elastic Observability using [Docker compose](#docker-compose) or [Kubernetes](#kubernetes). This fork introduces several changes to the agents used in the demo:
@@ -25,22 +26,24 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
 2. Run `./demo.sh cloud-hosted docker`.
 
 #### Managed Ingest Endpoint
+
 1. Sign up for a free trial on [Elastic Cloud](https://cloud.elastic.co/) and start an Elastic Cloud Serverless Observability type project. Select Add data, Application and then OpenTelemetry.
 2. Copy the OTEL_EXPORTER_OTLP_ENDPOINT URL.
 3. Click "Create an API Key" to create one.
 4. Run `./demo.sh serverless docker`
 
-
 ### Manual Installation
-<details> 
+
+<details>
 
 #### Elasticsearch exporter
+
 1. Start a free trial on [Elastic Cloud](https://cloud.elastic.co/) and copy the `Elasticsearch endpoint` and the `API Key` from the `Help -> Connection details` drop down instructions in your Kibana. These variables will be used by the [elasticsearch exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticsearchexporter#elasticsearch-exporter) to authenticate and transmit data to your Elasticsearch instance.
 2. Open the file `.env.override` in an editor and fill in the following two variables:
-   - `ELASTICSEARCH_ENDPOINT`: your Elasticsearch endpoint (*with* `https://` prefix example: `https://1234567.us-west2.gcp.elastic-cloud.com:443`).
+   - `ELASTICSEARCH_ENDPOINT`: your Elasticsearch endpoint (_with_ `https://` prefix example: `https://1234567.us-west2.gcp.elastic-cloud.com:443`).
    - `ELASTICSEARCH_API_KEY`: your Elasticsearch API Key
 3. Add `src/otel-collector/otelcol-elastic-config.yaml` as `OTEL_COLLECTOR_CONFIG`
-3. Start the demo with the following command from the repository's root directory:
+4. Start the demo with the following command from the repository's root directory:
    ```
    make start
    ```
@@ -58,10 +61,89 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
    ```
    make start
    ```
+
+#### Local Elasticsearch and Kibana
+
+Use this option when Elasticsearch and Kibana are already running on your machine and you
+only want the demo services in Docker.
+
+1. Create an API key to authenticate with Elasticsearch:
+
+   ```bash
+   curl -X POST "http://localhost:9200/_security/api_key" \
+     -u elastic:changeme \
+     -H "Content-Type: application/json" \
+     -d'{
+       "name": "my_api_key"
+     }'
+   ```
+
+2. Update `.env.override` so the collector can reach Elasticsearch:
+
+   ```bash
+   ELASTICSEARCH_ENDPOINT="http://localhost:9200"
+   ELASTICSEARCH_API_KEY="<encoded_api_key>"
+   ```
+
+3. Launch Elastic APM Server so it accepts OTLP/HTTP data from the demo and
+   forwards it to Elasticsearch
+
+   Create `apm-server.yml` with the following content:
+
+   ```yaml
+   apm-server:
+     host: "0.0.0.0:8200"
+     auth.anonymous.enabled: true # demo-only convenience
+
+   output.elasticsearch:
+     hosts: ["http://host.docker.internal:9200"]
+     username: "elastic"
+     password: "changeme"
+
+   setup.kibana.host: "http://host.docker.internal:5601"
+   ```
+
+   Start APM Server:
+
+   ```bash
+   docker run -d --name apm-server --restart unless-stopped \
+     -p 8200:8200 \
+     -v "$PWD/apm-server.yml:/usr/share/apm-server/apm-server.yml:ro" \
+     docker.elastic.co/apm/apm-server:9.1.0
+   ```
+
+   > On Linux, pass `--add-host=host.docker.internal:host-gateway` to the demo's
+   > compose file or `/etc/docker/daemon.json` if Docker does not provide the host
+   > gateway automatically.
+
+4. Edit `src/otel-collector/otelcol-config-extras.yml` so the traces pipeline
+   keeps the built-in exporters and appends the Elastic endpoint:
+
+   ```yaml
+   exporters:
+     otlphttp/elastic:
+       endpoint: http://host.docker.internal:8200
+       tls:
+         insecure: true
+
+   service:
+     pipelines:
+       traces:
+         exporters: [otlp, debug, spanmetrics, otlphttp/elastic]
+   ```
+
+5. Start the demo containers from the repository root:
+
+   ```bash
+   docker compose up --detach
+   ```
+
 </details>
 
 ## Kubernetes
+
 ### Prerequisites:
+
 - Create a Kubernetes cluster. There are no specific requirements, so you can create a local one, or use a managed Kubernetes cluster, such as [GKE](https://cloud.google.com/kubernetes-engine), [EKS](https://aws.amazon.com/eks/), or [AKS](https://azure.microsoft.com/en-us/products/kubernetes-service).
 - Set up [kubectl](https://kubernetes.io/docs/reference/kubectl/).
 - Set up [Helm](https://helm.sh/).
@@ -108,33 +190,39 @@ In the installed configuration, browser-based load generation is disabled by def
 ## Explore and analyze the data With Elastic
 
 ### Service map
+
 ![Service map](service-map.png "Service map")
 
 ### Traces
+
 ![Traces](trace.png "Traces")
 
 ### Correlation
+
 ![Correlation](correlation.png "Correlation")
 
 ### Logs
+
 ![Logs](logs.png "Logs")
 
 ## Testing with a custom component
 
 Suppose you want to see how your new processor is going to play out in this demo app. You can create a custom OpenTelemetry collector and test it within this demo app by following these steps:
+
 1. Follow the instructions in the [elastic-collector-components](https://github.com/elastic/opentelemetry-collector-components/blob/main/README.md) repo in order to build a Docker image
    that contains your custom component
 2. Edit the [deployment.yaml](https://github.com/elastic/opentelemetry-demo/blob/main/kubernetes/elastic-helm/deployment.yaml) file:
    - change the `opentelemetry-collector` [image definitions](https://github.com/elastic/opentelemetry-demo/blob/27b4923ba9acd316d3726a29aad1f7e32299bc8c/kubernetes/elastic-helm/deployment.yaml#L36)
-   to point at your custom image repository and tag
+     to point at your custom image repository and tag
    - add your component configuration to the proper sub-section of the [`config` section](https://github.com/elastic/opentelemetry-demo/blob/27b4923ba9acd316d3726a29aad1f7e32299bc8c/kubernetes/elastic-helm/deployment.yaml#L62). For example, if you are testing a processor, make sure to add its config to the `processors` sub-section.
    - add your component to the proper sub-section of the [`service` section](https://github.com/elastic/opentelemetry-demo/blob/27b4923ba9acd316d3726a29aad1f7e32299bc8c/kubernetes/elastic-helm/deployment.yaml#L96). For example, if you are testing a logs processor, make sure to add its config to the `processors` sub-section of the `logs` pipeline.
 3. If you wish to enable Kubernetes node level metrics collection, edit the [daemonset.yaml](https://github.com/elastic/opentelemetry-demo/blob/main/kubernetes/elastic-helm/daemonset.yaml) file:
    - change the [`image` section](https://github.com/elastic/opentelemetry-demo/blob/27b4923ba9acd316d3726a29aad1f7e32299bc8c/kubernetes/elastic-helm/deployment.yaml#L36)
-   to point at your custom image repository and tag
+     to point at your custom image repository and tag
    - add your component configuration to the proper sub-section of the [`config` section](https://github.com/elastic/opentelemetry-demo/blob/27b4923ba9acd316d3726a29aad1f7e32299bc8c/kubernetes/elastic-helm/daemonset.yaml#L57). For example, if you are testing a processor, make sure to add its config to the `processors` sub-section.
    - add your component to the proper sub-section of the [`service` section](https://github.com/elastic/opentelemetry-demo/blob/27b4923ba9acd316d3726a29aad1f7e32299bc8c/kubernetes/elastic-helm/daemonset.yaml#L309). For example, if you are testing a logs processor, make sure to add its config to the `processors` sub-section of the `logs` pipeline.
 4. Apply the Helm chart changes and install it:
+
    ```
    # !(when running it for the first time) add the open-telemetry Helm repostiroy
    helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
@@ -146,7 +234,7 @@ Suppose you want to see how your new processor is going to play out in this demo
    helm install -f deployment.yaml my-otel-demo open-telemetry/opentelemetry-demo
    ```
 
-## Clean-up 
+## Clean-up
 
 - **Docker**. Run `./demo.sh destroy docker`
 - **Kubernetes**. Run `./demo.sh destroy k8s`
