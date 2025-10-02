@@ -30,6 +30,21 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
 3. Click "Create an API Key" to create one.
 4. Run `./demo.sh serverless docker`
 
+#### Connect to local cluster
+When you want to send data to an Elasticsearch instance running locally
+
+1. Create an API key
+```sh
+curl -X POST "http://localhost:9200/_security/api_key" -u elastic:changeme -H "Content-Type: application/json" -d'{ "name": "my_api_key" }'
+```
+
+2. Update `.env.overide` with URL and API key:
+```yml
+ELASTICSEARCH_ENDPOINT="http://host.docker.internal:9200"
+ELASTICSEARCH_API_KEY="VHM2aG5wa0J2MFdWZFEwUzlBbXQ6cGdxWjVnbHI3N2lDVVp2THcxX0hmUQ=="
+```
+3. Run `make start`
+
 
 ### Manual Installation
 <details> 
