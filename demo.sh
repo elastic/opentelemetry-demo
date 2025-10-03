@@ -11,10 +11,11 @@ HELM_REPO_URL='https://open-telemetry.github.io/opentelemetry-helm-charts'
 
 DEMO_RELEASE="my-otel-demo"
 DEMO_CHART="open-telemetry/opentelemetry-demo"
+DEMO_HELM_VERSION='0.37.8'
 
 KUBE_STACK_RELEASE="opentelemetry-kube-stack"
 KUBE_STACK_CHART="open-telemetry/opentelemetry-kube-stack"
-KUBE_STACK_VERSION='0.9.1'
+KUBE_STACK_VERSION='0.10.5'
 KUBE_STACK_VALUES_URL_CLOUD='https://raw.githubusercontent.com/elastic/elastic-agent/refs/tags/v'$ELASTIC_STACK_VERSION'/deploy/helm/edot-collector/kube-stack/values.yaml'
 KUBE_STACK_VALUES_URL_SERVERLESS='https://raw.githubusercontent.com/elastic/elastic-agent/refs/tags/v'$ELASTIC_STACK_VERSION'/deploy/helm/edot-collector/kube-stack/managed_otlp/values.yaml'
 SECRET_NAME='elastic-secret-otel'
@@ -162,7 +163,7 @@ install_kube_stack() {
 }
 
 install_demo_chart() {
-  helm upgrade --install "$DEMO_RELEASE" "$DEMO_CHART" -f kubernetes/elastic-helm/demo.yml
+  helm upgrade --install "$DEMO_RELEASE" "$DEMO_CHART" --version "$DEMO_HELM_VERSION" -f kubernetes/elastic-helm/demo.yml
 }
 
 start_k8s() {

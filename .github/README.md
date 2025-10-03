@@ -78,7 +78,7 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
 - Follow the [EDOT Quick Start Guide](https://elastic.github.io/opentelemetry/quickstart/) for Kubernetes and your specific Elastic deployment to install the EDOT OpenTelemetry collector.
 - Deploy the Elastic OpenTelemetry Demo using the following command.
   ```
-  helm install my-otel-demo open-telemetry/opentelemetry-demo -f kubernetes/elastic-helm/demo.yml
+  helm install my-otel-demo open-telemetry/opentelemetry-demo --version 0.37.8 -f kubernetes/elastic-helm/demo.yml
   ```
 
 </details>
