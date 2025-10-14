@@ -7,6 +7,9 @@ on:
   pull_request_target:
     types: [opened, synchronize, reopened]
 
+permissions:
+  contents: read
+
 jobs:
   label:
     runs-on: ubuntu-latest
@@ -15,7 +18,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Check for changed files
         id: file_changes
@@ -35,7 +38,7 @@ jobs:
 
       - name: "Add Label: docs-update-required"
         if: steps.file_changes.outputs.docsUpdateRequired == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const issue_number = context.issue.number;
@@ -48,7 +51,7 @@ jobs:
 
       - name: "Add Label: helm-update-required"
         if: steps.file_changes.outputs.helmUpdateRequired == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const issue_number = context.issue.number;
