@@ -52,7 +52,7 @@ updates:
       interval: "daily"
   - package-ecosystem: "npm"
     directories:
-      - "/src/flagd-ui/*"
+      - "/"
       - "/src/frontend/*"
       - "/src/payment/*"
     groups:
@@ -60,5 +60,31 @@ updates:
         dependency-type: "production"
       npm-development-dependencies:
         dependency-type: "development"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "cargo"
+    directories:
+      - "/src/shipping/*"
+    groups:
+      cargo-production-dependencies:
+        dependency-type: "production"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "bundler"
+    directories:
+      - "/src/email/*"
+    groups:
+      bundler-production-dependencies:
+        dependency-type: "production"
+      bundler-development-dependencies:
+        dependency-type: "development"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "mix"
+    directories:
+      - "/src/flagd-ui/*"
+    groups:
+      mix-production-dependencies:
+        dependency-type: "production"
     schedule:
       interval: "daily"

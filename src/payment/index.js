@@ -13,7 +13,7 @@ async function chargeServiceHandler(call, callback) {
 
   try {
     const amount = call.request.amount
-    span.setAttributes({
+    span?.setAttributes({
       'app.payment.amount': parseFloat(`${amount.units}.${amount.nanos}`).toFixed(2)
     })
     logger.info({ request: call.request }, "Charge request received.")
@@ -24,9 +24,8 @@ async function chargeServiceHandler(call, callback) {
   } catch (err) {
     logger.warn({ err })
 
-    span.recordException(err)
-    span.setStatus({ code: opentelemetry.SpanStatusCode.ERROR })
-
+    span?.recordException(err)
+    span?.setStatus({ code: opentelemetry.SpanStatusCode.ERROR })
     callback(err)
   }
 }
@@ -45,12 +44,24 @@ server.addService(health.service, new health.Implementation({
 
 server.addService(otelDemoPackage.oteldemo.PaymentService.service, { charge: chargeServiceHandler })
 
-server.bindAsync(`0.0.0.0:${process.env['PAYMENT_PORT']}`, grpc.ServerCredentials.createInsecure(), (err, port) => {
+
+let ip = "0.0.0.0";
+
+const ipv6_enabled = process.env.IPV6_ENABLED;
+
+if (ipv6_enabled == "true") {
+  ip = "[::]";
+  logger.info(`Overwriting Localhost IP: ${ip}`)
+}
+
+const address = ip + `:${process.env['PAYMENT_PORT']}`;
+
+server.bindAsync(address, grpc.ServerCredentials.createInsecure(), (err, port) => {
   if (err) {
     return logger.error({ err })
   }
 
-  logger.info(`payment gRPC server started on port ${port}`)
+  logger.info(`payment gRPC server started on ${address}`)
 })
 
 process.once('SIGINT', closeGracefully)
