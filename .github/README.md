@@ -31,7 +31,7 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
 4. Run `./demo.sh serverless docker`
 
 #### Connect to a local Elasticsearch cluster
-When you want to send data to an Elasticsearch instance running locally
+The following steps shows how to start the Otel demo in a Docker container and send the generated otel data to an Elasticsearch instance running locally on the host.
 
 1. Create an API key
 ```sh
