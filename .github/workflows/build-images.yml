@@ -8,7 +8,13 @@ on:
       - 'src/**'
       - 'test/**'
 
+permissions:
+  contents: read
+
 jobs:
   build_images:
+    permissions:
+      contents: read
+      packages: write
     if: github.repository == 'open-telemetry/opentelemetry-demo'
     uses: ./.github/workflows/component-build-images.yml
