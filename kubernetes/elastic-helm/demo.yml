@@ -39,6 +39,11 @@ components:
     envOverrides:
       - name: LOCUST_BROWSER_TRAFFIC_ENABLED
         value: "false"
+  frontend-proxy:
+    envOverrides:
+      # This is set in .env file for Docker deployments, but it is not included upstream in the Helm chart, so we set it here.
+      - name: ENVOY_ADDR
+        value: "0.0.0.0"
   flagd:
     sidecarContainers:
       - name: flagd-ui
