@@ -2,7 +2,7 @@ enabled: true
 default:
   image:
     repository: ghcr.io/elastic/opentelemetry-demo
-    tag: 2.0.4
+    tag: 2.1.4
   envOverrides:
     - name: OTEL_SERVICE_NAME
       valueFrom:
@@ -39,6 +39,11 @@ components:
     envOverrides:
       - name: LOCUST_BROWSER_TRAFFIC_ENABLED
         value: "false"
+  frontend-proxy:
+    envOverrides:
+      # This is set in .env file for Docker deployments, but it is not included upstream in the Helm chart, so we set it here.
+      - name: ENVOY_ADDR
+        value: "0.0.0.0"
   flagd:
     sidecarContainers:
       - name: flagd-ui
@@ -51,9 +56,13 @@ components:
             value: otel
           - name: OTEL_EXPORTER_OTLP_ENDPOINT
             value: http://$(OTEL_COLLECTOR_NAME):4318
-        resources:
-          limits:
-            memory: 150Mi
+          - name: FLAGD_UI_PORT
+            value: "4000"
+          - name: SECRET_KEY_BASE
+            value: yYrECL4qbNwleYInGJYvVnSkwJuSQJ4ijPTx5tirGUXrbznFIBFVJdPl5t6O9ASw
+          - name: PHX_HOST
+            value: localhost
+
         volumeMounts:
           - name: config-rw
             mountPath: /app/data
