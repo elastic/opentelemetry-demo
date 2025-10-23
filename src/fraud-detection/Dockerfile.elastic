@@ -32,7 +32,7 @@ WORKDIR /usr/src/app/
 COPY --from=builder /usr/src/app/build/libs/fraud-detection-1.0-all.jar ./
 COPY --from=intermediate /opentelemetry-javaagent.jar /usr/src/app/opentelemetry-javaagent.jar
 
-ENV JAVA_TOOL_OPTIONS=-javaagent:/app/opentelemetry-javaagent.jar
+ENV JAVA_TOOL_OPTIONS=-javaagent:/usr/src/app/opentelemetry-javaagent.jar
 ENV ELASTIC_OTEL_INFERRED_SPANS_ENABLED=true
 ENV ELASTIC_OTEL_SPAN_STACK_TRACE_MIN_DURATION=2
 
