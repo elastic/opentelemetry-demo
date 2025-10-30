@@ -2,8 +2,12 @@ name: Elastic Demo Tests
 
 on:
   pull_request:
+    branches:
+      - main
     types: [opened, synchronize, reopened]
   push:
+    branches:
+      - main
     paths-ignore:
       - '.githubREADME.md'
 
