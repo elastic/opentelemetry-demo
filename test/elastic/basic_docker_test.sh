@@ -14,12 +14,12 @@ function tear_down_after_script() {
 }
 
 function test_launch_demo_docker() { 
-  result=$(launch_demo "cloud-hosted" "docker")
-  assert_exit_code "0" "$result"
+  launch_demo "cloud-hosted" "docker"
+  assert_exit_code "0" "$?"
 }
 
 function test_destroy_demo_docker() { 
-  result=$(destroy_demo "docker")
-  assert_exit_code "0" "$result"
+  destroy_demo "docker"
+  assert_exit_code "0" "$?"
 }
 
