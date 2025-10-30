@@ -1,0 +1,28 @@
+name: Elastic Demo Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    paths-ignore:
+      - '.githubREADME.md'
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install bashunit
+      run: |
+        curl -s https://bashunit.typeddevs.com/install.sh | bash
+   
+    - name: Run the tests
+      run: |
+        ./lib/bashunit --env .env.bashunit
