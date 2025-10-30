@@ -15,11 +15,11 @@ function tear_down_after_script() {
 
 function test_launch_demo_docker() { 
   result=$(launch_demo "cloud-hosted" "docker")
-  assert_false "$result"
+  assert_exit_code "0" "$result"
 }
 
 function test_destroy_demo_docker() { 
   result=$(destroy_demo "docker")
-  assert_false "$result" 
+  assert_exit_code "0" "$result"
 }
 
