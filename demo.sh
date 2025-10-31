@@ -24,7 +24,6 @@ DOCKER_COLLECTOR_CONFIG_CLOUD='./src/otel-collector/otelcol-elastic-config.yaml'
 DOCKER_COLLECTOR_CONFIG_SERVERLESS='./src/otel-collector/otelcol-elastic-otlp-config.yaml'
 COLLECTOR_CONTRIB_IMAGE=docker.elastic.co/elastic-agent/elastic-agent:$ELASTIC_STACK_VERSION
 
-
 # Variables
 deployment_type=""
 platform=""
@@ -48,7 +47,6 @@ parse_args() {
       echo
       printf "❓ Which Elasticsearch deployment type do you want to send the data into? [serverless/cloud-hosted]? "
       read -r deployment_type
-      deployment_type=${deployment_type}
       case "$deployment_type" in
         cloud-hosted|serverless) break ;;
         *) echo "Please enter 'cloud-hosted' or 'serverless'." ;;
@@ -58,8 +56,7 @@ parse_args() {
     while true; do
       echo
       printf "❓ In which environment the demo should be deployed? [docker/k8s]?"
-      read -r platform
-      platform=${platform}
+      read -r platform 
       case "$platform" in
         docker|k8s) break ;;
         *) echo "Please enter 'docker' or 'k8s'." ;;
@@ -79,13 +76,18 @@ parse_args() {
 }
 
 update_env_var() {
-  VAR="$1"
-  VAL="$2"
+  VAR=$1
+  VAL=$2
+  tmp=$(mktemp) || exit 1
+
   if grep -q "^$VAR=" "$ENV_OVERRIDE_FILE"; then
-    sed -i '' "s|^$VAR=.*|$VAR=\"$VAL\"|" "$ENV_OVERRIDE_FILE"
+    sed "s|^$VAR=.*|$VAR=\"$VAL\"|" "$ENV_OVERRIDE_FILE" >"$tmp"
   else
-    echo "$VAR=\"$VAL\"" >> "$ENV_OVERRIDE_FILE"
+    cat "$ENV_OVERRIDE_FILE" >"$tmp"
+    echo "$VAR=\"$VAL\"" >>"$tmp"
   fi
+
+  mv "$tmp" "$ENV_OVERRIDE_FILE"
 }
 
 # Read a secret from the terminal without echo and assign it to a variable by name
@@ -224,21 +226,21 @@ main() {
       destroy_docker
       destroy_k8s
       echo "✅ Done! Destroyed Docker and Kubernetes resources."
-      return 0
+      exit 0
     fi
 
     if [ "$platform" = "docker" ]; then
       echo "⌛️ Destroying Docker resources..."
       destroy_docker
       echo "✅ Done! Destroyed Docker resources."
-      return 0
+      exit 0
     fi
 
     if [ "$platform" = "k8s" ]; then
       echo "⌛️ Destroying Kubernetes resources..."
       destroy_k8s
       echo "✅ Done! Destroyed Kubernetes resources."
-      return 0
+      exit 0
     fi
 
     usage

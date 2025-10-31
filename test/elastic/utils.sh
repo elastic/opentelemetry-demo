@@ -23,7 +23,9 @@ function get_http_response_code() {
 }
 
 function start_local_elastic_stack() {
+    printf "CURRENT_DIR=%s\n" "$CURRENT_DIR"
     curl -fsSL https://elastic.co/start-local | sh
+    # shellcheck source=test/elastic/bootstrap.sh
     source "${START_LOCAL_ENV_PATH}"
     sleep 2
     result=$(get_http_response_code "http://localhost:9200" "elastic" "${ES_LOCAL_PASSWORD}")
@@ -36,14 +38,39 @@ function uninstall_local_elastic_stack() {
 }
 
 function launch_demo() {
-    deployment_type="$1"
-    platform="$2"
-    elasticsearch_endpoint="${ES_LOCAL_URL:-$3}"
-    elasticsearch_api_key="${ES_LOCAL_API_KEY}"
-    printf "%s\n%s\n%s\n%s\n" "$deployment_type" "$platform" "$elasticsearch_endpoint" "$elasticsearch_api_key" | ./demo.sh
+  local deployment_type="$1"
+  local platform="$2"
+  local elasticsearch_endpoint="${ES_LOCAL_URL:-$3}"
+  local elasticsearch_api_key="${ES_LOCAL_API_KEY}"
+  echo "Launching demo with:"
+  echo "  deployment_type: $deployment_type"
+  echo "  platform: $platform"
+  echo "  elasticsearch_endpoint: $elasticsearch_endpoint"
+  echo "  elasticsearch_api_key: $elasticsearch_api_key"
+  printf "${deployment_type}\n${platform}\n${elasticsearch_endpoint}\n${elasticsearch_api_key}\n" | ${CURRENT_DIR}/demo.sh
 }
 
 function destroy_demo() {
-    platform="$1"
-    printf "%s\n" "$platform" | ./demo.sh destroy
+  local platform="$1"
+  echo "Destroying demo on platform: $platform"
+  ${CURRENT_DIR}/demo.sh destroy "$platform"
 }
+
+# Check if a docker service is running
+check_docker_service_running() {
+  local container_name=$1
+  local status
+  
+  # Get the container status
+  status=$(docker ps --filter "name=^${container_name}$" --format '{{.Status}}' 2>/dev/null)
+  
+  # Check if container exists and is running (status starts with "Up")
+  if [[ -n "$status" ]] && [[ "$status" =~ ^Up ]]; then
+    echo "Container $container_name is running"
+    return 0
+  else
+    echo "Container $container_name not running. Current status: ${status:-not found}"
+    return 1
+  fi
+}
+

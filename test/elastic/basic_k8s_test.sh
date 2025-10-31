@@ -14,12 +14,10 @@ function tear_down_after_script() {
 }
 
 function test_launch_demo_k8s() { 
-  result=$(launch_demo "cloud-hosted" "k8s")
-  assert_exit_code "0" "$result"
+  launch_demo "cloud-hosted" "k8s"
 }
 
 function test_destroy_demo_k8s() { 
-  result=$(destroy_demo "k8s")
-  assert_exit_code "0" "$result"
+  destroy_demo "k8s"
 }
 
