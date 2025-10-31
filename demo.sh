@@ -24,7 +24,6 @@ DOCKER_COLLECTOR_CONFIG_CLOUD='./src/otel-collector/otelcol-elastic-config.yaml'
 DOCKER_COLLECTOR_CONFIG_SERVERLESS='./src/otel-collector/otelcol-elastic-otlp-config.yaml'
 COLLECTOR_CONTRIB_IMAGE=docker.elastic.co/elastic-agent/elastic-agent:$ELASTIC_STACK_VERSION
 
-
 # Variables
 deployment_type=""
 platform=""
@@ -33,13 +32,37 @@ elasticsearch_endpoint=""
 elasticsearch_api_key=""
 
 usage() {
-    echo "Usage: $0 [cloud-hosted|serverless] [docker|k8s] | destroy [docker|k8s]"
+    echo "Run the script with no arguments. This will start an interactive prompt that will guide you through the setup of the Elastic OpenTelemetry Demo."
+    echo
+    echo "To destroy the demo, run: $0 destroy [docker|k8s]"
+    echo "  - pass 'docker' or 'k8s' to destroy only that platform"
+    echo "  - omit the platform to destroy both docker and k8s resources"
     exit 1
 }
 
 parse_args() {
   if [ $# -eq 0 ]; then
-    usage
+
+    while true; do
+      echo
+      printf "❓ Which Elasticsearch deployment type do you want to send the data into? [serverless/cloud-hosted]? "
+      read -r deployment_type
+      case "$deployment_type" in
+        cloud-hosted|serverless) break ;;
+        *) echo "Please enter 'cloud-hosted' or 'serverless'." ;;
+      esac
+    done
+
+    while true; do
+      echo
+      printf "❓ In which environment the demo should be deployed? [docker/k8s]?"
+      read -r platform 
+      case "$platform" in
+        docker|k8s) break ;;
+        *) echo "Please enter 'docker' or 'k8s'." ;;
+      esac
+    done
+    return
   fi
 
   if [ "$1" = "destroy" ]; then
@@ -49,21 +72,22 @@ parse_args() {
     fi
     return
   fi
-
-  deployment_type="$1"
-  if [ $# -ge 2 ]; then
-    platform="$2"
-  fi
+  usage
 }
 
 update_env_var() {
-  VAR="$1"
-  VAL="$2"
+  VAR=$1
+  VAL=$2
+  tmp=$(mktemp) || exit 1
+
   if grep -q "^$VAR=" "$ENV_OVERRIDE_FILE"; then
-    sed -i '' "s|^$VAR=.*|$VAR=\"$VAL\"|" "$ENV_OVERRIDE_FILE"
+    sed "s|^$VAR=.*|$VAR=\"$VAL\"|" "$ENV_OVERRIDE_FILE" >"$tmp"
   else
-    echo "$VAR=\"$VAL\"" >> "$ENV_OVERRIDE_FILE"
+    cat "$ENV_OVERRIDE_FILE" >"$tmp"
+    echo "$VAR=\"$VAL\"" >>"$tmp"
   fi
+
+  mv "$tmp" "$ENV_OVERRIDE_FILE"
 }
 
 # Read a secret from the terminal without echo and assign it to a variable by name
@@ -190,11 +214,11 @@ destroy_k8s() {
 }
 
 main() {
-  parse_args "$@"
-
   echo '----------------------------------------------------'
   echo '🚀 OpenTelemetry Demo with Elastic Observability'
   echo '----------------------------------------------------'
+
+  parse_args "$@"
 
   if [ "$destroy" = "true" ]; then
     if [ -z "$platform" ]; then
@@ -202,34 +226,27 @@ main() {
       destroy_docker
       destroy_k8s
       echo "✅ Done! Destroyed Docker and Kubernetes resources."
-      return 0
+      exit 0
     fi
 
     if [ "$platform" = "docker" ]; then
       echo "⌛️ Destroying Docker resources..."
       destroy_docker
       echo "✅ Done! Destroyed Docker resources."
-      return 0
+      exit 0
     fi
 
     if [ "$platform" = "k8s" ]; then
       echo "⌛️ Destroying Kubernetes resources..."
       destroy_k8s
       echo "✅ Done! Destroyed Kubernetes resources."
-      return 0
+      exit 0
     fi
 
     usage
   fi
 
-  if [ "$deployment_type" != "cloud-hosted" ] && [ "$deployment_type" != "serverless" ]; then
-    usage
-  fi
-
-  if [ "$platform" != "docker" ] && [ "$platform" != "k8s" ]; then
-    usage
-  fi
-
+  echo
   echo "⌛️ Starting OTel Demo + EDOT on '$platform' → Elastic ($deployment_type)..."
   echo
   if [ "$platform" = "docker" ]; then
