@@ -60,7 +60,14 @@ update_env_var() {
   VAR="$1"
   VAL="$2"
   if grep -q "^$VAR=" "$ENV_OVERRIDE_FILE"; then
-    sed -i '' "s|^$VAR=.*|$VAR=\"$VAL\"|" "$ENV_OVERRIDE_FILE"
+    # Detect sed variant: GNU sed uses --version, BSD sed doesn't
+    # GNU sed: sed -i (no empty string needed)
+    # BSD sed: sed -i '' (empty string required)
+    if sed --version >/dev/null 2>&1; then
+      sed -i "s|^$VAR=.*|$VAR=\"$VAL\"|" "$ENV_OVERRIDE_FILE"
+    else
+      sed -i '' "s|^$VAR=.*|$VAR=\"$VAL\"|" "$ENV_OVERRIDE_FILE"
+    fi
   else
     echo "$VAR=\"$VAL\"" >> "$ENV_OVERRIDE_FILE"
   fi
