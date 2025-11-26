@@ -24,6 +24,24 @@ DOCKER_COLLECTOR_CONFIG_CLOUD='./src/otel-collector/otelcol-elastic-config.yaml'
 DOCKER_COLLECTOR_CONFIG_SERVERLESS='./src/otel-collector/otelcol-elastic-otlp-config.yaml'
 COLLECTOR_CONTRIB_IMAGE=docker.elastic.co/elastic-agent/elastic-agent:$ELASTIC_STACK_VERSION
 
+# Detect sed variant: GNU sed uses --version, BSD sed doesn't
+# GNU sed: sed -i (no empty string needed)
+# BSD sed: sed -i '' (empty string required)
+if sed --version >/dev/null 2>&1; then
+  SED_IS_BSD="false"
+else
+  SED_IS_BSD="true"
+fi
+
+# Portable sed in-place editing function
+# Usage: sed_in_place "s/pattern/replacement/g" file
+sed_in_place() {
+  if [ "$SED_IS_BSD" = "true" ]; then
+    sed -i '' "$@"
+  else
+    sed -i "$@"
+  fi
+}
 
 # Variables
 deployment_type=""
@@ -60,14 +78,7 @@ update_env_var() {
   VAR="$1"
   VAL="$2"
   if grep -q "^$VAR=" "$ENV_OVERRIDE_FILE"; then
-    # Detect sed variant: GNU sed uses --version, BSD sed doesn't
-    # GNU sed: sed -i (no empty string needed)
-    # BSD sed: sed -i '' (empty string required)
-    if sed --version >/dev/null 2>&1; then
-      sed -i "s|^$VAR=.*|$VAR=\"$VAL\"|" "$ENV_OVERRIDE_FILE"
-    else
-      sed -i '' "s|^$VAR=.*|$VAR=\"$VAL\"|" "$ENV_OVERRIDE_FILE"
-    fi
+    sed_in_place "s|^$VAR=.*|$VAR=\"$VAL\"|" "$ENV_OVERRIDE_FILE"
   else
     echo "$VAR=\"$VAL\"" >> "$ENV_OVERRIDE_FILE"
   fi
