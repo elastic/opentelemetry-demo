@@ -18,6 +18,7 @@ services:
       context: ./
       dockerfile: ./src/frontend/Dockerfile.cypress
     volumes:
+      - ./src/frontend:/app
       - ./src/frontend/cypress/videos:/app/cypress/videos
       - ./src/frontend/cypress/screenshots:/app/cypress/screenshots
     environment:
