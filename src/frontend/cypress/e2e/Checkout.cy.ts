@@ -3,7 +3,7 @@
 
 import { CypressFields, getElementByField } from '../../utils/Cypress';
 
-describe.skip('Checkout Flow', () => {
+describe('Checkout Flow', () => {
   before(() => {
     cy.intercept('POST', '/api/cart*').as('addToCart');
     cy.intercept('GET', '/api/cart*').as('getCart');
@@ -51,4 +51,4 @@ describe.skip('Checkout Flow', () => {
   });
 });
 
-export {};
+export { };
