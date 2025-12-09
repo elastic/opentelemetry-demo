@@ -35,6 +35,15 @@ jobs:
     - name: Install bashunit
       run: |
         curl -s https://bashunit.typeddevs.com/install.sh | bash
+
+    - name: Free up disk space
+      run: |
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /opt/ghc
+        sudo rm -rf /opt/hostedtoolcache/CodeQL
+        docker system prune -af --volumes
+        sudo apt-get clean
    
     - name: Run the tests
       run: |
