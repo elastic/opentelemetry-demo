@@ -24,6 +24,25 @@ DOCKER_COLLECTOR_CONFIG_CLOUD='./src/otel-collector/otelcol-elastic-config.yaml'
 DOCKER_COLLECTOR_CONFIG_SERVERLESS='./src/otel-collector/otelcol-elastic-otlp-config.yaml'
 COLLECTOR_CONTRIB_IMAGE=docker.elastic.co/elastic-agent/elastic-agent:$ELASTIC_STACK_VERSION
 
+# Detect sed variant: GNU sed uses --version, BSD sed doesn't
+# GNU sed: sed -i (no empty string needed)
+# BSD sed: sed -i '' (empty string required)
+if sed --version >/dev/null 2>&1; then
+  SED_IS_BSD="false"
+else
+  SED_IS_BSD="true"
+fi
+
+# Portable sed in-place editing function
+# Usage: sed_in_place "s/pattern/replacement/g" file
+sed_in_place() {
+  if [ "$SED_IS_BSD" = "true" ]; then
+    sed -i '' "$@"
+  else
+    sed -i "$@"
+  fi
+}
+
 # Variables
 deployment_type=""
 platform=""
@@ -76,18 +95,15 @@ parse_args() {
 }
 
 update_env_var() {
-  VAR=$1
-  VAL=$2
+  VAR="$1"
+  VAL="$2"
   tmp=$(mktemp) || exit 1
 
   if grep -q "^$VAR=" "$ENV_OVERRIDE_FILE"; then
-    sed "s|^$VAR=.*|$VAR=\"$VAL\"|" "$ENV_OVERRIDE_FILE" >"$tmp"
+    sed_in_place "s|^$VAR=.*|$VAR=\"$VAL\"|" "$ENV_OVERRIDE_FILE"
   else
-    cat "$ENV_OVERRIDE_FILE" >"$tmp"
-    echo "$VAR=\"$VAL\"" >>"$tmp"
+    echo "$VAR=\"$VAL\"" >> "$ENV_OVERRIDE_FILE"
   fi
-
-  mv "$tmp" "$ENV_OVERRIDE_FILE"
 }
 
 # Read a secret from the terminal without echo and assign it to a variable by name
@@ -246,7 +262,14 @@ main() {
     usage
   fi
 
-  echo
+    if [ "$deployment_type" != "cloud-hosted" ] && [ "$deployment_type" != "serverless" ]; then
+    usage
+  fi
+
+  if [ "$platform" != "docker" ] && [ "$platform" != "k8s" ]; then
+    usage
+  fi
+
   echo "⌛️ Starting OTel Demo + EDOT on '$platform' → Elastic ($deployment_type)..."
   echo
   if [ "$platform" = "docker" ]; then

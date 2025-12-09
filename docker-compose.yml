@@ -351,6 +351,7 @@ services:
       - GRAFANA_HOST
       - JAEGER_UI_PORT
       - JAEGER_HOST
+      - JAEGER_PORT=${JAEGER_UI_PORT}      
       - OTEL_COLLECTOR_HOST
       - IMAGE_PROVIDER_HOST
       - IMAGE_PROVIDER_PORT
