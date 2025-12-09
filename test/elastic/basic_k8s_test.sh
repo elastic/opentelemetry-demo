@@ -4,7 +4,6 @@ set -e -o pipefail
 
 source "${CURRENT_DIR}/test/elastic/utils.sh"
 
-
 function set_up_before_script() {
   start_local_elastic_stack
 }
