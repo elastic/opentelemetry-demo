@@ -74,7 +74,7 @@ parse_args() {
 
     while true; do
       echo
-      printf "❓ In which environment the demo should be deployed? [docker/k8s]?"
+      printf "❓ In which environment the demo should be deployed? [docker/k8s]? "
       read -r platform 
       case "$platform" in
         docker|k8s) break ;;
@@ -270,8 +270,9 @@ main() {
     usage
   fi
 
-  echo "⌛️ Starting OTel Demo + EDOT on '$platform' → Elastic ($deployment_type)..."
   echo
+  echo "⌛️ Starting OTel Demo + EDOT on '$platform' → Elastic ($deployment_type)..."
+
   if [ "$platform" = "docker" ]; then
     start_docker
   else
