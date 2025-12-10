@@ -51,12 +51,12 @@ elasticsearch_endpoint=""
 elasticsearch_api_key=""
 
 usage() {
-    echo "Run the script with no arguments. This will start an interactive prompt that will guide you through the setup of the Elastic OpenTelemetry Demo."
-    echo
-    echo "To destroy the demo, run: $0 destroy [docker|k8s]"
-    echo "  - pass 'docker' or 'k8s' to destroy only that platform"
-    echo "  - omit the platform to destroy both docker and k8s resources"
-    exit 1
+  echo "Run the script with no arguments. This will start an interactive prompt that will guide you through the setup of the Elastic OpenTelemetry Demo."
+  echo
+  echo "To destroy the demo, run: $0 destroy [docker|k8s]"
+  echo "  - pass 'docker' or 'k8s' to destroy only that platform"
+  echo "  - omit the platform to destroy both docker and k8s resources"
+  exit 1
 }
 
 parse_args() {
@@ -67,18 +67,18 @@ parse_args() {
       printf "❓ Which Elasticsearch deployment type do you want to send the data into? [serverless/cloud-hosted]? "
       read -r deployment_type
       case "$deployment_type" in
-        cloud-hosted|serverless) break ;;
-        *) echo "Please enter 'cloud-hosted' or 'serverless'." ;;
+      cloud-hosted | serverless) break ;;
+      *) echo "Please enter 'cloud-hosted' or 'serverless'." ;;
       esac
     done
 
     while true; do
       echo
       printf "❓ In which environment the demo should be deployed? [docker/k8s]? "
-      read -r platform 
+      read -r platform
       case "$platform" in
-        docker|k8s) break ;;
-        *) echo "Please enter 'docker' or 'k8s'." ;;
+      docker | k8s) break ;;
+      *) echo "Please enter 'docker' or 'k8s'." ;;
       esac
     done
     return
@@ -102,7 +102,7 @@ update_env_var() {
   if grep -q "^$VAR=" "$ENV_OVERRIDE_FILE"; then
     sed_in_place "s|^$VAR=.*|$VAR=\"$VAL\"|" "$ENV_OVERRIDE_FILE"
   else
-    echo "$VAR=\"$VAL\"" >> "$ENV_OVERRIDE_FILE"
+    echo "$VAR=\"$VAL\"" >>"$ENV_OVERRIDE_FILE"
   fi
 }
 
@@ -122,13 +122,15 @@ read_secret() {
 
 ensure_env_values() {
   echo
-  if [ -z "$elasticsearch_endpoint" ]; then
-    if [ "$deployment_type" = "serverless" ]; then
-      printf "🔑 Enter your Elastic OTLP endpoint: "
-    else
-      printf "🔑 Enter your Elastic endpoint: "
+  if ! check_existing_credentials; then
+    if [ -z "$elasticsearch_endpoint" ]; then
+      if [ "$deployment_type" = "serverless" ]; then
+        printf "🔑 Enter your Elastic OTLP endpoint: "
+      else
+        printf "🔑 Enter your Elastic endpoint: "
+      fi
+      read -r elasticsearch_endpoint
     fi
-    read -r elasticsearch_endpoint
   fi
 
   if [ -z "$elasticsearch_api_key" ]; then
@@ -140,13 +142,33 @@ ensure_env_values() {
 # Resolve OTEL Collector config path for Docker based on deployment_type
 set_docker_collector_config() {
   case "$deployment_type" in
-    cloud-hosted)
-      OTEL_COLLECTOR_CONFIG=$DOCKER_COLLECTOR_CONFIG_CLOUD
-      ;;
-    serverless)
-      OTEL_COLLECTOR_CONFIG=$DOCKER_COLLECTOR_CONFIG_SERVERLESS
-      ;;
+  cloud-hosted)
+    OTEL_COLLECTOR_CONFIG=$DOCKER_COLLECTOR_CONFIG_CLOUD
+    ;;
+  serverless)
+    OTEL_COLLECTOR_CONFIG=$DOCKER_COLLECTOR_CONFIG_SERVERLESS
+    ;;
   esac
+}
+
+check_existing_credentials() {
+  if [ ! -f "$ENV_OVERRIDE_FILE" ]; then
+    return 1
+  fi
+
+  elasticsearch_endpoint=$(grep "^ELASTICSEARCH_ENDPOINT=" "$ENV_OVERRIDE_FILE" | cut -d'=' -f2- | tr -d '"')
+  elasticsearch_api_key=$(grep "^ELASTICSEARCH_API_KEY=" "$ENV_OVERRIDE_FILE" | cut -d'=' -f2- | tr -d '"')
+
+  if [ -n "$elasticsearch_endpoint" ] && [ -n "$elasticsearch_api_key" ] &&
+    [ "$elasticsearch_endpoint" != "YOUR_ENDPOINT" ] &&
+    [ "$elasticsearch_api_key" != "YOUR_API_KEY" ]; then
+    echo "✅ Using existing credentials from $ENV_OVERRIDE_FILE"
+    return 0
+  fi
+
+  elasticsearch_endpoint=""
+  elasticsearch_api_key=""
+  return 1
 }
 
 start_docker() {
@@ -169,31 +191,31 @@ ensure_k8s_prereqs() {
 apply_k8s_secret() {
   ensure_env_values
   case "$deployment_type" in
-    cloud-hosted)
-      kubectl create secret generic "$SECRET_NAME" \
-        --namespace "$NAMESPACE" \
-        --from-literal=elastic_endpoint="$elasticsearch_endpoint" \
-        --from-literal=elastic_api_key="$elasticsearch_api_key" \
-        --dry-run=client -o yaml | kubectl apply -f -
-      ;;
-    serverless)
-      kubectl create secret generic "$SECRET_NAME" \
-        --namespace "$NAMESPACE" \
-        --from-literal=elastic_otlp_endpoint="$elasticsearch_endpoint" \
-        --from-literal=elastic_api_key="$elasticsearch_api_key" \
-        --dry-run=client -o yaml | kubectl apply -f -
-      ;;
+  cloud-hosted)
+    kubectl create secret generic "$SECRET_NAME" \
+      --namespace "$NAMESPACE" \
+      --from-literal=elastic_endpoint="$elasticsearch_endpoint" \
+      --from-literal=elastic_api_key="$elasticsearch_api_key" \
+      --dry-run=client -o yaml | kubectl apply -f -
+    ;;
+  serverless)
+    kubectl create secret generic "$SECRET_NAME" \
+      --namespace "$NAMESPACE" \
+      --from-literal=elastic_otlp_endpoint="$elasticsearch_endpoint" \
+      --from-literal=elastic_api_key="$elasticsearch_api_key" \
+      --dry-run=client -o yaml | kubectl apply -f -
+    ;;
   esac
 }
 
 install_kube_stack() {
   case "$deployment_type" in
-    cloud-hosted)
-      VALUES_URL="$KUBE_STACK_VALUES_URL_CLOUD"
-      ;;
-    serverless)
-      VALUES_URL="$KUBE_STACK_VALUES_URL_SERVERLESS"
-      ;;
+  cloud-hosted)
+    VALUES_URL="$KUBE_STACK_VALUES_URL_CLOUD"
+    ;;
+  serverless)
+    VALUES_URL="$KUBE_STACK_VALUES_URL_SERVERLESS"
+    ;;
   esac
 
   helm upgrade --install "$KUBE_STACK_RELEASE" "$KUBE_STACK_CHART" \
@@ -218,7 +240,6 @@ destroy_docker() {
   make stop
   echo
 }
-
 
 destroy_k8s() {
   echo
@@ -262,7 +283,7 @@ main() {
     usage
   fi
 
-    if [ "$deployment_type" != "cloud-hosted" ] && [ "$deployment_type" != "serverless" ]; then
+  if [ "$deployment_type" != "cloud-hosted" ] && [ "$deployment_type" != "serverless" ]; then
     usage
   fi
 
