@@ -36,9 +36,14 @@ function assert_demo_destroyed() {
 }
 
 function test_launch_demo_k8s() {
+  echo "DEBUG: Starting K8s test with cloud-hosted deployment"
+  echo "DEBUG: Checking kubectl and helm availability"
+  kubectl version --client
+  helm version
+  echo "DEBUG: About to call assert_demo_launched"
   assert_demo_launched "cloud-hosted" "k8s"
+  echo "DEBUG: K8s test completed"
 }
-
 function test_destroy_demo_k8s() {
   assert_demo_destroyed "k8s"
 }
