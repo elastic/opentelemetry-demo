@@ -17,7 +17,7 @@ function test_launch_demo_docker() {
 }
 
 function test_check_docker_service_running() { 
-  local services=($docker compose config --services)
+  local services=($(docker compose config --services))
 
   for service in "${services[@]}"; do
     assert_exit_code "0" "$(check_docker_service_running "$service")"
