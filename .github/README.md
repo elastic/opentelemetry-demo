@@ -22,13 +22,17 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
 #### Elasticsearch exporter (default)
 
 1. Start a free trial on [Elastic Cloud](https://cloud.elastic.co/) and copy the `Elasticsearch endpoint` and the `API Key` from the `Help -> Connection details` drop down instructions in your Kibana. These variables will be used by the [elasticsearch exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticsearchexporter#elasticsearch-exporter) to authenticate and transmit data to your Elasticsearch instance.
-2. Run `./demo.sh cloud-hosted docker`.
+2. Run `./demo.sh` and enter:
+   - Deployment type: `cloud-hosted`
+   - Platform: `docker`
 
 #### Managed Ingest Endpoint
 1. Sign up for a free trial on [Elastic Cloud](https://cloud.elastic.co/) and start an Elastic Cloud Serverless Observability type project. Select Add data, Application and then OpenTelemetry.
 2. Copy the OTEL_EXPORTER_OTLP_ENDPOINT URL.
 3. Click "Create an API Key" to create one.
-4. Run `./demo.sh serverless docker`
+4. Run `./demo.sh` and enter:
+   - Deployment type: `serverless`
+   - Platform: `docker`
 
 #### Connect to a local Elasticsearch cluster
 The following steps shows how to start the Otel demo in a Docker container and send the generated otel data to an Elasticsearch instance running locally on the host.
@@ -87,8 +91,12 @@ make start
 
 ### Automated Installation
 
-- **Elasticsearch exporter:** Run `./demo.sh cloud-hosted k8s`
-- **Managed Ingest Endpoint:** Run `./demo.sh serverless k8s`
+- **Elasticsearch exporter:** Run `./demo.sh` and enter:
+  - Deployment type: `cloud-hosted`
+  - Platform: `k8s`
+- **Managed Ingest Endpoint:** Run `./demo.sh` and enter:
+  - Deployment type: `serverless`
+  - Platform: `k8s`
 
 ### Manual Installation
 
