@@ -79,13 +79,6 @@ function launch_demo() {
   echo "  elasticsearch_api_key: ${elasticsearch_api_key:0:10}..."
   echo "========================"
 
-  # Check if demo.sh exists
-  if [[ ! -f "${CURRENT_DIR}/demo.sh" ]]; then
-    echo "ERROR: demo.sh not found at ${CURRENT_DIR}/demo.sh"
-    return 1
-  fi
-
-  # Run demo.sh with error capture
   if ! printf "${deployment_type}\n${platform}\n${elasticsearch_endpoint}\n${elasticsearch_api_key}\n" | "${CURRENT_DIR}/demo.sh"; then
     echo "ERROR: demo.sh execution failed"
     echo "Exit code: $?"
@@ -118,7 +111,6 @@ check_docker_service_running() {
 
   echo "Checking container: $container_name"
 
-  # Get the container status with more details
   status=$(docker ps --filter "name=^${container_name}$" --format '{{.Status}}' 2>/dev/null)
 
   if [[ -n "$status" ]] && [[ "$status" =~ ^Up ]]; then
@@ -129,7 +121,6 @@ check_docker_service_running() {
     echo "  Expected status: Up*"
     echo "  Actual status: ${status:-not found}"
 
-    # Show container details if it exists
     local container_info=$(docker ps -a --filter "name=^${container_name}$" --format '{{.Status}}\t{{.Image}}\t{{.Ports}}' 2>/dev/null)
     if [[ -n "$container_info" ]]; then
       echo "     Container details: $container_info"
