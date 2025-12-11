@@ -36,14 +36,18 @@ function assert_demo_destroyed() {
 }
 
 function test_launch_demo_k8s() {
-  echo "DEBUG: Starting K8s test with cloud-hosted deployment"
-  echo "DEBUG: Checking kubectl and helm availability"
-  kubectl version --client
-  helm version
-  echo "DEBUG: About to call assert_demo_launched"
+  # TODO: Re-enable once the helm charts have been updated
+  # for k8s in elastic agent, at present k8s fails due to a helm mapping null to missing fields
+  # This PR fixes the issue -> https://github.com/elastic/elastic-agent/pull/11481
+  bashunit::skip "K8s test disabled: helm chart null mapping issue" && return
+
   assert_demo_launched "cloud-hosted" "k8s"
-  echo "DEBUG: K8s test completed"
 }
+
 function test_destroy_demo_k8s() {
+  # TODO: Re-enable once the helm charts have been updated
+  # for k8s in elastic agent, see above comment for more info.
+  bashunit::skip "K8s test disabled: helm chart null mapping issue" && return
+
   assert_demo_destroyed "k8s"
 }
