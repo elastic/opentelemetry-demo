@@ -26,7 +26,7 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
    - Deployment type: `cloud-hosted`
    - Platform: `docker`
 
-#### Managed Ingest Endpoint
+#### mOTLP
 1. Sign up for a free trial on [Elastic Cloud](https://cloud.elastic.co/) and start an Elastic Cloud Serverless Observability type project. Select Add data, Application and then OpenTelemetry.
 2. Copy the OTEL_EXPORTER_OTLP_ENDPOINT URL.
 3. Click "Create an API Key" to create one.
@@ -68,7 +68,7 @@ make start
    make start
    ```
 
-#### Managed Ingest Endpoint
+#### mOTLP
 
 1. Sign up for a free trial on [Elastic Cloud](https://cloud.elastic.co/) and start an Elastic Cloud Serverless Observability type project. Select Add data, Application and then OpenTelemetry.
 2. Copy the OTEL_EXPORTER_OTLP_ENDPOINT URL.
@@ -94,7 +94,7 @@ make start
 - **Elasticsearch exporter:** Run `./demo.sh` and enter:
   - Deployment type: `cloud-hosted`
   - Platform: `k8s`
-- **Managed Ingest Endpoint:** Run `./demo.sh` and enter:
+- **mOTLP:** Run `./demo.sh` and enter:
   - Deployment type: `serverless`
   - Platform: `k8s`
 
