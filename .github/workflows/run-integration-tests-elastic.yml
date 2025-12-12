@@ -1,0 +1,44 @@
+name: Elastic Integration Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - '.github/README.md'
+
+permissions:
+  contents: read
+
+jobs:
+  run-tests:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Free up disk space
+      run: |
+        sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+        sudo docker image prune --all --force
+        sudo docker builder prune -a
+
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Compose
+      uses: docker/setup-compose-action@v1
+    
+    - name: Create k8s Kind Cluster
+      uses: helm/kind-action@v1
+    
+    - name: Set up helm
+      uses: azure/setup-helm@v4.3.0
+
+    - name: Install bashunit
+      run: |
+        curl -s https://bashunit.typeddevs.com/install.sh | bash -s bin
+
+    - name: Run the tests
+      run: |
+        ./bin/bashunit --env .env.bashunit
