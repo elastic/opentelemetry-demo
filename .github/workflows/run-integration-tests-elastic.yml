@@ -14,9 +14,15 @@ permissions:
 jobs:
   run-tests:
     name: Test
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
 
     steps:
+    - name: Free up disk space
+      run: |
+        sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+        sudo docker image prune --all --force
+        sudo docker builder prune -a
+
     - name: Checkout
       uses: actions/checkout@v4
 
