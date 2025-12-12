@@ -14,18 +14,12 @@ permissions:
 jobs:
   run-tests:
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-4-cores
 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Maximize build space
-      uses: easimon/maximize-build-space@master
-      with:
-        remove-dotnet: 'true'
-        remove-android: 'true'
-    
     - name: Set up Docker Compose
       uses: docker/setup-compose-action@v1
     
