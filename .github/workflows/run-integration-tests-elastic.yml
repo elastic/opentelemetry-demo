@@ -14,7 +14,7 @@ permissions:
 jobs:
   run-tests:
     name: Test
-    runs-on: ubuntu-latest-4-cores
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
