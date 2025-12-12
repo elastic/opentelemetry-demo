@@ -25,8 +25,6 @@ jobs:
       with:
         remove-dotnet: 'true'
         remove-android: 'true'
-        remove-haskell: 'true'
-        remove-codeql: 'true'
     
     - name: Set up Docker Compose
       uses: docker/setup-compose-action@v1
