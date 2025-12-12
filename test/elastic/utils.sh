@@ -24,7 +24,7 @@ function get_http_response_code() {
 
 function start_local_elastic_stack() {
   printf "CURRENT_DIR=%s\n" "$CURRENT_DIR"
-  curl -fsSL https://elastic.co/start-local | sh
+  curl -fsSL https://elastic.co/start-local | sh -s -- --esonly
   # shellcheck source=test/elastic/bootstrap.sh
   source "${START_LOCAL_ENV_PATH}"
   sleep 2
