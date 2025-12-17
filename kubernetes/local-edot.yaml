@@ -5,10 +5,6 @@
 #   helm install otel-demo open-telemetry/opentelemetry-demo -n otel-demo --create-namespace \
 #     -f kubernetes/elastic-helm/demo.yml \
 #     -f kubernetes/local-edot.yaml
-#
-# Prerequisites:
-#   - minikube running (minikube start --memory=8192 --cpus=4)
-#   - Local EDOT collector running on host (e.g., node scripts/edot_collector.js from Kibana repo)
 
 default:
   envOverrides:
