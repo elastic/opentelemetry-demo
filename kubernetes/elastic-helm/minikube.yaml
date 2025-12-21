@@ -1,0 +1,12 @@
+# Helm values overlay for sending telemetry to a local EDOT collector
+# Use together with elastic-helm/demo.yml as the base configuration
+#
+# Usage:
+#   helm install otel-demo open-telemetry/opentelemetry-demo -n otel-demo --create-namespace \
+#     -f kubernetes/elastic-helm/demo.yml \
+#     -f kubernetes//elastic-helm/minikube.yaml
+
+default:
+  envOverrides:
+    - name: OTEL_COLLECTOR_NAME
+      value: "host.minikube.internal"
