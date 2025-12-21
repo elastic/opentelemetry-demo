@@ -4,7 +4,7 @@
 # Usage:
 #   helm install otel-demo open-telemetry/opentelemetry-demo -n otel-demo --create-namespace \
 #     -f kubernetes/elastic-helm/demo.yml \
-#     -f kubernetes/local-edot.yaml
+#     -f kubernetes//elastic-helm/minikube.yaml
 
 default:
   envOverrides:
