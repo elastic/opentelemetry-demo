@@ -171,6 +171,7 @@ jobs:
           buildkitd-config-inline: |
             [worker.oci]
             max-parallelism = 2
+          # NOTE: disable the cache poisoning vector attack
           cache-binary: false
       - name: Matrix Build and push demo images
         if: steps.check_changes.outputs.skip == 'false'
