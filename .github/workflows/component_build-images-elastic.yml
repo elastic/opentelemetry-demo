@@ -188,3 +188,6 @@ jobs:
           tags: |
             ${{ env.GHCR_REPO }}:${{ inputs.version }}-${{ matrix.file_tag.tag_suffix }}
             ${{ env.GHCR_REPO }}:latest-${{ matrix.file_tag.tag_suffix }}
+          # NOTE: disable the cache poisoning vector attack
+          # cache-from: type=gha
+          # cache-to: type=gha
