@@ -39,13 +39,13 @@ jobs:
       run: |
         curl -s https://bashunit.typeddevs.com/install.sh | bash -s bin
 
-    - name: Check env files
-      run: |
-        echo "=== .env.override ==="
-        cat .env.override
-        echo ""
-        echo "=== .env IMAGE_NAME ==="
-        grep "IMAGE_NAME" .env || echo "Not in .env"
+    # - name: Check env files
+    #   run: |
+    #     echo "=== .env.override ==="
+    #     cat .env.override
+    #     echo ""
+    #     echo "=== .env IMAGE_NAME ==="
+    #     grep "IMAGE_NAME" .env || echo "Not in .env"
 
     # - name: Create compose override
     #   run: |
@@ -86,6 +86,8 @@ jobs:
     - name: Run the tests
       id: tests
       continue-on-error: true
+      env:
+        IMAGE_NAME: ghcr.io/elastic/opentelemetry-demo
       run: |
         ./bin/bashunit --env .env.bashunit
 
