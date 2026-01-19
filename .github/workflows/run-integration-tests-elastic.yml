@@ -83,11 +83,13 @@ jobs:
     #     echo "=== Merged config for product-catalog ==="
     #     docker compose config | grep -A 30 "product-catalog:"
 
+    - name: Fix image name
+      run: |
+        sed -i 's|^IMAGE_NAME=.*|IMAGE_NAME=ghcr.io/elastic/opentelemetry-demo|' .env
+
     - name: Run the tests
       id: tests
       continue-on-error: true
-      env:
-        IMAGE_NAME: ghcr.io/elastic/opentelemetry-demo
       run: |
         ./bin/bashunit --env .env.bashunit
 
