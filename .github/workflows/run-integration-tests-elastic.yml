@@ -83,29 +83,6 @@ jobs:
     #     echo "=== Merged config for product-catalog ==="
     #     docker compose config | grep -A 30 "product-catalog:"
 
-    - name: Debug elastic-start-local impact
-      run: |
-        echo "=== .env.override BEFORE start-local ==="
-        cat .env.override
-        md5sum .env .env.override
-        
-        echo ""
-        echo "=== Run start-local ==="
-        curl -fsSL https://elastic.co/start-local | sh -s -- --esonly || true
-        
-        echo ""
-        echo "=== .env.override AFTER start-local ==="
-        cat .env.override
-        md5sum .env .env.override
-        
-        echo ""
-        echo "=== Check elastic-start-local/.env ==="
-        cat elastic-start-local/.env 2>/dev/null || echo "File not found"
-        
-        echo ""
-        echo "=== DIFF of .env.override ==="
-        diff <(git show HEAD:.env.override) .env.override || echo "Files differ!"
-
     - name: Debug env files
       run: |
         echo "=== Current directory ==="
