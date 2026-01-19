@@ -39,6 +39,12 @@ jobs:
       run: |
         curl -s https://bashunit.typeddevs.com/install.sh | bash -s bin
 
+    # This is needed because docker compose is not respecting the .env.override values,
+    # it just uses the IMAGE env var from the .env file, see issue: https://github.com/elastic/opentelemetry-demo/issues/191
+    - name: Fix image name
+      run: |
+        sed -i 's|^IMAGE_NAME=.*|IMAGE_NAME=ghcr.io/elastic/opentelemetry-demo|' .env
+
     - name: Run the tests
       run: |
         ./bin/bashunit --env .env.bashunit
