@@ -69,9 +69,7 @@ function test_check_docker_service_running() {
 }
 
 function test_destroy_demo_docker() {
-  if [[ "$TESTS_FAILED" == "true" ]]; then
-    bashunit::skip "Skipping destroy to preserve containers for debugging"
-    return
-  fi
+  bashunit::skip "Skipping destroy to preserve containers for debugging"
+
   assert_demo_destroyed "docker"
 }
