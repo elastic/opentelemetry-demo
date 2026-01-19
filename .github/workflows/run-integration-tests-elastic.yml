@@ -58,8 +58,22 @@ jobs:
                 limits:
                   memory: 100M
             environment:
+              - PRODUCT_CATALOG_PORT
+              - PRODUCT_CATALOG_RELOAD_INTERVAL
+              - FLAGD_HOST
+              - FLAGD_PORT
               - GOMEMLIMIT=80MiB
+              - OTEL_EXPORTER_OTLP_ENDPOINT
+              - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+              - OTEL_RESOURCE_ATTRIBUTES
+              - OTEL_SERVICE_NAME=product-catalog
         EOF
+        
+        echo "=== Override file ==="
+        cat docker-compose.override.yml
+        echo ""
+        echo "=== Merged config for product-catalog ==="
+        docker compose config | grep -A 30 "product-catalog:"
 
     - name: Run the tests
       id: tests
@@ -70,6 +84,12 @@ jobs:
     - name: Debug failed containers
       if: steps.tests.outcome == 'failure'
       run: |
+        echo "=== product-catalog memory limit ==="
+        docker inspect product-catalog --format '{{.HostConfig.Memory}}' || true
+        echo ""
+        echo "=== product-catalog all env vars ==="
+        docker inspect product-catalog --format '{{range .Config.Env}}{{println .}}{{end}}' || true
+
         echo "=== Container Status ==="
         docker ps -a
         echo ""
