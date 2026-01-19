@@ -18,8 +18,14 @@ function assert_docker_service_running() {
     local status=$(docker ps --filter "name=^${service}$" --format '{{.Status}}' 2>/dev/null)
     local container_info=$(docker ps -a --filter "name=^${service}$" --format '{{.Status}}\t{{.Image}}' 2>/dev/null)
 
+    local actual_name=$(docker ps -a --filter "name=^${service}" --format '{{.Names}}' | head -1)
+    local logs=""
+    if [[ -n "$actual_name" ]]; then
+      logs=$(docker logs "$actual_name" 2>&1 | tail -50)
+    fi
+
     if [[ -n "$container_info" ]]; then
-      bashunit::assertion_failed "service '$service' to be running" "status: ${status:-not found}, details: $container_info" "got"
+      bashunit::assertion_failed "service '$service' to be running" "status: ${status:-not found}, details: $container_info, logs: $logs" "got"
     else
       bashunit::assertion_failed "service '$service' to be running" "container does not exist" "got"
     fi
