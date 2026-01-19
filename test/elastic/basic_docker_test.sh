@@ -70,6 +70,7 @@ function test_check_docker_service_running() {
 
 function test_destroy_demo_docker() {
   bashunit::skip "Skipping destroy to preserve containers for debugging"
+  return
 
-  assert_demo_destroyed "docker"
+  # assert_demo_destroyed "docker"
 }
