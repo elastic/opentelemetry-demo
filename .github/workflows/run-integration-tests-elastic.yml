@@ -57,6 +57,11 @@ jobs:
             echo "=== $container ($status) ==="
             docker logs "$container" 2>&1 | tail -50
             echo ""
+            echo "=== $container inspect ==="
+            docker inspect "$container" --format 'Error: {{.State.Error}}'
+            docker inspect "$container" --format 'OOMKilled: {{.State.OOMKilled}}'
+            docker inspect "$container" --format 'Env: {{range .Config.Env}}{{println .}}{{end}}' | grep -E '(OTEL|CATALOG|SERVICE)' || true
+            echo ""
           fi
         done
 
