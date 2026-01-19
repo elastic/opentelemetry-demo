@@ -39,47 +39,61 @@ jobs:
       run: |
         curl -s https://bashunit.typeddevs.com/install.sh | bash -s bin
 
-    - name: Create compose override
+    - name: Check env files
       run: |
-        cat > docker-compose.override.yml << 'EOF'
-        services:
-          opensearch:
-            deploy:
-              replicas: 0
-          
-          otel-collector:
-            depends_on:
-              jaeger:
-                condition: service_started
-
-          product-catalog:
-            deploy:
-              resources:
-                limits:
-                  memory: 100M
-            environment:
-              - PRODUCT_CATALOG_PORT
-              - PRODUCT_CATALOG_RELOAD_INTERVAL
-              - FLAGD_HOST
-              - FLAGD_PORT
-              - GOMEMLIMIT=80MiB
-              - OTEL_EXPORTER_OTLP_ENDPOINT
-              - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
-              - OTEL_RESOURCE_ATTRIBUTES
-              - OTEL_SERVICE_NAME=product-catalog
-        EOF
-        
-        echo "=== Override file ==="
-        cat docker-compose.override.yml
+        echo "=== .env.override ==="
+        cat .env.override
         echo ""
-        echo "=== Merged config for product-catalog ==="
-        docker compose config | grep -A 30 "product-catalog:"
+        echo "=== .env IMAGE_NAME ==="
+        grep "IMAGE_NAME" .env || echo "Not in .env"
+
+    # - name: Create compose override
+    #   run: |
+    #     cat > docker-compose.override.yml << 'EOF'
+    #     services:
+    #       opensearch:
+    #         deploy:
+    #           replicas: 0
+    #
+    #       otel-collector:
+    #         depends_on:
+    #           jaeger:
+    #             condition: service_started
+    #
+    #       product-catalog:
+    #         deploy:
+    #           resources:
+    #             limits:
+    #               memory: 100M
+    #         environment:
+    #           - PRODUCT_CATALOG_PORT
+    #           - PRODUCT_CATALOG_RELOAD_INTERVAL
+    #           - FLAGD_HOST
+    #           - FLAGD_PORT
+    #           - GOMEMLIMIT=80MiB
+    #           - OTEL_EXPORTER_OTLP_ENDPOINT
+    #           - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+    #           - OTEL_RESOURCE_ATTRIBUTES
+    #           - OTEL_SERVICE_NAME=product-catalog
+    #     EOF
+    #
+    #     echo "=== Override file ==="
+    #     cat docker-compose.override.yml
+    #     echo ""
+    #     echo "=== Merged config for product-catalog ==="
+    #     docker compose config | grep -A 30 "product-catalog:"
 
     - name: Run the tests
       id: tests
       continue-on-error: true
       run: |
         ./bin/bashunit --env .env.bashunit
+
+    - name: Show container images
+      if: always()
+      run: |
+        echo "=== Container Images ==="
+        docker ps -a --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}' | head -30
 
     - name: Debug failed containers
       if: steps.tests.outcome == 'failure'
