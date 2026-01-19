@@ -42,3 +42,18 @@ jobs:
     - name: Run the tests
       run: |
         ./bin/bashunit --env .env.bashunit
+
+    - name: Collect docker logs on failure
+      if: failure()
+      run: |
+        echo "=== Docker container status ==="
+        docker ps -a
+        echo ""
+        echo "=== product-catalog logs ==="
+        docker logs product-catalog 2>&1 | tail -100 || true
+        echo ""
+        echo "=== System memory ==="
+        free -h
+        echo ""
+        echo "=== Docker stats ==="
+        docker stats --no-stream || true
