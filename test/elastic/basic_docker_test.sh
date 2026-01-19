@@ -17,7 +17,7 @@ function assert_docker_service_running() {
   if ! check_docker_service_running "$service"; then
     local status=$(docker ps --filter "name=^${service}$" --format '{{.Status}}' 2>/dev/null)
     local container_info=$(docker ps -a --filter "name=^${service}$" --format '{{.Status}}\t{{.Image}}' 2>/dev/null)
-    
+
     if [[ -n "$container_info" ]]; then
       bashunit::assertion_failed "service '$service' to be running" "status: ${status:-not found}, details: $container_info" "got"
     else
@@ -25,6 +25,7 @@ function assert_docker_service_running() {
     fi
     return
   fi
+
   bashunit::assertion_passed
 }
 

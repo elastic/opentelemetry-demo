@@ -71,14 +71,15 @@ check_docker_service_running() {
   else
     echo "Container $container_name not running. Current status: ${status:-not found}"
     
-    echo "=== Logs for $container_name ===" >&2
     local actual_name=$(docker ps -a --filter "name=${container_name}" --format '{{.Names}}' | head -1)
     if [[ -n "$actual_name" ]]; then
-      echo "Actual container name: $actual_name" >&2
-      docker logs "$actual_name" 2>&1 | tail -100 || true
+      bashunit::log "error" "=== Logs for $actual_name ==="
+      bashunit::log "error" "$(docker logs "$actual_name" 2>&1 | tail -100)"
+    else
+      bashunit::log "error" "No container found matching $container_name"
+      bashunit::log "error" "All containers: $(docker ps -a --format '{{.Names}}\t{{.Status}}')"
     fi
-    echo "=========================" >&2
-    
+
     return 1
   fi
 }
