@@ -40,5 +40,26 @@ jobs:
         curl -s https://bashunit.typeddevs.com/install.sh | bash -s bin
 
     - name: Run the tests
+      id: tests
+      continue-on-error: true
       run: |
         ./bin/bashunit --env .env.bashunit
+
+    - name: Debug failed containers
+      if: steps.tests.outcome == 'failure'
+      run: |
+        echo "=== Container Status ==="
+        docker ps -a
+        echo ""
+        for container in $(docker ps -a --format '{{.Names}}'); do
+          status=$(docker inspect "$container" --format '{{.State.Status}} exit:{{.State.ExitCode}}')
+          if [[ ! "$status" =~ ^running ]]; then
+            echo "=== $container ($status) ==="
+            docker logs "$container" 2>&1 | tail -50
+            echo ""
+          fi
+        done
+
+    - name: Fail if tests failed
+      if: steps.tests.outcome == 'failure'
+      run: exit 1

@@ -4,6 +4,8 @@ set -e -o pipefail
 
 source "${CURRENT_DIR}/test/elastic/utils.sh"
 
+TESTS_FAILED=false
+
 function set_up_before_script() {
   start_local_elastic_stack
 }
@@ -14,25 +16,23 @@ function tear_down_after_script() {
 
 function assert_docker_service_running() {
   local service="$1"
+
   if ! check_docker_service_running "$service"; then
-    local all_containers=$(docker ps -a --format '{{.Names}}')
-    
-    local actual_name=$(docker ps -a --filter "name=${service}" --format '{{.Names}}' | head -1)
-    local status=$(docker ps -a --filter "name=${service}" --format '{{.Status}}' | head -1)
-    local container_info=$(docker ps -a --filter "name=${service}" --format '{{.Status}}\t{{.Image}}' | head -1)
-    
-    local logs="NO CONTAINER FOUND"
-    if [[ -n "$actual_name" ]]; then
-      logs="CONTAINER: $actual_name, LOGS: $(docker logs "$actual_name" 2>&1 | tail -20)"
+    local status=$(docker ps --filter "name=^${service}$" --format '{{.Status}}' 2>/dev/null)
+    local container_info=$(docker ps -a --filter "name=^${service}$" --format '{{.Status}}\t{{.Image}}' 2>/dev/null)
+
+    if [[ -n "$container_info" ]]; then
+      TESTS_FAILED=true
+      bashunit::assertion_failed "service '$service' to be running" "status: ${status:-not found}, details: $container_info" "got"
+    else
+      TESTS_FAILED=true
+      bashunit::assertion_failed "service '$service' to be running" "container does not exist" "got"
     fi
-    
-    bashunit::assertion_failed "service '$service' to be running" "status: ${status:-not found}, actual_name: ${actual_name:-none}, details: $container_info, logs: $logs, all_containers: $all_containers" "got"
     return
   fi
 
   bashunit::assertion_passed
 }
-
 function assert_demo_launched() {
   local deployment_type="$1"
   local platform="$2"
@@ -69,5 +69,9 @@ function test_check_docker_service_running() {
 }
 
 function test_destroy_demo_docker() {
+  if [[ "$TESTS_FAILED" == "true" ]]; then
+    bashunit::skip "Skipping destroy to preserve containers for debugging"
+    return
+  fi
   assert_demo_destroyed "docker"
 }
