@@ -83,9 +83,23 @@ jobs:
     #     echo "=== Merged config for product-catalog ==="
     #     docker compose config | grep -A 30 "product-catalog:"
 
-    - name: Fix image name
+
+    - name: Debug env files
       run: |
-        sed -i 's|^IMAGE_NAME=.*|IMAGE_NAME=ghcr.io/elastic/opentelemetry-demo|' .env
+        echo "=== Current directory ==="
+        pwd
+        echo "=== List env files ==="
+        ls -la .env*
+        echo "=== .env contents ==="
+        cat .env
+        echo "=== .env.override contents ==="
+        cat .env.override
+        echo "=== Docker Compose resolved config ==="
+        docker compose --env-file .env --env-file .env.override config 2>&1 | grep -i "image" | head -20
+
+    # - name: Fix image name
+    #   run: |
+    #     sed -i 's|^IMAGE_NAME=.*|IMAGE_NAME=ghcr.io/elastic/opentelemetry-demo|' .env
 
     - name: Run the tests
       id: tests
