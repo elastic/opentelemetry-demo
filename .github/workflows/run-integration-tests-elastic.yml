@@ -51,6 +51,14 @@ jobs:
             depends_on:
               jaeger:
                 condition: service_started
+
+          product-catalog:
+            deploy:
+              resources:
+                limits:
+                  memory: 100M
+            environment:
+              - GOMEMLIMIT=80MiB
         EOF
 
     - name: Run the tests
