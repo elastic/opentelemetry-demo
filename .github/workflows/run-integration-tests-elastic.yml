@@ -39,6 +39,20 @@ jobs:
       run: |
         curl -s https://bashunit.typeddevs.com/install.sh | bash -s bin
 
+    - name: Create compose override
+      run: |
+        cat > docker-compose.override.yml << 'EOF'
+        services:
+          opensearch:
+            deploy:
+              replicas: 0
+          
+          otel-collector:
+            depends_on:
+              jaeger:
+                condition: service_started
+        EOF
+
     - name: Run the tests
       id: tests
       continue-on-error: true
