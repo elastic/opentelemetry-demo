@@ -151,6 +151,11 @@ jobs:
       if: always()
       run: cat /tmp/es_debug.log 2>/dev/null || echo "No debug log"
 
+    - name: Check ES vars demo
+      if: always()
+      run: cat /tmp/es_debug_demo.log 2>/dev/null || echo "No debug demo log"
+
+
     - name: Show launch debug
       if: always()
       run: |

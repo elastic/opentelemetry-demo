@@ -180,6 +180,9 @@ start_docker() {
   update_env_var "OTEL_COLLECTOR_CONFIG" "$OTEL_COLLECTOR_CONFIG"
   update_env_var "COLLECTOR_CONTRIB_IMAGE" "$COLLECTOR_CONTRIB_IMAGE"
 
+  echo "ELASTICSEARCH_ENDPOINT=${ELASTICSEARCH_ENDPOINT:-NOT SET}" > /tmp/es_debug_demo.log
+  echo "ELASTICSEARCH_API_KEY=${ELASTICSEARCH_API_KEY:-NOT SET}" >> /tmp/es_debug_demo.log
+
   make start
 }
 
