@@ -223,7 +223,9 @@ start_docker() {
   update_env_var "COLLECTOR_CONTRIB_IMAGE" "$COLLECTOR_CONTRIB_IMAGE"
 
   # Re-source to pick up updated values
-  source "$ENV_OVERRIDE_FILE"
+  export ELASTICSEARCH_ENDPOINT="$elasticsearch_endpoint"
+  export ELASTICSEARCH_API_KEY="$elasticsearch_api_key"
+  echo "after export: ELASTICSEARCH_ENDPOINT=${ELASTICSEARCH_ENDPOINT:-NOT SET}" >> /tmp/es_debug_demo.log
 
   echo "after update_env_var: ELASTICSEARCH_ENDPOINT=${ELASTICSEARCH_ENDPOINT:-NOT SET}" >> /tmp/es_debug_demo.log
   echo "after update_env_var: ELASTICSEARCH_API_KEY=${ELASTICSEARCH_API_KEY:-NOT SET}" >> /tmp/es_debug_demo.log
