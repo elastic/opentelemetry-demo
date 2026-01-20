@@ -60,6 +60,14 @@ usage() {
 }
 
 parse_args() {
+  if [ $# -eq 4 ]; then
+    deployment_type="$1"
+    platform="$2"
+    elasticsearch_endpoint="$3"
+    elasticsearch_api_key="$4"
+    return
+  fi
+
   if [ $# -eq 0 ]; then
 
     while true; do
@@ -121,6 +129,10 @@ read_secret() {
 }
 
 ensure_env_values() {
+  if [ -n "$CI" ]; then
+    return 0
+  fi
+
   echo
   if ! check_existing_credentials; then
     if [ -z "$elasticsearch_endpoint" ]; then
@@ -179,6 +191,9 @@ start_docker() {
   update_env_var "ELASTICSEARCH_API_KEY" "$elasticsearch_api_key"
   update_env_var "OTEL_COLLECTOR_CONFIG" "$OTEL_COLLECTOR_CONFIG"
   update_env_var "COLLECTOR_CONTRIB_IMAGE" "$COLLECTOR_CONTRIB_IMAGE"
+
+  export ELASTICSEARCH_ENDPOINT="$elasticsearch_endpoint"
+  export ELASTICSEARCH_API_KEY="$elasticsearch_api_key"
 
   make start
 }

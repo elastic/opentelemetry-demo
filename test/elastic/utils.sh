@@ -47,7 +47,12 @@ function launch_demo() {
   echo "  platform: $platform"
   echo "  elasticsearch_endpoint: $elasticsearch_endpoint"
   echo "  elasticsearch_api_key: $elasticsearch_api_key"
-  printf "${deployment_type}\n${platform}\n${elasticsearch_endpoint}\n${elasticsearch_api_key}\n" | ${CURRENT_DIR}/demo.sh
+
+  "${CURRENT_DIR}/demo.sh" \
+    "$deployment_type" \
+    "$platform" \
+    "$elasticsearch_endpoint" \
+    "$elasticsearch_api_key"
 }
 
 function destroy_demo() {
