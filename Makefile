@@ -11,7 +11,7 @@ MISSPELL_BINARY=bin/misspell
 MISSPELL = $(TOOLS_DIR)/$(MISSPELL_BINARY)
 
 DOCKER_COMPOSE_CMD ?= docker compose
-DOCKER_COMPOSE_ENV=--env-file .env --env-file .env.override
+DOCKER_COMPOSE_ENV=--env-file .env --env-file .env.override -e IMAGE_NAME=ghcr.io/elastic/opentelemetry-demo
 DOCKER_COMPOSE_BUILD_ARGS=
 
 # Java Workaround for macOS 15.2+ and M4 chips (see https://bugs.openjdk.org/browse/JDK-8345296)
