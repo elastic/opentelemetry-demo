@@ -28,6 +28,8 @@ jobs:
 
     - name: Set up Docker Compose
       uses: docker/setup-compose-action@v1
+      with:
+          version: latest
     
     - name: Create k8s Kind Cluster
       uses: helm/kind-action@v1
