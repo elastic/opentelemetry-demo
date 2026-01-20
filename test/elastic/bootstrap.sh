@@ -2,6 +2,10 @@
 set -euo pipefail
 # Place your common test setup here
 
+set -a
+source .env.override
+set +a
+
 CURRENT_DIR=$(pwd)
 export CURRENT_DIR
 export START_LOCAL_DIR="${CURRENT_DIR}/elastic-start-local"
