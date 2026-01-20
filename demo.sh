@@ -108,12 +108,14 @@ update_env_var() {
   VAR="$1"
   VAL="$2"
 
-  echo "update_env_var" >> /tmp/es_debug_demo.log
+  echo "update_env_var: VAR=$VAR VAL=$VAL" >> /tmp/es_debug_demo.log
   if grep -q "^$VAR=" "$ENV_OVERRIDE_FILE"; then
-    echo "update_env_var Update env override" >> /tmp/es_debug_demo.log
+    echo "before sed:" >> /tmp/es_debug_demo.log
+    grep "^$VAR=" "$ENV_OVERRIDE_FILE" >> /tmp/es_debug_demo.log
     sed_in_place "s|^$VAR=.*|$VAR=\"$VAL\"|" "$ENV_OVERRIDE_FILE"
+    echo "after sed:" >> /tmp/es_debug_demo.log
+    grep "^$VAR=" "$ENV_OVERRIDE_FILE" >> /tmp/es_debug_demo.log
   else
-    echo "update_env_var failed" >> /tmp/es_debug_demo.log
     echo "$VAR=\"$VAL\"" >>"$ENV_OVERRIDE_FILE"
   fi
 }
