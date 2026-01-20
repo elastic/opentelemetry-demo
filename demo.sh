@@ -47,8 +47,10 @@ sed_in_place() {
 deployment_type=""
 platform=""
 destroy="false"
-elasticsearch_endpoint=""
-elasticsearch_api_key=""
+# elasticsearch_endpoint=""
+# elasticsearch_api_key=""
+elasticsearch_endpoint="${ELASTICSEARCH_ENDPOINT:-}"
+elasticsearch_api_key="${ELASTICSEARCH_API_KEY:-}"
 
 usage() {
   echo "Run the script with no arguments. This will start an interactive prompt that will guide you through the setup of the Elastic OpenTelemetry Demo."
@@ -60,6 +62,14 @@ usage() {
 }
 
 parse_args() {
+  if [ $# -eq 4 ]; then
+    deployment_type="$1"
+    platform="$2"
+    elasticsearch_endpoint="$3"
+    elasticsearch_api_key="$4"
+    return
+  fi
+
   if [ $# -eq 0 ]; then
 
     while true; do

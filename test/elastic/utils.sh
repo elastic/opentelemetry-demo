@@ -62,8 +62,15 @@ function launch_demo() {
 
   echo "ES_LOCAL_URL=${ES_LOCAL_URL:-NOT SET}" > /tmp/es_debug.log
   echo "ES_LOCAL_API_KEY=${ES_LOCAL_API_KEY:-NOT SET}" >> /tmp/es_debug.log
+  echo "elasticsearch_endpoint=${elasticsearch_endpoint:-NOT SET}" >> /tmp/es_debug.log
+  echo "elasticsearch_api_key=${elasticsearch_api_key:-NOT SET}" >> /tmp/es_debug.log
 
-  printf "${deployment_type}\n${platform}\n${elasticsearch_endpoint}\n${elasticsearch_api_key}\n" | ${CURRENT_DIR}/demo.sh
+  # printf "${deployment_type}\n${platform}\n${elasticsearch_endpoint}\n${elasticsearch_api_key}\n" | ${CURRENT_DIR}/demo.sh
+  "${CURRENT_DIR}/demo.sh" \
+    "$deployment_type" \
+    "$platform" \
+    "$elasticsearch_endpoint" \
+    "$elasticsearch_api_key"
 }
 
 function destroy_demo() {
