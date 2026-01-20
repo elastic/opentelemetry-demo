@@ -1,55 +1,104 @@
-name: Scheduled Merge Upstream
+name: Merge Upstream PR
 on:
   workflow_dispatch:
   schedule:
-    - cron: '23 0/3 * * *'
+    - cron: '0 9 * * 1,4'
 
 jobs:
-  merge_upstream:
+  create_upstream_pr:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
           token: ${{ secrets.OTEL_DEMO_MERGE_SECRET }}
-      - name: fetch and push
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          UPSTREAM: https://github.com/open-telemetry/opentelemetry-demo
+
+      - name: Fetch upstream
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@users.noreply.github.com"
-
-          git remote add upstream "${UPSTREAM}"
-
-          # Get all recent branches and commits from the upstream
+          git remote add upstream https://github.com/open-telemetry/opentelemetry-demo.git
           git fetch upstream main
 
-          git merge upstream/main --no-edit || { echo "Merge conflicts detected. Please resolve them manually."; exit 1; }
+      - name: Check for upstream changes
+        id: check
+        run: |
+          COMMITS_BEHIND=$(git rev-list --count HEAD..upstream/main)
+          echo "commits_behind=${COMMITS_BEHIND}" >> $GITHUB_OUTPUT
 
-          git push origin $(git branch --show-current)
+      - name: Create branch from upstream
+        if: steps.check.outputs.commits_behind != '0'
+        id: branch
+        run: |
+          BRANCH_NAME="auto-merge/upstream-$(date +%Y%m%d-%H%M%S)"
+          echo "branch_name=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+          
+          git checkout -b "${BRANCH_NAME}" upstream/main
+          git push origin "${BRANCH_NAME}"
+
+      - name: Create Pull Request
+        if: steps.check.outputs.commits_behind != '0'
+        id: create_pr
+        env:
+          GH_TOKEN: ${{ secrets.OTEL_DEMO_MERGE_SECRET }}
+        run: |
+          PR_URL=$(gh pr create \
+            --title "chore: merge with upstream opentelemetry-demo" \
+            --body "## Automated upstream merge
+          
+          This PR merges with the upstream opentelemetry-demo repository.
+          
+          ### Changes from upstream
+          - ${{ steps.check.outputs.commits_behind }} new commits
+          
+          ### If there are conflicts
+          Check out this branch and resolve them:
+          \`\`\`bash
+          git fetch origin ${{ steps.branch.outputs.branch_name }}
+          git checkout ${{ steps.branch.outputs.branch_name }}
+          git merge main
+          # resolve conflicts
+          git push
+          \`\`\`
+          
+          **Note:** If \`src/payment/package.json\` conflicts, take upstream version and add:
+          \`\`\`json
+          \"@elastic/opentelemetry-node\": \"1.5.0\"
+          \`\`\`
+          And update the start script to:
+          \`\`\`json
+          \"start\": \"OTEL_EXPORTER_OTLP_PROTOCOL=grpc node --require @elastic/opentelemetry-node index.js\"
+          \`\`\`
+          
+          ---
+          *This PR was automatically created.*" \
+            --base main \
+            --head ${{ steps.branch.outputs.branch_name }})
+          
+          echo "pr_url=${PR_URL}" >> $GITHUB_OUTPUT
+          PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+$')
+          echo "pr_number=${PR_NUMBER}" >> $GITHUB_OUTPUT
+
+      - name: Enable auto-merge
+        if: steps.create_pr.outputs.pr_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.OTEL_DEMO_MERGE_SECRET }}
+        run: |
+          gh pr merge ${{ steps.create_pr.outputs.pr_number }} --auto --merge
 
   notify-failure:
-    needs: [merge_upstream]
-    if: always() && needs.merge_upstream.result != 'success'
+    needs: [create_upstream_pr]
+    if: failure()
     runs-on: ubuntu-latest
     steps:
-    - name: Get previous workflow status
-      uses: Mercymeilya/last-workflow-status@v0.3.3
-      id: last_status
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-    - name: Slack notification
-      if: success() && steps.last_status.outputs.last_status == 'success'
-      env:
-        SLACK_WEBHOOK: ${{ secrets.OTELSLACKCHANNELWEBHOOK }}
-        SLACK_UNFURL_LINKS: "true"
-      uses: AlexanderWert/action-slack@2.3.0
-      with:
-        args: |
-          :wave:
-          Auto-merge of the <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|elastic/opentelemetry-demo> repository with the upstream failed!
-          Manual resolution of the merge conflicts is required!
-
+      - name: Slack notification if any error
+        uses: elastic/oblt-actions/slack/send@v1
+        with:
+          bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel-id: "C02LJMUSXLH"  #otel-data-team
+          message: |
+            :warning: Upstream merge workflow failed for `${{ github.repository }}@${{ github.ref_name }}`.
+            
+            Please check <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|the workflow run>.
