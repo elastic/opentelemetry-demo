@@ -141,15 +141,16 @@ jobs:
     #   run: |
     #     sed -i 's|^IMAGE_NAME=.*|IMAGE_NAME=ghcr.io/elastic/opentelemetry-demo|' .env
 
-    - name: Run demo.sh with trace
-      run: |
-        bash -x ./demo.sh <<< $'cloud-hosted\ndocker\n' 2>&1 | tail -100
-
     - name: Run the tests
       id: tests
       continue-on-error: true
       run: |
         ./bin/bashunit --env .env.bashunit
+
+    - name: Show launch debug
+      if: always()
+      run: |
+        cat /tmp/launch_debug.log 2>/dev/null || echo "No debug log found"
 
     - name: Debug after launch
       run: |

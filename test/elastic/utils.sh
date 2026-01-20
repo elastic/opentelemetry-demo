@@ -43,13 +43,16 @@ function launch_demo() {
   local elasticsearch_endpoint="${ES_LOCAL_URL:-$3}"
   local elasticsearch_api_key="${ES_LOCAL_API_KEY}"
 
-  echo "=== Debug from launch_demo ===" >&2
-  echo "pwd: $(pwd)" >&2
-  echo "CURRENT_DIR: ${CURRENT_DIR}" >&2
-  ls -la .env .env.override >&2 2>&1 || echo "Files not in pwd" >&2
-  grep "^IMAGE_NAME" .env >&2 2>&1 || echo "No .env in pwd" >&2
-  grep "^IMAGE_NAME" .env.override >&2 2>&1 || echo "No .env.override in pwd" >&2
-  echo "=== End debug ===" >&2
+# Write debug to file
+  {
+    echo "=== Debug from launch_demo ==="
+    echo "pwd: $(pwd)"
+    echo "CURRENT_DIR: ${CURRENT_DIR}"
+    ls -la .env .env.override 2>&1 || echo "Files not in pwd"
+    grep "^IMAGE_NAME" .env 2>&1 || echo "No .env in pwd"
+    grep "^IMAGE_NAME" .env.override 2>&1 || echo "No .env.override in pwd"
+    echo "=== End debug ==="
+  } > /tmp/launch_debug.log
 
   echo "Launching demo with:"
   echo "  deployment_type: $deployment_type"
