@@ -85,6 +85,17 @@ jobs:
     #     echo "=== Merged config for product-catalog ==="
     #     docker compose config | grep -A 30 "product-catalog:"
 
+    - name: Debug launch path
+      run: |
+        echo "=== What does make start run? ==="
+        make -n start
+        echo ""
+        echo "=== Check if demo.sh uses make ==="
+        grep -n "make" demo.sh || echo "make not found in demo.sh"
+        echo ""
+        echo "=== Check start_docker function ==="
+        grep -A 10 "start_docker()" demo.sh || true
+
     - name: Debug env file handling
       run: |
         echo "=== Docker compose version ==="
