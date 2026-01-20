@@ -85,6 +85,17 @@ jobs:
     #     echo "=== Merged config for product-catalog ==="
     #     docker compose config | grep -A 30 "product-catalog:"
 
+    - name: Debug working directory
+      run: |
+        echo "=== PWD ==="
+        pwd
+        echo ""
+        echo "=== .env files in current dir ==="
+        ls -la .env* || echo "No .env files here"
+        echo ""
+        echo "=== .env files in repo root ==="
+        ls -la $GITHUB_WORKSPACE/.env* || echo "No .env files there"
+
     - name: Debug launch path
       run: |
         echo "=== What does make start run? ==="
