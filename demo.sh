@@ -129,7 +129,7 @@ read_secret() {
 }
 
 ensure_env_values() {
-  if [ -n "$CI" ]; then
+  if [ -n "${CI:-}" ]; then
     return 0
   fi
 
