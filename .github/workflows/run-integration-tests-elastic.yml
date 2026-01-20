@@ -136,6 +136,17 @@ jobs:
       run: |
         ./bin/bashunit --env .env.bashunit
 
+    - name: Debug after launch
+      run: |
+        echo "=== .env after launch ==="
+        grep "IMAGE_NAME" .env
+        echo ""
+        echo "=== .env.override after launch ==="
+        grep "IMAGE_NAME" .env.override
+        echo ""
+        echo "=== Running containers ==="
+        docker ps --format '{{.Names}}\t{{.Image}}' | head -10
+
     - name: Show container images
       if: always()
       run: |
