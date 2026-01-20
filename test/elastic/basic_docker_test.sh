@@ -8,6 +8,9 @@ TESTS_FAILED=false
 
 function set_up_before_script() {
   start_local_elastic_stack
+
+  echo "ES_LOCAL_URL=${ES_LOCAL_URL:-NOT SET}" > /tmp/es_debug.log
+  echo "ES_LOCAL_API_KEY=${ES_LOCAL_API_KEY:-NOT SET}" >> /tmp/es_debug.log
 }
 
 function tear_down_after_script() {

@@ -147,6 +147,10 @@ jobs:
       run: |
         ./bin/bashunit --env .env.bashunit
 
+    - name: Check ES vars
+      if: always()
+      run: cat /tmp/es_debug.log 2>/dev/null || echo "No debug log"
+
     - name: Show launch debug
       if: always()
       run: |
