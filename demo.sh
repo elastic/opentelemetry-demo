@@ -209,6 +209,8 @@ start_docker() {
 
   echo "after ensure_env_values: ELASTICSEARCH_ENDPOINT=${ELASTICSEARCH_ENDPOINT:-NOT SET}" >> /tmp/es_debug_demo.log
   echo "after ensure_env_values: ELASTICSEARCH_API_KEY=${ELASTICSEARCH_API_KEY:-NOT SET}" >> /tmp/es_debug_demo.log
+  echo "after ensure_env_values: elasticsearch_endpoint=${elasticsearch_endpoint:-NOT SET}" >> /tmp/es_debug_demo.log
+  echo "after ensure_env_values: elasticsearch_api_key=${elasticsearch_api_key:-NOT SET}" >> /tmp/es_debug_demo.log
 
   update_env_var "ELASTICSEARCH_ENDPOINT" "$elasticsearch_endpoint"
   update_env_var "ELASTICSEARCH_API_KEY" "$elasticsearch_api_key"
@@ -217,6 +219,9 @@ start_docker() {
 
   echo "after update_env_var: ELASTICSEARCH_ENDPOINT=${ELASTICSEARCH_ENDPOINT:-NOT SET}" >> /tmp/es_debug_demo.log
   echo "after update_env_var: ELASTICSEARCH_API_KEY=${ELASTICSEARCH_API_KEY:-NOT SET}" >> /tmp/es_debug_demo.log
+  echo "after update_env_var: elasticsearch_endpoint=${elasticsearch_endpoint:-NOT SET}" >> /tmp/es_debug_demo.log
+  echo "after update_env_var: elasticsearch_api_key=${elasticsearch_api_key:-NOT SET}" >> /tmp/es_debug_demo.log
+
 
   make start
 }
