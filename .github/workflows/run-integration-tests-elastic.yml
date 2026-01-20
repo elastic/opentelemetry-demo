@@ -85,6 +85,23 @@ jobs:
     #     echo "=== Merged config for product-catalog ==="
     #     docker compose config | grep -A 30 "product-catalog:"
 
+    - name: Debug env file handling
+      run: |
+        echo "=== Docker compose version ==="
+        docker compose version
+        echo ""
+        echo "=== Local docker compose version ==="
+        echo "(for comparison - check your local version)"
+        echo ""
+        echo "=== .env content ==="
+        cat .env | grep -E "^IMAGE" || true
+        echo ""
+        echo "=== .env.override content ==="
+        cat .env.override | grep -E "^IMAGE" || true
+        echo ""
+        echo "=== Test: which value wins? ==="
+        docker compose --env-file .env --env-file .env.override config 2>/dev/null | grep "image:" | head -5
+
     - name: Debug env files
       run: |
         echo "=== Current directory ==="
