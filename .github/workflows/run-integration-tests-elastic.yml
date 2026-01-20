@@ -28,6 +28,8 @@ jobs:
 
     - name: Set up Docker Compose
       uses: docker/setup-compose-action@v1
+      with:
+          version: latest
     
     - name: Create k8s Kind Cluster
       uses: helm/kind-action@v1
@@ -41,9 +43,9 @@ jobs:
 
     # This is needed because docker compose is not respecting the .env.override values,
     # it just uses the IMAGE env var from the .env file, see issue: https://github.com/elastic/opentelemetry-demo/issues/191
-    - name: Fix image name
-      run: |
-        sed -i 's|^IMAGE_NAME=.*|IMAGE_NAME=ghcr.io/elastic/opentelemetry-demo|' .env
+    # - name: Fix image name
+    #   run: |
+    #     sed -i 's|^IMAGE_NAME=.*|IMAGE_NAME=ghcr.io/elastic/opentelemetry-demo|' .env
 
     - name: Run the tests
       run: |
