@@ -222,11 +222,13 @@ start_docker() {
   update_env_var "OTEL_COLLECTOR_CONFIG" "$OTEL_COLLECTOR_CONFIG"
   update_env_var "COLLECTOR_CONTRIB_IMAGE" "$COLLECTOR_CONTRIB_IMAGE"
 
+  # Re-source to pick up updated values
+  source "$ENV_OVERRIDE_FILE"
+
   echo "after update_env_var: ELASTICSEARCH_ENDPOINT=${ELASTICSEARCH_ENDPOINT:-NOT SET}" >> /tmp/es_debug_demo.log
   echo "after update_env_var: ELASTICSEARCH_API_KEY=${ELASTICSEARCH_API_KEY:-NOT SET}" >> /tmp/es_debug_demo.log
   echo "after update_env_var: elasticsearch_endpoint=${elasticsearch_endpoint:-NOT SET}" >> /tmp/es_debug_demo.log
   echo "after update_env_var: elasticsearch_api_key=${elasticsearch_api_key:-NOT SET}" >> /tmp/es_debug_demo.log
-
 
   make start
 }
