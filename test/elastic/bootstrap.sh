@@ -4,17 +4,7 @@ set -euo pipefail
 
 # Source environment files to match Makefile behavior
 set -a
-# Check if .env files exist in repo root or current directory
-# if [ -f "../.env" ]; then
-#     source "../.env"
-# elif [ -f ".env" ]; then
-#     source ".env"
-# fi
-if [ -f "../.env.override" ]; then
-    source "../.env.override"
-elif [ -f ".env.override" ]; then
-    source ".env.override"
-fi
+source .env.override
 set +a
 
 CURRENT_DIR=$(pwd)
