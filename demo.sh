@@ -130,6 +130,11 @@ read_secret() {
 }
 
 ensure_env_values() {
+  if [ -n "$CI" ]; then
+    echo "CI mode: refusing to prompt for credentials" >&2
+    return 1
+  fi
+
   echo
   if ! check_existing_credentials; then
     if [ -z "$elasticsearch_endpoint" ]; then
@@ -161,22 +166,34 @@ set_docker_collector_config() {
 }
 
 check_existing_credentials() {
+  echo "check_existing_credentials: start" >> /tmp/es_debug_demo.log
+
   if [ ! -f "$ENV_OVERRIDE_FILE" ]; then
+    echo "check_existing_credentials: no override file" >> /tmp/es_debug_demo.log
     return 1
   fi
 
-  elasticsearch_endpoint=$(grep "^ELASTICSEARCH_ENDPOINT=" "$ENV_OVERRIDE_FILE" | cut -d'=' -f2- | tr -d '"')
-  elasticsearch_api_key=$(grep "^ELASTICSEARCH_API_KEY=" "$ENV_OVERRIDE_FILE" | cut -d'=' -f2- | tr -d '"')
+  local file_endpoint
+  local file_api_key
 
-  if [ -n "$elasticsearch_endpoint" ] && [ -n "$elasticsearch_api_key" ] &&
-    [ "$elasticsearch_endpoint" != "YOUR_ENDPOINT" ] &&
-    [ "$elasticsearch_api_key" != "YOUR_API_KEY" ]; then
-    echo "✅ Using existing credentials from $ENV_OVERRIDE_FILE"
+  file_endpoint=$(grep "^ELASTICSEARCH_ENDPOINT=" "$ENV_OVERRIDE_FILE" | cut -d'=' -f2- | tr -d '"')
+  file_api_key=$(grep "^ELASTICSEARCH_API_KEY=" "$ENV_OVERRIDE_FILE" | cut -d'=' -f2- | tr -d '"')
+
+  echo "check_existing_credentials: file_endpoint=$file_endpoint" >> /tmp/es_debug_demo.log
+  echo "check_existing_credentials: file_api_key=${file_api_key:+SET}" >> /tmp/es_debug_demo.log
+
+  if [ -n "$file_endpoint" ] && [ -n "$file_api_key" ] &&
+     [ "$file_endpoint" != "YOUR_ENDPOINT" ] &&
+     [ "$file_api_key" != "YOUR_API_KEY" ]; then
+
+    elasticsearch_endpoint="$file_endpoint"
+    elasticsearch_api_key="$file_api_key"
+
+    echo "check_existing_credentials: using file creds" >> /tmp/es_debug_demo.log
     return 0
   fi
 
-  elasticsearch_endpoint=""
-  elasticsearch_api_key=""
+  echo "check_existing_credentials: ignoring placeholder creds" >> /tmp/es_debug_demo.log
   return 1
 }
 
