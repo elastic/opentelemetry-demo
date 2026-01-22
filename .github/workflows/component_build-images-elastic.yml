@@ -201,6 +201,6 @@ jobs:
         if: ${{ steps.check_changes.outputs.skip == 'false' && inputs.push }}
         id: attest
         with:
-          subject-name: ${{ env.GHCR_REPO }}/${{ inputs.version }}-${{ matrix.file_tag.tag_suffix }}
+          subject-name: ${{ env.GHCR_REPO }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
