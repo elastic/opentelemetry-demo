@@ -11,6 +11,7 @@ jobs:
   create_upstream_pr:
     permissions:
       contents: write
+      workflows: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,8 +22,6 @@ jobs:
 
       - name: Fetch upstream
         run: |
-          # git config --global user.name "github-actions"
-          # git config --global user.email "github-actions@users.noreply.github.com"
           git remote add upstream https://github.com/open-telemetry/opentelemetry-demo.git
           git fetch upstream main
 
