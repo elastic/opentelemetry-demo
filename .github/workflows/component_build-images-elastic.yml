@@ -17,7 +17,10 @@ jobs:
     if: github.repository == 'elastic/opentelemetry-demo'
     runs-on: ubuntu-latest
     permissions:
+      artifact-metadata: write
+      attestations: write
       contents: read
+      id-token: write
       packages: write
 
     env:
@@ -122,7 +125,7 @@ jobs:
             setup-qemu: true
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Load environment variables from .env file
@@ -174,8 +177,9 @@ jobs:
           # NOTE: disable the cache poisoning vector attack
           cache-binary: false
       - name: Matrix Build and push demo images
+        id: push
         if: steps.check_changes.outputs.skip == 'false'
-        uses: docker/build-push-action@v5.0.0
+        uses: docker/build-push-action@v6.18.0
         with:
           context: ${{ matrix.file_tag.context }}
           file: ${{ matrix.file_tag.file }}
@@ -191,3 +195,12 @@ jobs:
           # NOTE: disable the cache poisoning vector attack
           # cache-from: type=gha
           # cache-to: type=gha
+
+      - name: Attest
+        uses: actions/attest-build-provenance@v3
+        if: ${{ steps.check_changes.outputs.skip == 'false' && inputs.push }}
+        id: attest
+        with:
+          subject-name: ${{ env.GHCR_REPO }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
