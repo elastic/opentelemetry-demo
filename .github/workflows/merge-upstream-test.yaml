@@ -11,6 +11,7 @@ jobs:
   create_upstream_pr:
     permissions:
       contents: write
+      actions: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
