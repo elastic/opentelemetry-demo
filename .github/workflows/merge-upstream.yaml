@@ -6,6 +6,8 @@ on:
 
 jobs:
   create_upstream_pr:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -97,7 +99,7 @@ jobs:
         uses: elastic/oblt-actions/slack/send@v1
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
-          channel-id: "C02LJMUSXLH"  #otel-data-team
+          channel-id: "C0AA2B1949M"  #otel-demo-ci
           message: |
             :warning: Upstream merge workflow failed for `${{ github.repository }}@${{ github.ref_name }}`.
             
