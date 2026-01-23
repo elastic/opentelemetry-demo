@@ -3,6 +3,9 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 9 * * 1,4'
+  push:
+    branches:
+      - test/merge-workflow
 
 jobs:
   create_upstream_pr:
