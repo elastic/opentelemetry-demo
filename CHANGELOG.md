@@ -31,6 +31,11 @@ the release.
 * [collector] [dockerstats/receiver] Set API version to 1.44
   ([#2767](https://github.com/open-telemetry/opentelemetry-demo/pull/2767))
 
+## 2.1.4
+
+* [makefile] Use dynamic port in start output instead of hardcoded 8080
+  ([#195](https://github.com/elastic/opentelemetry-demo/pull/195))
+
 ## 2.1.3
 
 * [chore] Fix postgresql container
