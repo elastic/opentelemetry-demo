@@ -12,16 +12,6 @@ exporters:
       enabled: true
     mapping:
       mode: otel
-  elasticsearch/ecs:
-    endpoints:
-      - ${env:ELASTICSEARCH_ENDPOINT}
-    api_key: ${env:ELASTICSEARCH_API_KEY}
-    logs_dynamic_index:
-      enabled: true
-    metrics_dynamic_index:
-      enabled: true
-    mapping:
-      mode: ecs
 
 receivers:
   otlp:
@@ -115,21 +105,6 @@ processors:
     # explicitly set send_batch_max_size to 0, as splitting metrics requests may cause version_conflict_engine_exception in TSDB
     send_batch_max_size: 0
     timeout: 1s
-  elasticinframetrics:
-    add_system_metrics: true
-    add_k8s_metrics: false
-    drop_original: true
-  resource/process:
-    attributes:
-      - key: process.executable.name
-        action: delete
-      - key: process.executable.path
-        action: delete
-  attributes/dataset:
-    actions:
-      - key: event.dataset
-        from_attribute: data_stream.dataset
-        action: upsert
   resourcedetection/system:
     detectors: ["system"]
     system:
@@ -169,8 +144,8 @@ processors:
           # could be removed when https://github.com/vercel/next.js/pull/64852 is fixed upstream
           - replace_pattern(name, "\\?.*", "")
           - replace_match(name, "GET /api/products/*", "GET /api/products/{productId}")
-  # [Elastic Trace Processor](https://github.com/elastic/opentelemetry-collector-components/tree/main/processor/elastictraceprocessor)
-  elastictrace: {} # The processor enriches traces with elastic specific requirements.
+  # [Elastic APM Processor](https://www.elastic.co/docs/reference/edot-collector/components/elasticapmprocessor)
+  elasticapm: {} # The processor enriches traces with Elastic APM specific requirements.
 
 connectors:
   spanmetrics:
@@ -187,18 +162,6 @@ service:
         - batch
       receivers:
         - otlp
-    metrics/infra/ecs:
-      exporters:
-        - elasticsearch/ecs
-        - debug
-      processors:
-        - batch/metrics
-        - elasticinframetrics
-        - resourcedetection/system
-        - attributes/dataset
-        - resource/process
-      receivers:
-        - hostmetrics
     metrics/infra/otel:
       exporters:
         - elasticsearch/otel
@@ -228,7 +191,7 @@ service:
       processors:
         - transform
         - batch
-        - elastictrace
+        - elasticapm
       receivers:
         - otlp
     metrics/aggregated-otel-metrics:
