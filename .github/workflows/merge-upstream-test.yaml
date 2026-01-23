@@ -1,4 +1,4 @@
-name: Merge Upstream PR
+name: Merge Upstream PR test
 on:
   workflow_dispatch:
   schedule:
@@ -11,7 +11,6 @@ jobs:
   create_upstream_pr:
     permissions:
       contents: write
-      workflows: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
