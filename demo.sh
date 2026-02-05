@@ -3,7 +3,7 @@
 set -eu
 
 # Constants
-ELASTIC_STACK_VERSION="9.2.0"
+ELASTIC_STACK_VERSION="9.3.0"
 ENV_OVERRIDE_FILE=".env.override"
 NAMESPACE="opentelemetry-operator-system"
 HELM_REPO_NAME="open-telemetry"
@@ -11,11 +11,11 @@ HELM_REPO_URL='https://open-telemetry.github.io/opentelemetry-helm-charts'
 
 DEMO_RELEASE="my-otel-demo"
 DEMO_CHART="open-telemetry/opentelemetry-demo"
-DEMO_HELM_VERSION='0.38.3'
+DEMO_HELM_VERSION='0.40.2'
 
 KUBE_STACK_RELEASE="opentelemetry-kube-stack"
 KUBE_STACK_CHART="open-telemetry/opentelemetry-kube-stack"
-KUBE_STACK_VERSION='0.10.5'
+KUBE_STACK_VERSION='0.12.4'
 KUBE_STACK_VALUES_URL_CLOUD='https://raw.githubusercontent.com/elastic/elastic-agent/refs/tags/v'$ELASTIC_STACK_VERSION'/deploy/helm/edot-collector/kube-stack/values.yaml'
 KUBE_STACK_VALUES_URL_SERVERLESS='https://raw.githubusercontent.com/elastic/elastic-agent/refs/tags/v'$ELASTIC_STACK_VERSION'/deploy/helm/edot-collector/kube-stack/managed_otlp/values.yaml'
 SECRET_NAME='elastic-secret-otel'
