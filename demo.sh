@@ -11,7 +11,7 @@ HELM_REPO_URL='https://open-telemetry.github.io/opentelemetry-helm-charts'
 
 DEMO_RELEASE="my-otel-demo"
 DEMO_CHART="open-telemetry/opentelemetry-demo"
-DEMO_HELM_VERSION='0.40.2'
+DEMO_HELM_VERSION='0.38.6'
 
 KUBE_STACK_RELEASE="opentelemetry-kube-stack"
 KUBE_STACK_CHART="open-telemetry/opentelemetry-kube-stack"
