@@ -14,11 +14,23 @@ jobs:
       actions: write
     runs-on: ubuntu-latest
     steps:
+      # TokenPolicy defined at https://github.com/elastic/catalog-info/tree/main/resources/github-token-policies/token-policy-opentelemetry-demo-merge-upstream.yaml
+      - name: Get token
+        id: get_token
+        uses: elastic/oblt-actions/github/create-token@v1
+        with:
+          token-policy: token-policy-3898141dfcd9
+
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: main
           fetch-depth: 0
+      
+      - name: Configure git user
+        uses: elastic/oblt-actions/git/setup@v1
+        with:
+          github-token: ${{ steps.get_token.outputs.token }}
 
       - name: Fetch upstream
         run: |
@@ -45,7 +57,7 @@ jobs:
         if: steps.check.outputs.commits_behind != '0'
         id: create_pr
         env:
-          GH_TOKEN: ${{ secrets.OTEL_DEMO_MERGE_SECRET }}
+          GH_TOKEN: ${{ steps.get_token.outputs.token }}
         run: |
           PR_URL=$(gh pr create \
             --title "chore: merge with upstream opentelemetry-demo" \
