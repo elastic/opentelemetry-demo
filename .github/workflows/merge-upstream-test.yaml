@@ -11,7 +11,7 @@ jobs:
   create_upstream_pr:
     permissions:
       contents: write
-      actions: write
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       # TokenPolicy defined at https://github.com/elastic/catalog-info/tree/main/resources/github-token-policies/token-policy-opentelemetry-demo-merge-upstream.yaml
@@ -26,6 +26,7 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+          token: ${{ steps.get_token.outputs.token }}
       
       - name: Configure git user
         uses: elastic/oblt-actions/git/setup@v1
