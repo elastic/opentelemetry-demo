@@ -57,8 +57,6 @@ jobs:
       - name: Create Pull Request
         if: steps.check.outputs.commits_behind != '0'
         id: create_pr
-        env:
-          GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
         run: |
           PR_URL=$(gh pr create \
             --title "chore: merge with upstream opentelemetry-demo" \
