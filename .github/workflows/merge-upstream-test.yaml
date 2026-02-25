@@ -28,16 +28,13 @@ jobs:
           ref: main
           fetch-depth: 0
           token: ${{ steps.get_token.outputs.token }}
-      
-      - name: Configure git user
-        uses: elastic/oblt-actions/git/setup@v1
-        with:
-          github-token: ${{ steps.get_token.outputs.token }}
 
       - name: Fetch upstream
         run: |
           git remote add upstream https://github.com/open-telemetry/opentelemetry-demo.git
           git fetch upstream main
+        env:
+          GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
 
       - name: Check for upstream changes
         id: check
@@ -59,7 +56,7 @@ jobs:
         if: steps.check.outputs.commits_behind != '0'
         id: create_pr
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.get_token.outputs.token }}
         run: |
           PR_URL=$(gh pr create \
             --title "chore: merge with upstream opentelemetry-demo" \
