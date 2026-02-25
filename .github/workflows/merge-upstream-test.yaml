@@ -19,7 +19,7 @@ jobs:
         id: get_token
         uses: elastic/oblt-actions/github/create-token@v1
         with:
-          token-policy: token-policy-3898141dfcd9
+          token-policy: token-policy-e96fbab0a32e
 
       - name: Checkout
         uses: actions/checkout@v6
