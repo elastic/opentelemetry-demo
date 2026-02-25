@@ -11,6 +11,7 @@ jobs:
   create_upstream_pr:
     permissions:
       contents: write
+      pull-requests: write
       id-token: write
     runs-on: ubuntu-latest
     steps:
@@ -58,8 +59,7 @@ jobs:
         if: steps.check.outputs.commits_behind != '0'
         id: create_pr
         env:
-          GH_TOKEN: ${{ steps.get_token.outputs.token }}
-          GH_DEBUG: api
+          GH_TOKEN: ${{ github.token }}
         run: |
           PR_URL=$(gh pr create \
             --title "chore: merge with upstream opentelemetry-demo" \
