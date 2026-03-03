@@ -31,11 +31,10 @@ function assert_docker_service_running() {
 }
 
 function assert_demo_launched() {
-  local deployment_type="$1"
-  local platform="$2"
+  local platform="$1"
 
-  if ! launch_demo "$deployment_type" "$platform"; then
-    bashunit::assertion_failed "demo to launch successfully on $platform with $deployment_type" "launch failed" "got"
+  if ! launch_demo "$platform"; then
+    bashunit::assertion_failed "demo to launch successfully on $platform" "launch failed" "got"
     return
   fi
 
@@ -54,11 +53,12 @@ function assert_demo_destroyed() {
 }
 
 function test_launch_demo_docker() {
-  assert_demo_launched "cloud-hosted" "docker"
+  assert_demo_launched "docker"
 }
 
 function test_check_docker_service_running() {
-  local services=($(docker compose config --services))
+  local services=()
+  mapfile -t services < <(docker compose config --services)
 
   for service in "${services[@]}"; do
     assert_docker_service_running "$service"
