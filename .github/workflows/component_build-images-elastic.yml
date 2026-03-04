@@ -197,7 +197,7 @@ jobs:
           # cache-to: type=gha
 
       - name: Attest
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest@v4
         if: ${{ steps.check_changes.outputs.skip == 'false' && inputs.push }}
         id: attest
         with:
