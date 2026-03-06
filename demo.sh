@@ -19,7 +19,7 @@ KUBE_STACK_VERSION='0.12.4'
 KUBE_STACK_VALUES_URL='https://raw.githubusercontent.com/elastic/elastic-agent/refs/tags/v'$ELASTIC_STACK_VERSION'/deploy/helm/edot-collector/kube-stack/managed_otlp/values.yaml'
 SECRET_NAME='elastic-secret-otel'
 
-DOCKER_COLLECTOR_CONFIG='./src/otel-collector/otelcol-elastic-otlp-config.yaml'
+DOCKER_COLLECTOR_CONFIG='./src/otel-collector/otelcol-elastic-config.yaml'
 COLLECTOR_CONTRIB_IMAGE=docker.elastic.co/elastic-agent/elastic-agent:$ELASTIC_STACK_VERSION
 
 # Detect sed variant: GNU sed uses --version, BSD sed doesn't
