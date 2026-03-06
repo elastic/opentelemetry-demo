@@ -99,13 +99,6 @@ jobs:
             *This PR was automatically created.*
           delete-branch: true
 
-      - name: Enable auto-merge
-        if: steps.cpr.outputs.pull-request-number != ''
-        env:
-          GH_TOKEN: ${{ steps.get_token.outputs.token }}
-        run: |
-          gh pr merge ${{ steps.cpr.outputs.pull-request-number }} --auto --merge
-
   notify-failure:
     needs: [create_upstream_pr]
     if: failure()
