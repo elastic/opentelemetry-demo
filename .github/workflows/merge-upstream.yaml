@@ -12,7 +12,6 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     steps:
-      # TokenPolicy defined at https://github.com/elastic/catalog-info/tree/main/resources/github-token-policies/token-policy-opentelemetry-demo-merge-upstream.yaml
       - name: Get token
         id: get_token
         uses: elastic/oblt-actions/github/create-token@v1
