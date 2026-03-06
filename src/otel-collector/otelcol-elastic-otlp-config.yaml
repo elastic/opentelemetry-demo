@@ -1,9 +1,9 @@
 exporters:
   debug:
   otlphttp/elastic:
-    endpoint: ${env:ELASTICSEARCH_ENDPOINT}
+    endpoint: ${env:ELASTIC_OTLP_ENDPOINT}
     headers:
-      Authorization: "ApiKey ${env:ELASTICSEARCH_API_KEY}"
+      Authorization: "ApiKey ${env:ELASTIC_OTLP_API_KEY}"
 
 receivers:
   otlp:

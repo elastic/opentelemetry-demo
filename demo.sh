@@ -44,8 +44,8 @@ sed_in_place() {
 # Variables
 platform=""
 destroy="false"
-elasticsearch_endpoint=""
-elasticsearch_api_key=""
+elastic_otlp_endpoint=""
+elastic_otlp_api_key=""
 
 usage() {
   echo "Usage: $0 [docker|k8s]"
@@ -63,8 +63,8 @@ parse_args() {
   if [ -n "${CI:-}" ] && [ $# -eq 3 ] && [ "${1#-}" = "$1" ]; then
     # First arg doesn't start with dash, assume legacy positional format
     platform="$1"
-    elasticsearch_endpoint="$2"
-    elasticsearch_api_key="$3"
+    elastic_otlp_endpoint="$2"
+    elastic_otlp_api_key="$3"
     return
   fi
 
@@ -118,14 +118,14 @@ ensure_env_values() {
 
   echo
   if ! check_existing_credentials; then
-    if [ -z "$elasticsearch_endpoint" ]; then
+    if [ -z "$elastic_otlp_endpoint" ]; then
       printf "🔑 Enter your Elastic OTLP endpoint: "
-      read -r elasticsearch_endpoint
+      read -r elastic_otlp_endpoint
     fi
   fi
 
-  if [ -z "$elasticsearch_api_key" ]; then
-    read_secret elasticsearch_api_key "🔑 Enter your Elastic API key: "
+  if [ -z "$elastic_otlp_api_key" ]; then
+    read_secret elastic_otlp_api_key "🔑 Enter your Elastic API key: "
   fi
   echo
 }
@@ -135,31 +135,31 @@ check_existing_credentials() {
     return 1
   fi
 
-  elasticsearch_endpoint=$(grep "^ELASTICSEARCH_ENDPOINT=" "$ENV_OVERRIDE_FILE" | cut -d'=' -f2- | tr -d '"')
-  elasticsearch_api_key=$(grep "^ELASTICSEARCH_API_KEY=" "$ENV_OVERRIDE_FILE" | cut -d'=' -f2- | tr -d '"')
+  elastic_otlp_endpoint=$(grep "^ELASTIC_OTLP_ENDPOINT=" "$ENV_OVERRIDE_FILE" | cut -d'=' -f2- | tr -d '"')
+  elastic_otlp_api_key=$(grep "^ELASTIC_OTLP_API_KEY=" "$ENV_OVERRIDE_FILE" | cut -d'=' -f2- | tr -d '"')
 
-  if [ -n "$elasticsearch_endpoint" ] && [ -n "$elasticsearch_api_key" ] &&
-    [ "$elasticsearch_endpoint" != "YOUR_ENDPOINT" ] &&
-    [ "$elasticsearch_api_key" != "YOUR_API_KEY" ]; then
+  if [ -n "$elastic_otlp_endpoint" ] && [ -n "$elastic_otlp_api_key" ] &&
+    [ "$elastic_otlp_endpoint" != "YOUR_ENDPOINT" ] &&
+    [ "$elastic_otlp_api_key" != "YOUR_API_KEY" ]; then
     echo "✅ Using existing credentials from $ENV_OVERRIDE_FILE"
     return 0
   fi
 
-  elasticsearch_endpoint=""
-  elasticsearch_api_key=""
+  elastic_otlp_endpoint=""
+  elastic_otlp_api_key=""
   return 1
 }
 
 start_docker() {
   ensure_env_values
 
-  update_env_var "ELASTICSEARCH_ENDPOINT" "$elasticsearch_endpoint"
-  update_env_var "ELASTICSEARCH_API_KEY" "$elasticsearch_api_key"
+  update_env_var "ELASTIC_OTLP_ENDPOINT" "$elastic_otlp_endpoint"
+  update_env_var "ELASTIC_OTLP_API_KEY" "$elastic_otlp_api_key"
   update_env_var "OTEL_COLLECTOR_CONFIG" "$DOCKER_COLLECTOR_CONFIG"
   update_env_var "COLLECTOR_CONTRIB_IMAGE" "$COLLECTOR_CONTRIB_IMAGE"
 
-  export ELASTICSEARCH_ENDPOINT="$elasticsearch_endpoint"
-  export ELASTICSEARCH_API_KEY="$elasticsearch_api_key"
+  export ELASTIC_OTLP_ENDPOINT="$elastic_otlp_endpoint"
+  export ELASTIC_OTLP_API_KEY="$elastic_otlp_api_key"
 
   make start
 }
@@ -173,8 +173,8 @@ apply_k8s_secret() {
   ensure_env_values
   kubectl create secret generic "$SECRET_NAME" \
     --namespace "$NAMESPACE" \
-    --from-literal=elastic_otlp_endpoint="$elasticsearch_endpoint" \
-    --from-literal=elastic_api_key="$elasticsearch_api_key" \
+    --from-literal=elastic_otlp_endpoint="$elastic_otlp_endpoint" \
+    --from-literal=elastic_api_key="$elastic_otlp_api_key" \
     --dry-run=client -o yaml | kubectl apply -f -
 }
 
@@ -193,8 +193,8 @@ start_k8s() {
   ensure_k8s_prereqs
   apply_k8s_secret
 
-  update_env_var "ELASTICSEARCH_ENDPOINT" "$elasticsearch_endpoint"
-  update_env_var "ELASTICSEARCH_API_KEY" "$elasticsearch_api_key"
+  update_env_var "ELASTIC_OTLP_ENDPOINT" "$elastic_otlp_endpoint"
+  update_env_var "ELASTIC_OTLP_API_KEY" "$elastic_otlp_api_key"
 
   install_kube_stack
   install_demo_chart
