@@ -26,7 +26,31 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
 3. Click "Create an API Key" to create one.
 4. Run `./demo.sh docker`
 
-#### Connect to a local Elasticsearch cluster
+### Self-Hosted with start-local
+
+For local development without Elastic Cloud, use [start-local](https://github.com/elastic/start-local) 
+to run Elasticsearch, Kibana, and the EDOT Collector locally.
+
+1. Start the Elastic stack with EDOT:
+   ```bash
+   curl -fsSL https://elastic.co/start-local | sh -s -- --edot
+   ```
+2. Start the demo in self-hosted mode:
+   ```bash    
+   ./demo.sh docker self-hosted
+   ```
+3. Access:
+   - Demo: `http://localhost:8080`
+   - Kibana: `http://localhost:5601` (credentials shown by start-local)
+
+4. Clean-up:
+   - `./demo.sh destroy docker`
+   - `./elastic-start-local/stop.sh`
+   - `./elastic-start-local/uninstall.sh`
+
+This works by using the demo's EDOT Collector as a gateway that forwards telemetry to the start-local EDOT Collector, which then exports to Elasticsearch.
+
+### Connect to a local Elasticsearch cluster
 The following steps shows how to start the Otel demo in a Docker container and send the generated otel data to an Elasticsearch instance running locally on the host.
 
 1. Create an API key

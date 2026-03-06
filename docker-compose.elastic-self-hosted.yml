@@ -1,0 +1,28 @@
+# Copyright The OpenTelemetry Authors
+# SPDX-License-Identifier: Apache-2.0
+#
+# Docker Compose override file for self-hosted deployment with start-local.
+# This file extends docker-compose.yml to connect the otel-collector
+# to the elastic-start-local network.
+#
+# Usage:
+#   ./demo.sh docker self-hosted
+#
+# Or manually:
+#   docker compose -f docker-compose.yml -f docker-compose.self-hosted.yml up
+#
+# Prerequisites:
+#   curl -fsSL https://elastic.co/start-local | sh -s -- --edot
+
+networks:
+  elastic-start-local:
+    external: true
+    name: elastic-start-local_default
+
+services:
+  otel-collector:
+    networks:
+      - default
+      - elastic-start-local
+    environment:
+      - SELF_HOSTED_COLLECTOR_ENDPOINT
