@@ -38,21 +38,18 @@ function uninstall_local_elastic_stack() {
 }
 
 function launch_demo() {
-  local deployment_type="$1"
-  local platform="$2"
-  local elasticsearch_endpoint="${ES_LOCAL_URL:-$3}"
-  local elasticsearch_api_key="${ES_LOCAL_API_KEY}"
+  local platform="$1"
+  local elastic_otlp_endpoint="${ES_LOCAL_URL:-$2}"
+  local elastic_otlp_api_key="${ES_LOCAL_API_KEY}"
   echo "Launching demo with:"
-  echo "  deployment_type: $deployment_type"
   echo "  platform: $platform"
-  echo "  elasticsearch_endpoint: $elasticsearch_endpoint"
-  echo "  elasticsearch_api_key: $elasticsearch_api_key"
+  echo "  elastic_otlp_endpoint: $elastic_otlp_endpoint"
+  echo "  elastic_otlp_api_key: $elastic_otlp_api_key"
 
   "${CURRENT_DIR}/demo.sh" \
-    "$deployment_type" \
     "$platform" \
-    "$elasticsearch_endpoint" \
-    "$elasticsearch_api_key"
+    "$elastic_otlp_endpoint" \
+    "$elastic_otlp_api_key"
 }
 
 function destroy_demo() {

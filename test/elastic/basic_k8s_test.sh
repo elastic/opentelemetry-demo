@@ -13,11 +13,10 @@ function tear_down_after_script() {
 }
 
 function assert_demo_launched() {
-  local deployment_type="$1"
-  local platform="$2"
+  local platform="$1"
 
-  if ! launch_demo "$deployment_type" "$platform"; then
-    bashunit::assertion_failed "demo to launch successfully on $platform with $deployment_type" "launch failed" "got"
+  if ! launch_demo "$platform"; then
+    bashunit::assertion_failed "demo to launch successfully on $platform" "launch failed" "got"
     return
   fi
 
@@ -41,7 +40,7 @@ function test_launch_demo_k8s() {
   # This PR fixes the issue -> https://github.com/elastic/elastic-agent/pull/11481
   bashunit::skip "K8s test disabled: helm chart null mapping issue" && return
 
-  assert_demo_launched "cloud-hosted" "k8s"
+  assert_demo_launched "k8s"
 }
 
 function test_destroy_demo_k8s() {

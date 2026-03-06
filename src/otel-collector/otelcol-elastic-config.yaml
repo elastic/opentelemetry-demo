@@ -1,17 +1,9 @@
 exporters:
   debug:
-  elasticsearch/otel:
-    endpoints:
-      - ${env:ELASTICSEARCH_ENDPOINT}
-    api_key: ${env:ELASTICSEARCH_API_KEY}
-    logs_dynamic_index:
-      enabled: true
-    metrics_dynamic_index:
-      enabled: true
-    traces_dynamic_index:
-      enabled: true
-    mapping:
-      mode: otel
+  otlphttp/elastic:
+    endpoint: ${env:ELASTIC_OTLP_ENDPOINT}
+    headers:
+      Authorization: "ApiKey ${env:ELASTIC_OTLP_API_KEY}"
 
 receivers:
   otlp:
@@ -54,10 +46,10 @@ receivers:
             enabled: true
           process.disk.operations:
             enabled: true
-      network:
-      processes:
-      load:
-      disk:
+      network: {}
+      processes: {}
+      load: {}
+      disk: {}
       filesystem:
         exclude_mount_points:
           mount_points:
@@ -97,14 +89,7 @@ receivers:
           match_type: strict
 
 processors:
-  batch/aggs:
-    send_batch_size: 16384 # 2x the default
-    timeout: 10s
   batch:
-  batch/metrics:
-    # explicitly set send_batch_max_size to 0, as splitting metrics requests may cause version_conflict_engine_exception in TSDB
-    send_batch_max_size: 0
-    timeout: 1s
   resourcedetection/system:
     detectors: ["system"]
     system:
@@ -136,71 +121,41 @@ processors:
           enabled: true
         os.type:
           enabled: true
-  transform:
-    error_mode: ignore
-    trace_statements:
-      - context: span
-        statements:
-          # could be removed when https://github.com/vercel/next.js/pull/64852 is fixed upstream
-          - replace_pattern(name, "\\?.*", "")
-          - replace_match(name, "GET /api/products/*", "GET /api/products/{productId}")
-  # [Elastic APM Processor](https://www.elastic.co/docs/reference/edot-collector/components/elasticapmprocessor)
-  elasticapm: {} # The processor enriches traces with Elastic APM specific requirements.
-
-connectors:
-  spanmetrics:
-  elasticapm:
-
-
+  
 service:
   pipelines:
     logs:
       exporters:
         - debug
-        - elasticsearch/otel
+        - otlphttp/elastic
       processors:
         - batch
       receivers:
         - otlp
     metrics/infra/otel:
       exporters:
-        - elasticsearch/otel
+        - otlphttp/elastic
         - debug
       processors:
-        - batch/metrics
+        - batch
         - resourcedetection/system
       receivers:
         - hostmetrics
     metrics:
       exporters:
-        - elasticsearch/otel
-        - elasticapm
+        - otlphttp/elastic
         - debug
       processors:
-        - batch/metrics
+        - batch
       receivers:
         - httpcheck/frontendproxy
         - otlp
-        - spanmetrics
     traces:
       exporters:
-        - elasticsearch/otel
+        - otlphttp/elastic
         - debug
-        - spanmetrics
-        - elasticapm
       processors:
-        - transform
         - batch
-        - elasticapm
       receivers:
         - otlp
-    metrics/aggregated-otel-metrics:
-      receivers:
-        - elasticapm
-      processors:
-      exporters:
-        - debug
-        - elasticsearch/otel
-
-
 

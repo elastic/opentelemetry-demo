@@ -19,20 +19,12 @@ Additionally, the OpenTelemetry Contrib collector has also been changed to the [
 
 ### Automated Installation
 
-#### Elasticsearch exporter (default)
-
-1. Start a free trial on [Elastic Cloud](https://cloud.elastic.co/) and copy the `Elasticsearch endpoint` and the `API Key` from the `Help -> Connection details` drop down instructions in your Kibana. These variables will be used by the [elasticsearch exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticsearchexporter#elasticsearch-exporter) to authenticate and transmit data to your Elasticsearch instance.
-2. Run `./demo.sh` and enter:
-   - Deployment type: `cloud-hosted`
-   - Platform: `docker`
-
-#### mOTLP
-1. Sign up for a free trial on [Elastic Cloud](https://cloud.elastic.co/) and start an Elastic Cloud Serverless Observability type project. Select Add data, Application and then OpenTelemetry.
+1. Sign up for a free trial on [Elastic Cloud](https://cloud.elastic.co/) and depending on the deployment type choose the following:
+    - Elastic Cloud Hosted (ECH): In the "solution view" select "Elastic for Observability". Once that builds select Add data then Application and finally OpenTelemetry.
+    - Serverless: In the "choose type" choose the "Elastic for Observability" type. Once that builds select Add data then Application and finally OpenTelemetry.
 2. Copy the OTEL_EXPORTER_OTLP_ENDPOINT URL.
 3. Click "Create an API Key" to create one.
-4. Run `./demo.sh` and enter:
-   - Deployment type: `serverless`
-   - Platform: `docker`
+4. Run `./demo.sh docker`
 
 #### Connect to a local Elasticsearch cluster
 The following steps shows how to start the Otel demo in a Docker container and send the generated otel data to an Elasticsearch instance running locally on the host.
@@ -44,8 +36,8 @@ curl -X POST "http://localhost:9200/_security/api_key" -u USER:PASSWORD -H "Cont
 
 2. Update `.env.overide` with URL and API key:
 ```yml
-ELASTICSEARCH_ENDPOINT="http://host.docker.internal:9200"
-ELASTICSEARCH_API_KEY="<api key obtained in step 2>"
+ELASTIC_OTLP_ENDPOINT="http://host.docker.internal:9200"
+ELASTIC_OTLP_API_KEY="<api key obtained in step 2>"
 ```
 3. Start the Otel demo in a Docker container:
 
@@ -57,27 +49,15 @@ make start
 ### Manual Installation
 <details> 
 
-#### Elasticsearch exporter
-1. Start a free trial on [Elastic Cloud](https://cloud.elastic.co/) and copy the `Elasticsearch endpoint` and the `API Key` from the `Help -> Connection details` drop down instructions in your Kibana. These variables will be used by the [elasticsearch exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticsearchexporter#elasticsearch-exporter) to authenticate and transmit data to your Elasticsearch instance.
-2. Open the file `.env.override` in an editor and fill in the following two variables:
-   - `ELASTICSEARCH_ENDPOINT`: your Elasticsearch endpoint (*with* `https://` prefix example: `https://1234567.us-west2.gcp.elastic-cloud.com:443`).
-   - `ELASTICSEARCH_API_KEY`: your Elasticsearch API Key
-3. Add `src/otel-collector/otelcol-elastic-config.yaml` as `OTEL_COLLECTOR_CONFIG`
-3. Start the demo with the following command from the repository's root directory:
-   ```
-   make start
-   ```
-
-#### mOTLP
-
-1. Sign up for a free trial on [Elastic Cloud](https://cloud.elastic.co/) and start an Elastic Cloud Serverless Observability type project. Select Add data, Application and then OpenTelemetry.
+1. Sign up for a free trial on [Elastic Cloud](https://cloud.elastic.co/) and depending on the deployment type choose the following:
+    - Elastic Cloud Hosted (ECH): In the "solution view" select "Elastic for Observability". Once that builds select Add data then Application and finally OpenTelemetry.
+    - Serverless: In the "choose type" choose the "Elastic for Observability" type. Once that builds select Add data then Application and finally OpenTelemetry.
 2. Copy the OTEL_EXPORTER_OTLP_ENDPOINT URL.
 3. Click "Create an API Key" to create one.
 4. Open the file `.env.override` in an editor and fill in the following two variables:
-   - `ELASTICSEARCH_ENDPOINT`: your OTEL_EXPORTER_OTLP_ENDPOINT_URL.
-   - `ELASTICSEARCH_API_KEY`: your Elastic OTLP endpoint token. This is what comes after `ApiKey=`.
-5. Add `src/otel-collector/otelcol-elastic-otlp-config.yaml` as `OTEL_COLLECTOR_CONFIG`
-6. Start the demo with the following command from the repository's root directory:
+   - `ELASTIC_OTLP_ENDPOINT`: your OTEL_EXPORTER_OTLP_ENDPOINT URL.
+   - `ELASTIC_OTLP_API_KEY`: your Elastic API key.
+5. Start the demo with the following command from the repository's root directory:
    ```
    make start
    ```
@@ -91,12 +71,12 @@ make start
 
 ### Automated Installation
 
-- **Elasticsearch exporter:** Run `./demo.sh` and enter:
-  - Deployment type: `cloud-hosted`
-  - Platform: `k8s`
-- **mOTLP:** Run `./demo.sh` and enter:
-  - Deployment type: `serverless`
-  - Platform: `k8s`
+1. Sign up for a free trial on [Elastic Cloud](https://cloud.elastic.co/) and depending on the deployment type choose the following:
+    - Elastic Cloud Hosted (ECH): In the "solution view" select "Elastic for Observability". Once that builds select Add data then Application and finally OpenTelemetry.
+    - Serverless: In the "choose type" choose the "Elastic for Observability" type. Once that builds select Add data then Application and finally OpenTelemetry.
+2. Copy the OTEL_EXPORTER_OTLP_ENDPOINT URL.
+3. Click "Create an API Key" to create one.
+4. Run `./demo.sh k8s`
 
 ### Manual Installation
 
