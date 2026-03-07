@@ -1,0 +1,17 @@
+services:
+  opensearch: !reset
+  grafana: !reset
+  jaeger: !reset
+  prometheus: !reset
+  otel-collector:
+    depends_on: !override
+      flagd:
+        condition: service_started
+  frontend-proxy:
+    depends_on: !override
+      flagd:
+        condition: service_started
+      frontend:
+        condition: service_started
+      image-provider:
+        condition: service_started
