@@ -43,7 +43,7 @@ COPY --from=builder /usr/src/app/ ./
 
 COPY --from=intermediate /opentelemetry-javaagent.jar /usr/src/app/opentelemetry-javaagent.jar
 
-ENV JAVA_TOOL_OPTIONS=-javaagent:/usr/src/app/opentelemetry-javaagent.jar
+ENV JAVA_TOOL_OPTIONS="-javaagent:/usr/src/app/opentelemetry-javaagent.jar -Xmx200m"
 ENV OTEL_INFERRED_SPANS_ENABLED=true
 ENV ELASTIC_OTEL_SPAN_STACK_TRACE_MIN_DURATION=2
 
