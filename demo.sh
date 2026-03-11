@@ -177,11 +177,7 @@ start_docker_self_hosted() {
   echo "🏠 Self-hosted mode: forwarding telemetry to local start-local collector"
   echo
 
-  update_env_var "OTEL_COLLECTOR_CONFIG" "$SELF_HOSTED_COLLECTOR_CONFIG"
   update_env_var "COLLECTOR_CONTRIB_IMAGE" "$COLLECTOR_CONTRIB_IMAGE"
-  update_env_var "SELF_HOSTED_COLLECTOR_ENDPOINT" "edot-collector:4317"
-
-  export SELF_HOSTED_COLLECTOR_ENDPOINT="edot-collector:4317"
 
   # Use docker compose with the self-hosted override file to connect
   # the otel-collector to the elastic-start-local network
