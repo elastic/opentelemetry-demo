@@ -20,7 +20,6 @@ KUBE_STACK_VALUES_URL='https://raw.githubusercontent.com/elastic/elastic-agent/r
 SECRET_NAME='elastic-secret-otel'
 
 DOCKER_COLLECTOR_CONFIG='./src/otel-collector/otelcol-elastic-config.yaml'
-SELF_HOSTED_COLLECTOR_CONFIG='./src/otel-collector/otelcol-elastic-self-hosted-config.yaml'
 COLLECTOR_CONTRIB_IMAGE=docker.elastic.co/elastic-agent/elastic-agent:$ELASTIC_STACK_VERSION
 
 # Detect sed variant: GNU sed uses --version, BSD sed doesn't
