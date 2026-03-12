@@ -8,19 +8,30 @@ jobs:
   create_upstream_pr:
     permissions:
       contents: write
+      pull-requests: write
+      id-token: write
     runs-on: ubuntu-latest
     steps:
+      - name: Get token
+        id: get_token
+        uses: elastic/oblt-actions/github/create-token@v1
+        with:
+          token-policy: token-policy-e96fbab0a32e
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
-          token: ${{ secrets.OTEL_DEMO_MERGE_SECRET }}
+          token: ${{ steps.get_token.outputs.token }}
+
+      - name: Configure git user
+        uses: elastic/oblt-actions/git/setup@v1
+        with:
+          github-token: ${{ steps.get_token.outputs.token }}
 
       - name: Fetch upstream
         run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@users.noreply.github.com"
           git remote add upstream https://github.com/open-telemetry/opentelemetry-demo.git
           git fetch upstream main
 
@@ -30,65 +41,62 @@ jobs:
           COMMITS_BEHIND=$(git rev-list --count HEAD..upstream/main)
           echo "commits_behind=${COMMITS_BEHIND}" >> $GITHUB_OUTPUT
 
-      - name: Create branch from upstream
+      - name: Create branch and merge upstream
         if: steps.check.outputs.commits_behind != '0'
         id: branch
         run: |
           BRANCH_NAME="auto-merge/upstream-$(date +%Y%m%d-%H%M%S)"
           echo "branch_name=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+      
+          # Create branch from main (which has all your Elastic changes)
+          git checkout -b "${BRANCH_NAME}" main
           
-          git checkout -b "${BRANCH_NAME}" upstream/main
+          # Attempt to merge upstream/main into it
+          git merge upstream/main --no-edit || echo "Merge conflicts detected"
+          
+          # Push the branch (even if there are conflicts)
           git push origin "${BRANCH_NAME}"
 
       - name: Create Pull Request
         if: steps.check.outputs.commits_behind != '0'
-        id: create_pr
-        env:
-          GH_TOKEN: ${{ secrets.OTEL_DEMO_MERGE_SECRET }}
-        run: |
-          PR_URL=$(gh pr create \
-            --title "chore: merge with upstream opentelemetry-demo" \
-            --body "## Automated upstream merge
+        id: cpr
+        uses: peter-evans/create-pull-request@98357b18bf14b5342f975ff684046ec3b2a07725 # v8.0.0
+        with:
+          token: ${{ steps.get_token.outputs.token }}
+          branch: "${{ steps.branch.outputs.branch_name }}"
+          base: main
+          title: "chore: Merge with upstream opentelemetry-demo"
+          body: |
+            ## Automated upstream merge
           
-          This PR merges with the upstream opentelemetry-demo repository.
-          
-          ### Changes from upstream
-          - ${{ steps.check.outputs.commits_behind }} new commits
-          
-          ### If there are conflicts
-          Check out this branch and resolve them:
-          \`\`\`bash
-          git fetch origin ${{ steps.branch.outputs.branch_name }}
-          git checkout ${{ steps.branch.outputs.branch_name }}
-          git merge main
-          # resolve conflicts
-          git push
-          \`\`\`
-          
-          **Note:** If \`src/payment/package.json\` conflicts, take upstream version and add:
-          \`\`\`json
-          \"@elastic/opentelemetry-node\": \"1.5.0\"
-          \`\`\`
-          And update the start script to:
-          \`\`\`json
-          \"start\": \"OTEL_EXPORTER_OTLP_PROTOCOL=grpc node --require @elastic/opentelemetry-node index.js\"
-          \`\`\`
-          
-          ---
-          *This PR was automatically created.*" \
-            --base main \
-            --head ${{ steps.branch.outputs.branch_name }})
-          
-          echo "pr_url=${PR_URL}" >> $GITHUB_OUTPUT
-          PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+$')
-          echo "pr_number=${PR_NUMBER}" >> $GITHUB_OUTPUT
-
-      - name: Enable auto-merge
-        if: steps.create_pr.outputs.pr_number != ''
-        env:
-          GH_TOKEN: ${{ secrets.OTEL_DEMO_MERGE_SECRET }}
-        run: |
-          gh pr merge ${{ steps.create_pr.outputs.pr_number }} --auto --merge
+            This PR merges with the upstream opentelemetry-demo repository.
+            
+            ### Changes from upstream
+            - ${{ steps.check.outputs.commits_behind }} new commits
+            
+            ### If there are conflicts
+            Check out this branch and resolve them:
+            \`\`\`bash
+            git fetch origin ${{ steps.branch.outputs.branch_name }}
+            git checkout ${{ steps.branch.outputs.branch_name }}
+            # resolve conflicts in your editor
+            git add .
+            git commit
+            git push
+            \`\`\`
+            
+            **Note:** If \`src/payment/package.json\` conflicts, take upstream version and add:
+            \`\`\`json
+            \"@elastic/opentelemetry-node\": \"1.5.0\"
+            \`\`\`
+            And update the start script to:
+            \`\`\`json
+            \"start\": \"OTEL_EXPORTER_OTLP_PROTOCOL=grpc node --require @elastic/opentelemetry-node index.js\"
+            \`\`\`
+            
+            ---
+            *This PR was automatically created.*
+          delete-branch: true
 
   notify-failure:
     needs: [create_upstream_pr]

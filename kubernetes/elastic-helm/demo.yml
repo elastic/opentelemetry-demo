@@ -35,6 +35,15 @@ default:
       value: "opentelemetry-kube-stack-daemon-collector.opentelemetry-operator-system.svc.cluster.local"
 
 components:
+  fraud-detection:
+    resources:
+      limits:
+        memory: 512Mi
+  kafka:
+    resources:
+      limits:
+        memory: 800Mi
+
   load-generator:
     envOverrides:
       - name: LOCUST_BROWSER_TRAFFIC_ENABLED
