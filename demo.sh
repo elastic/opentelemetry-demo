@@ -44,15 +44,20 @@ sed_in_place() {
 # Variables
 platform=""
 destroy="false"
+self_hosted="false"
 elastic_otlp_endpoint=""
 elastic_otlp_api_key=""
 
 usage() {
-  echo "Usage: $0 [docker|k8s]"
+  echo "Usage: $0 [docker|k8s] [self-hosted]"
   echo
   echo "Options:"
-  echo "  docker    Deploy to Docker"
-  echo "  k8s       Deploy to Kubernetes"
+  echo "  docker              Deploy to Docker (requires Elastic Cloud credentials)"
+  echo "  docker self-hosted  Deploy to Docker with local start-local backend"
+  echo "  k8s                 Deploy to Kubernetes"
+  echo
+  echo "Self-hosted mode requires start-local with EDOT:"
+  echo "  curl -fsSL https://elastic.co/start-local | sh -s -- --edot"
   echo
   echo "To destroy: $0 destroy [docker|k8s]"
   exit 1
@@ -72,6 +77,7 @@ parse_args() {
     case "$1" in
       k8s) platform="k8s"; shift ;;
       docker) platform="docker"; shift ;;
+      self-hosted) self_hosted="true"; shift ;;
       destroy)
         destroy="true"
         shift;
@@ -164,6 +170,26 @@ start_docker() {
   make start
 }
 
+
+start_docker_self_hosted() {
+  echo
+  echo "🏠 Self-hosted mode: forwarding telemetry to local start-local collector"
+  echo
+
+  update_env_var "COLLECTOR_CONTRIB_IMAGE" "$COLLECTOR_CONTRIB_IMAGE"
+
+  # Use docker compose with the self-hosted override file to connect
+  # the otel-collector to the elastic-start-local network
+  docker compose --env-file .env --env-file .env.override \
+    -f docker-compose.yml \
+    -f docker-compose.elastic-self-hosted.yml \
+    up --force-recreate --remove-orphans --detach
+
+  echo ""
+  echo "OpenTelemetry Demo is running."
+  echo "Go to http://localhost:8080 for the demo UI."
+}
+
 ensure_k8s_prereqs() {
   helm repo add "$HELM_REPO_NAME" "$HELM_REPO_URL" --force-update
   kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
@@ -253,15 +279,30 @@ main() {
   fi
 
   echo
-  echo "⌛️ Starting OTel Demo + EDOT on '$platform'..."
+  if [ "$self_hosted" = "true" ]; then
+    echo "⌛️ Starting OTel Demo + EDOT on '$platform' (self-hosted mode)..."
+  else
+    echo "⌛️ Starting OTel Demo + EDOT on '$platform'..."
+  fi
 
   if [ "$platform" = "docker" ]; then
-    start_docker
+    if [ "$self_hosted" = "true" ]; then
+      start_docker_self_hosted
+    else
+      start_docker
+    fi
   else
     start_k8s
   fi
   echo
-  echo "🎉 OTel Demo and EDOT are running on '$platform'; data is flowing to Elastic."
+  if [ "$self_hosted" = "true" ]; then
+    echo "🎉 OTel Demo and EDOT are running on '$platform'; data is flowing to local Elasticsearch."
+    echo
+    echo "📊 Open Kibana at http://localhost:5601"
+    echo "🛒 Open Demo at http://localhost:8080"
+  else
+    echo "🎉 OTel Demo and EDOT are running on '$platform'; data is flowing to Elastic."
+  fi
 }
 
 main "$@"
