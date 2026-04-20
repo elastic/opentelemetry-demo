@@ -6,7 +6,7 @@ import InstrumentationMiddleware from '../../utils/telemetry/InstrumentationMidd
 import CurrencyGateway from '../../gateways/rpc/Currency.gateway';
 import { Empty } from '../../protos/demo';
 
-type TResponse = string[] | Empty;
+type TResponse = string[] | Empty | { error: string };
 
 const handler = async ({ method }: NextApiRequest, res: NextApiResponse<TResponse>) => {
   switch (method) {
@@ -17,7 +17,7 @@ const handler = async ({ method }: NextApiRequest, res: NextApiResponse<TRespons
         return res.status(200).json(currencyCodes);
       } catch (error) {
         console.error('Failed to get supported currencies:', error);
-        return res.status(500).json({ error: 'Failed to retrieve supported currencies' } as unknown as TResponse);
+        return res.status(500).json({ error: 'Failed to retrieve supported currencies' });
       }
     }
 

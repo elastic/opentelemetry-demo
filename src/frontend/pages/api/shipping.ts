@@ -7,7 +7,7 @@ import ShippingGateway from '../../gateways/http/Shipping.gateway';
 import { Address, CartItem, Empty, Money } from '../../protos/demo';
 import CurrencyGateway from '../../gateways/rpc/Currency.gateway';
 
-type TResponse = Money | Empty;
+type TResponse = Money | Empty | { error: string };
 
 const handler = async ({ method, query }: NextApiRequest, res: NextApiResponse<TResponse>) => {
   switch (method) {
@@ -21,7 +21,7 @@ const handler = async ({ method, query }: NextApiRequest, res: NextApiResponse<T
         return res.status(200).json(cost!);
       } catch (error) {
         console.error('Failed to get shipping cost:', error);
-        return res.status(500).json({ error: 'Failed to retrieve shipping cost' } as unknown as TResponse);
+        return res.status(500).json({ error: 'Failed to retrieve shipping cost' });
       }
     }
 

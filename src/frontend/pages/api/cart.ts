@@ -8,7 +8,7 @@ import ProductCatalogService from '../../services/ProductCatalog.service';
 import { IProductCart, IProductCartItem } from '../../types/Cart';
 import InstrumentationMiddleware from '../../utils/telemetry/InstrumentationMiddleware';
 
-type TResponse = IProductCart | Empty;
+type TResponse = IProductCart | Empty | { error: string };
 
 const handler: NextApiHandler<TResponse> = async ({ method, body, query }, res) => {
   switch (method) {
@@ -32,7 +32,7 @@ const handler: NextApiHandler<TResponse> = async ({ method, body, query }, res) 
         return res.status(200).json({ userId, items: productList });
       } catch (error) {
         console.error('Failed to get cart:', error);
-        return res.status(500).json({ error: 'Failed to retrieve cart' } as unknown as TResponse);
+        return res.status(500).json({ error: 'Failed to retrieve cart' });
       }
     }
 
@@ -46,7 +46,7 @@ const handler: NextApiHandler<TResponse> = async ({ method, body, query }, res) 
         return res.status(200).json(cart);
       } catch (error) {
         console.error('Failed to add item to cart:', error);
-        return res.status(500).json({ error: 'Failed to add item to cart' } as unknown as TResponse);
+        return res.status(500).json({ error: 'Failed to add item to cart' });
       }
     }
 
@@ -58,7 +58,7 @@ const handler: NextApiHandler<TResponse> = async ({ method, body, query }, res) 
         return res.status(204).send('');
       } catch (error) {
         console.error('Failed to empty cart:', error);
-        return res.status(500).json({ error: 'Failed to empty cart' } as unknown as TResponse);
+        return res.status(500).json({ error: 'Failed to empty cart' });
       }
     }
 

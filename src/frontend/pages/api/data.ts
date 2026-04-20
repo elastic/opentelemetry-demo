@@ -6,7 +6,7 @@ import InstrumentationMiddleware from '../../utils/telemetry/InstrumentationMidd
 import AdGateway from '../../gateways/rpc/Ad.gateway';
 import { Ad, Empty } from '../../protos/demo';
 
-type TResponse = Ad[] | Empty;
+type TResponse = Ad[] | Empty | { error: string };
 
 const handler = async ({ method, query }: NextApiRequest, res: NextApiResponse<TResponse>) => {
   switch (method) {
@@ -18,7 +18,7 @@ const handler = async ({ method, query }: NextApiRequest, res: NextApiResponse<T
         return res.status(200).json(adList);
       } catch (error) {
         console.error('Failed to get ads:', error);
-        return res.status(500).json({ error: 'Failed to retrieve ads' } as unknown as TResponse);
+        return res.status(500).json({ error: 'Failed to retrieve ads' });
       }
     }
 

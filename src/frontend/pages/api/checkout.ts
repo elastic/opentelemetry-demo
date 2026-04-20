@@ -8,7 +8,7 @@ import { Empty, PlaceOrderRequest } from '../../protos/demo';
 import { IProductCheckoutItem, IProductCheckout } from '../../types/Cart';
 import ProductCatalogService from '../../services/ProductCatalog.service';
 
-type TResponse = IProductCheckout | Empty;
+type TResponse = IProductCheckout | Empty | { error: string };
 
 const handler = async ({ method, body, query }: NextApiRequest, res: NextApiResponse<TResponse>) => {
   switch (method) {
@@ -36,7 +36,7 @@ const handler = async ({ method, body, query }: NextApiRequest, res: NextApiResp
         return res.status(200).json({ ...order, items: productList });
       } catch (error) {
         console.error('Failed to place order:', error);
-        return res.status(500).json({ error: 'Failed to place order' } as unknown as TResponse);
+        return res.status(500).json({ error: 'Failed to place order' });
       }
     }
 

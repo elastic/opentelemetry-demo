@@ -7,7 +7,7 @@ import RecommendationsGateway from '../../gateways/rpc/Recommendations.gateway';
 import { Empty, Product } from '../../protos/demo';
 import ProductCatalogService from '../../services/ProductCatalog.service';
 
-type TResponse = Product[] | Empty;
+type TResponse = Product[] | Empty | { error: string };
 
 const handler = async ({ method, query }: NextApiRequest, res: NextApiResponse<TResponse>) => {
   switch (method) {
@@ -25,7 +25,7 @@ const handler = async ({ method, query }: NextApiRequest, res: NextApiResponse<T
         return res.status(200).json(recommendedProductList);
       } catch (error) {
         console.error('Failed to get recommendations:', error);
-        return res.status(500).json({ error: 'Failed to retrieve recommendations' } as unknown as TResponse);
+        return res.status(500).json({ error: 'Failed to retrieve recommendations' });
       }
     }
 
