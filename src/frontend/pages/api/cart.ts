@@ -13,38 +13,53 @@ type TResponse = IProductCart | Empty;
 const handler: NextApiHandler<TResponse> = async ({ method, body, query }, res) => {
   switch (method) {
     case 'GET': {
-      const { sessionId = '', currencyCode = '' } = query;
-      const { userId, items } = await CartGateway.getCart(sessionId as string);
+      try {
+        const { sessionId = '', currencyCode = '' } = query;
+        const { userId, items } = await CartGateway.getCart(sessionId as string);
 
-      const productList: IProductCartItem[] = await Promise.all(
-        items.map(async ({ productId, quantity }) => {
-          const product = await ProductCatalogService.getProduct(productId, currencyCode as string);
+        const productList: IProductCartItem[] = await Promise.all(
+          items.map(async ({ productId, quantity }) => {
+            const product = await ProductCatalogService.getProduct(productId, currencyCode as string);
 
-          return {
-            productId,
-            quantity,
-            product,
-          };
-        })
-      );
+            return {
+              productId,
+              quantity,
+              product,
+            };
+          })
+        );
 
-      return res.status(200).json({ userId, items: productList });
+        return res.status(200).json({ userId, items: productList });
+      } catch (error) {
+        console.error('Failed to get cart:', error);
+        return res.status(500).json({ error: 'Failed to retrieve cart' } as unknown as TResponse);
+      }
     }
 
     case 'POST': {
-      const { userId, item } = body as AddItemRequest;
+      try {
+        const { userId, item } = body as AddItemRequest;
 
-      await CartGateway.addItem(userId, item!);
-      const cart = await CartGateway.getCart(userId);
+        await CartGateway.addItem(userId, item!);
+        const cart = await CartGateway.getCart(userId);
 
-      return res.status(200).json(cart);
+        return res.status(200).json(cart);
+      } catch (error) {
+        console.error('Failed to add item to cart:', error);
+        return res.status(500).json({ error: 'Failed to add item to cart' } as unknown as TResponse);
+      }
     }
 
     case 'DELETE': {
-      const { userId } = body as AddItemRequest;
-      await CartGateway.emptyCart(userId);
+      try {
+        const { userId } = body as AddItemRequest;
+        await CartGateway.emptyCart(userId);
 
-      return res.status(204).send('');
+        return res.status(204).send('');
+      } catch (error) {
+        console.error('Failed to empty cart:', error);
+        return res.status(500).json({ error: 'Failed to empty cart' } as unknown as TResponse);
+      }
     }
 
     default: {

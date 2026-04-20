@@ -11,7 +11,14 @@ const client = new CheckoutServiceClient(CHECKOUT_ADDR, ChannelCredentials.creat
 const CheckoutGateway = () => ({
   placeOrder(order: PlaceOrderRequest) {
     return new Promise<PlaceOrderResponse>((resolve, reject) =>
-      client.placeOrder(order, (error, response) => (error ? reject(error) : resolve(response)))
+      client.placeOrder(order, (error, response) => {
+        if (error) {
+          const enriched = new Error(`CheckoutService.placeOrder failed [gRPC ${error.code}]: ${error.details || error.message}`);
+          (enriched as any).grpcCode = error.code;
+          return reject(enriched);
+        }
+        resolve(response);
+      })
     );
   },
 });

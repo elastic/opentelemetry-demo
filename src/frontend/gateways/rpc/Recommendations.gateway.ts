@@ -11,9 +11,14 @@ const client = new RecommendationServiceClient(RECOMMENDATION_ADDR, ChannelCrede
 const RecommendationsGateway = () => ({
   listRecommendations(userId: string, productIds: string[]) {
     return new Promise<ListRecommendationsResponse>((resolve, reject) =>
-      client.listRecommendations({ userId, productIds }, (error, response) =>
-        error ? reject(error) : resolve(response)
-      )
+      client.listRecommendations({ userId, productIds }, (error, response) => {
+        if (error) {
+          const enriched = new Error(`RecommendationService.listRecommendations failed [gRPC ${error.code}]: ${error.details || error.message}`);
+          (enriched as any).grpcCode = error.code;
+          return reject(enriched);
+        }
+        resolve(response);
+      })
     );
   },
 });

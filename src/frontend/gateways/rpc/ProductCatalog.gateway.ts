@@ -11,12 +11,26 @@ const client = new ProductCatalogServiceClient(PRODUCT_CATALOG_ADDR, ChannelCred
 const ProductCatalogGateway = () => ({
   listProducts() {
     return new Promise<ListProductsResponse>((resolve, reject) =>
-      client.listProducts({}, (error, response) => (error ? reject(error) : resolve(response)))
+      client.listProducts({}, (error, response) => {
+        if (error) {
+          const enriched = new Error(`ProductCatalogService.listProducts failed [gRPC ${error.code}]: ${error.details || error.message}`);
+          (enriched as any).grpcCode = error.code;
+          return reject(enriched);
+        }
+        resolve(response);
+      })
     );
   },
   getProduct(id: string) {
     return new Promise<Product>((resolve, reject) =>
-      client.getProduct({ id }, (error, response) => (error ? reject(error) : resolve(response)))
+      client.getProduct({ id }, (error, response) => {
+        if (error) {
+          const enriched = new Error(`ProductCatalogService.getProduct failed [gRPC ${error.code}]: ${error.details || error.message}`);
+          (enriched as any).grpcCode = error.code;
+          return reject(enriched);
+        }
+        resolve(response);
+      })
     );
   },
 });

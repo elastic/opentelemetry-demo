@@ -11,9 +11,14 @@ type TResponse = string[] | Empty;
 const handler = async ({ method }: NextApiRequest, res: NextApiResponse<TResponse>) => {
   switch (method) {
     case 'GET': {
-      const { currencyCodes = [] } = await CurrencyGateway.getSupportedCurrencies();
+      try {
+        const { currencyCodes = [] } = await CurrencyGateway.getSupportedCurrencies();
 
-      return res.status(200).json(currencyCodes);
+        return res.status(200).json(currencyCodes);
+      } catch (error) {
+        console.error('Failed to get supported currencies:', error);
+        return res.status(500).json({ error: 'Failed to retrieve supported currencies' } as unknown as TResponse);
+      }
     }
 
     default: {

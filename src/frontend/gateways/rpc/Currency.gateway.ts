@@ -11,12 +11,26 @@ const client = new CurrencyServiceClient(CURRENCY_ADDR, ChannelCredentials.creat
 const CurrencyGateway = () => ({
   convert(from: Money, toCode: string) {
     return new Promise<Money>((resolve, reject) =>
-      client.convert({ from, toCode }, (error, response) => (error ? reject(error) : resolve(response)))
+      client.convert({ from, toCode }, (error, response) => {
+        if (error) {
+          const enriched = new Error(`CurrencyService.convert failed [gRPC ${error.code}]: ${error.details || error.message}`);
+          (enriched as any).grpcCode = error.code;
+          return reject(enriched);
+        }
+        resolve(response);
+      })
     );
   },
   getSupportedCurrencies() {
     return new Promise<GetSupportedCurrenciesResponse>((resolve, reject) =>
-      client.getSupportedCurrencies({}, (error, response) => (error ? reject(error) : resolve(response)))
+      client.getSupportedCurrencies({}, (error, response) => {
+        if (error) {
+          const enriched = new Error(`CurrencyService.getSupportedCurrencies failed [gRPC ${error.code}]: ${error.details || error.message}`);
+          (enriched as any).grpcCode = error.code;
+          return reject(enriched);
+        }
+        resolve(response);
+      })
     );
   },
 });

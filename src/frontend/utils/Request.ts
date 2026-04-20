@@ -18,17 +18,37 @@ const request = async <T>({
     'content-type': 'application/json',
   },
 }: IRequestParams): Promise<T> => {
-  const response = await fetch(`${url}?${new URLSearchParams(queryParams).toString()}`, {
+  const flatParams: Record<string, string> = {};
+  for (const [key, value] of Object.entries(queryParams)) {
+    if (Array.isArray(value)) {
+      value.forEach((v, i) => {
+        flatParams[`${key}[${i}]`] = String(v);
+      });
+    } else if (value !== undefined && value !== null) {
+      flatParams[key] = String(value);
+    }
+  }
+
+  const response = await fetch(`${url}?${new URLSearchParams(flatParams).toString()}`, {
     method,
     body: body ? JSON.stringify(body) : undefined,
     headers,
   });
 
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`HTTP ${response.status} ${response.statusText}: ${text}`);
+  }
+
   const responseText = await response.text();
 
-  if (!!responseText) return JSON.parse(responseText);
+  if (!responseText) return undefined as unknown as T;
 
-  return undefined as unknown as T;
+  try {
+    return JSON.parse(responseText) as T;
+  } catch {
+    throw new Error(`Failed to parse response as JSON: ${responseText}`);
+  }
 };
 
 export default request;

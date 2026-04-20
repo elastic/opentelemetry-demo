@@ -11,10 +11,15 @@ type TResponse = Ad[] | Empty;
 const handler = async ({ method, query }: NextApiRequest, res: NextApiResponse<TResponse>) => {
   switch (method) {
     case 'GET': {
-      const { contextKeys = [] } = query;
-      const { ads: adList } = await AdGateway.listAds(Array.isArray(contextKeys) ? contextKeys : contextKeys.split(','));
+      try {
+        const { contextKeys = [] } = query;
+        const { ads: adList } = await AdGateway.listAds(Array.isArray(contextKeys) ? contextKeys : contextKeys.split(','));
 
-      return res.status(200).json(adList);
+        return res.status(200).json(adList);
+      } catch (error) {
+        console.error('Failed to get ads:', error);
+        return res.status(500).json({ error: 'Failed to retrieve ads' } as unknown as TResponse);
+      }
     }
 
     default: {

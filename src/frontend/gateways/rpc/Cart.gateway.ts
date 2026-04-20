@@ -11,17 +11,38 @@ const client = new CartServiceClient(CART_ADDR, ChannelCredentials.createInsecur
 const CartGateway = () => ({
   getCart(userId: string) {
     return new Promise<Cart>((resolve, reject) =>
-      client.getCart({ userId }, (error, response) => (error ? reject(error) : resolve(response)))
+      client.getCart({ userId }, (error, response) => {
+        if (error) {
+          const enriched = new Error(`CartService.getCart failed [gRPC ${error.code}]: ${error.details || error.message}`);
+          (enriched as any).grpcCode = error.code;
+          return reject(enriched);
+        }
+        resolve(response);
+      })
     );
   },
   addItem(userId: string, item: CartItem) {
     return new Promise<Empty>((resolve, reject) =>
-      client.addItem({ userId, item }, (error, response) => (error ? reject(error) : resolve(response)))
+      client.addItem({ userId, item }, (error, response) => {
+        if (error) {
+          const enriched = new Error(`CartService.addItem failed [gRPC ${error.code}]: ${error.details || error.message}`);
+          (enriched as any).grpcCode = error.code;
+          return reject(enriched);
+        }
+        resolve(response);
+      })
     );
   },
   emptyCart(userId: string) {
     return new Promise<Empty>((resolve, reject) =>
-      client.emptyCart({ userId }, (error, response) => (error ? reject(error) : resolve(response)))
+      client.emptyCart({ userId }, (error, response) => {
+        if (error) {
+          const enriched = new Error(`CartService.emptyCart failed [gRPC ${error.code}]: ${error.details || error.message}`);
+          (enriched as any).grpcCode = error.code;
+          return reject(enriched);
+        }
+        resolve(response);
+      })
     );
   },
 });
