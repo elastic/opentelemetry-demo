@@ -136,18 +136,74 @@ In the installed configuration, browser-based load generation is disabled by def
 
 ![Deployment architecture](../kubernetes/elastic-helm/elastic-architecture.png "K8s architecture")
 
-## Explore and analyze the data With Elastic
+## Exploring the Demo
 
-### Service map
+### What the demo does
+
+The **Astronomy Shop** is a fully functional e-commerce application built with microservices. It demonstrates real-world distributed system patterns:
+- **Microservice architecture**: 15+ services written in different languages (Go, Java, .NET, Node.js, Python, etc.)
+- **Automatic traffic generation**: A load generator continuously simulates user activity—browsing products, adding items to cart, and completing checkouts
+- **Distributed communication**: Services communicate via HTTP and gRPC, producing distributed traces that show request flow across the system
+
+### How to access the demo
+
+| Deployment | Demo URL | Description |
+|------------|----------|-------------|
+| Docker | http://localhost:8080 | Frontend of the Astronomy Shop |
+| Kubernetes | Depends on your ingress/port-forward setup | Use `kubectl port-forward` if needed |
+
+**Interacting with the shop:**
+1. Browse the product catalog
+2. Add items to your cart
+3. Complete a checkout (use any fake payment details)
+> **Note**: The load generator runs automatically in the background. You don't need to manually interact with the shop to generate telemetry—data is already flowing to Elastic.
+
+### What to look at in Elastic
+
+| Where | What to explore |
+|-------|-----------------|
+| **APM → Services** | See all demo services; click one to explore transactions, latency, throughput, and errors |
+| **APM → Service map** | Visualize how services depend on each other; see the request flow architecture |
+| **APM → Traces** | View distributed traces; follow a single request across multiple services (e.g., a checkout flow) |
+| **Hosts** | See the host running the demo; explore CPU, memory, disk, and network metrics |
+| **Infrastructure → Inventory** | See containers (Docker) or pods/nodes (Kubernetes) |
+| **Dashboards → [System] OTel Host Metrics** | Host-level metrics dashboard |
+| **Dashboards → [Kubernetes] Cluster Overview** | Kubernetes metrics dashboard (K8s deployments only) |
+
+### What you're seeing
+
+**Traces**
+Each user action (browse, add to cart, checkout) generates a distributed trace that spans multiple services. For example, a checkout request flows through:
+`frontend → checkout → cart → payment → shipping → email`
+
+**Service map**
+Shows the architecture of the demo application:
+- Frontend calls product catalog, cart, checkout, and recommendation services
+- Checkout orchestrates calls to payment, shipping, and email services
+- All services report to the OpenTelemetry Collector
+
+**Infrastructure metrics**
+CPU, memory, disk I/O, and network metrics from the host and containers running the demo services.
+
+**Kubernetes metrics** (K8s deployments only)
+Pod, node, and deployment metrics from your cluster, including resource utilization and pod status.
+
+### Screenshots
+
+#### Service map
+
 ![Service map](service-map.png "Service map")
 
-### Traces
+#### Traces
+
 ![Traces](trace.png "Traces")
 
-### Correlation
+#### Correlation
+
 ![Correlation](correlation.png "Correlation")
 
-### Logs
+#### Logs
+
 ![Logs](logs.png "Logs")
 
 ## Testing with a custom component
