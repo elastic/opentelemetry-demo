@@ -19,12 +19,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Instrumentation.StackExchangeRedis;
-using OpenTelemetry.Logs;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
+using OpenTelemetry;
 using OpenTelemetry.Trace;
 using OpenFeature;
 using OpenFeature.Hooks;
+using Microsoft.Extensions.Hosting;
 using OpenFeature.Providers.Flagd;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -46,14 +45,15 @@ builder.AddElasticOpenTelemetry(otelBuilder => otelBuilder
 builder.Logging
     .AddConsole();
 
-builder.Services.AddSingleton<ICartStore>(x=>
+builder.Services.AddSingleton<ICartStore>(x =>
 {
     var store = new ValkeyCartStore(x.GetRequiredService<ILogger<ValkeyCartStore>>(), valkeyAddress);
     store.Initialize();
     return store;
 });
 
-builder.Services.AddSingleton<IFeatureClient>(x => {
+builder.Services.AddSingleton<IFeatureClient>(x =>
+{
     var flagdProvider = new FlagdProvider();
     Api.Instance.SetProviderAsync(flagdProvider).GetAwaiter().GetResult();
     var client = Api.Instance.GetClient();
@@ -78,7 +78,7 @@ builder.Services.AddSingleton<HealthServiceImpl>();
 
 var app = builder.Build();
 
-var ValkeyCartStore = (ValkeyCartStore) app.Services.GetRequiredService<ICartStore>();
+var ValkeyCartStore = (ValkeyCartStore)app.Services.GetRequiredService<ICartStore>();
 app.Services.GetRequiredService<StackExchangeRedisInstrumentation>().AddConnection(ValkeyCartStore.GetConnection());
 
 app.MapGrpcService<CartService>();
