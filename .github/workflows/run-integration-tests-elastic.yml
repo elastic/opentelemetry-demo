@@ -31,6 +31,12 @@ jobs:
       with:
           version: latest
     
+    - name: Build images from source
+      run: |
+        sed -i 's|^IMAGE_NAME=.*|IMAGE_NAME=otel-demo-integration-tests|' .env.override
+        sed -i 's|^DEMO_VERSION=.*|DEMO_VERSION=test|' .env
+        docker compose --env-file .env --env-file .env.override build --parallel
+
     - name: Create k8s Kind Cluster
       uses: helm/kind-action@v1
     
