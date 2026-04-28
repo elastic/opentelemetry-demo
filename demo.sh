@@ -11,11 +11,11 @@ HELM_REPO_URL='https://open-telemetry.github.io/opentelemetry-helm-charts'
 
 DEMO_RELEASE="my-otel-demo"
 DEMO_CHART="open-telemetry/opentelemetry-demo"
-DEMO_HELM_VERSION='0.38.6'
+DEMO_HELM_VERSION='0.40.7'
 
 KUBE_STACK_RELEASE="opentelemetry-kube-stack"
 KUBE_STACK_CHART="open-telemetry/opentelemetry-kube-stack"
-KUBE_STACK_VERSION='0.12.4'
+KUBE_STACK_VERSION='0.14.12'
 KUBE_STACK_VALUES_URL='https://raw.githubusercontent.com/elastic/elastic-agent/refs/tags/v'$ELASTIC_STACK_VERSION'/deploy/helm/edot-collector/kube-stack/managed_otlp/values.yaml'
 SECRET_NAME='elastic-secret-otel'
 
