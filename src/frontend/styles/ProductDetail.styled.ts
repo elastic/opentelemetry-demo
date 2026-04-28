@@ -24,7 +24,7 @@ export const Image = styled.div<{ $src: string }>`
   width: 100%;
   height: 150px;
 
-  background: url(${({ $src }) => $src}) no-repeat center;
+  background: ${({ $src }) => `url("${$src}")`} no-repeat center;
   background-size: contain;
 
   ${({ theme }) => theme.breakpoints.desktop} {
@@ -33,11 +33,12 @@ export const Image = styled.div<{ $src: string }>`
   }
 `;
 
-export const Details = styled.div`
+export const Details = styled.div<{ $fullWidth?: boolean }>`
   display: flex;
   flex-direction: column;
   gap: 16px;
   padding: 0 20px;
+  ${({ $fullWidth }) => $fullWidth && 'grid-column: 1 / -1;'}
 `;
 
 export const AddToCart = styled(Button)`

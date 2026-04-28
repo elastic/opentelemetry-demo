@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright The OpenTelemetry Authors
+# SPDX-License-Identifier: Apache-2.0
 
 
 
@@ -85,7 +87,7 @@ retval += sanitycheck('**/*.md', allow_eol = (LF,))
 retval += sanitycheck('**/*.proj', allow_eol = (LF,), indent = 2)
 retval += sanitycheck('**/*.props', allow_eol = (LF,), indent = 2)
 retval += sanitycheck('**/[!demo_pb2]*.py', allow_eol = (LF,), indent = 4)
-retval += sanitycheck('**/*.sln', allow_utf8 = True, indent = 4)
+retval += sanitycheck('**/*.slnx', allow_utf8 = True, indent = 2)
 retval += sanitycheck('**/*.targets', allow_eol = (LF,), indent = 2)
 retval += sanitycheck('**/*.xml', allow_eol = (LF,), indent = 2)
 retval += sanitycheck('**/*.yml', allow_eol = (LF,), indent = 2)
