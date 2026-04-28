@@ -75,6 +75,15 @@ components:
         volumeMounts:
           - name: config-rw
             mountPath: /app/data
+  product-catalog:
+    initContainers:
+      - name: wait-for-postgresql
+        image: busybox:latest
+        command: ["sh", "-c", "until nc -z -v -w30 postgresql 5432; do echo waiting for postgresql; sleep 2; done;"]
+  llm:
+    enabled: false
+  product-reviews:
+    enabled: false
 
 opentelemetry-collector:
   enabled: false

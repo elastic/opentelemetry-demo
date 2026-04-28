@@ -119,10 +119,6 @@ jobs:
             tag_suffix: traceBasedTests
             context: ./
             setup-qemu: true
-          - file: ./src/postgres/Dockerfile
-            tag_suffix: postgresql
-            context: ./
-            setup-qemu: true
 
     steps:
       - uses: actions/checkout@v6
