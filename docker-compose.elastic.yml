@@ -1,0 +1,17 @@
+# Copyright The OpenTelemetry Authors
+# SPDX-License-Identifier: Apache-2.0
+# Disables local observability backends when using Elastic
+services:
+  opensearch:
+    deploy:
+      replicas: 0
+  grafana:
+    deploy:
+      replicas: 0
+  jaeger:
+    deploy:
+      replicas: 0
+  prometheus:
+    deploy:
+      replicas: 0
+
