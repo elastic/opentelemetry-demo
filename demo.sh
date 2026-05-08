@@ -176,16 +176,10 @@ start_docker() {
 start_docker_upstream() {
   ensure_env_values
 
-  update_env_var "ELASTIC_OTLP_ENDPOINT" "$elastic_otlp_endpoint"
-  update_env_var "ELASTIC_OTLP_API_KEY" "$elastic_otlp_api_key"
+  export ELASTIC_OTLP_ENDPOINT="$elastic_otlp_endpoint"
+  export ELASTIC_OTLP_API_KEY="$elastic_otlp_api_key"
 
-  # Reset to upstream defaults - remove EDOT-specific overrides
-  sed_in_place '/^OTEL_COLLECTOR_CONFIG=/d' "$ENV_OVERRIDE_FILE"
-  sed_in_place '/^COLLECTOR_CONTRIB_IMAGE=/d' "$ENV_OVERRIDE_FILE"
-  
-  # Use docker compose with the elastic override file to remove
-  # variouse services not needed
-  docker compose --env-file .env --env-file .env.override \
+  docker compose --env-file .env \
     -f docker-compose.yml \
     -f docker-compose.elastic.yml \
     up --force-recreate --remove-orphans --detach
