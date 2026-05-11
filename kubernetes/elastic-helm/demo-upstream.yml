@@ -1,0 +1,66 @@
+opentelemetry-collector:
+  extraEnvs:
+    - name: ELASTIC_OTLP_ENDPOINT
+      valueFrom:
+        secretKeyRef:
+          name: elastic-secret-otel
+          key: elastic_otlp_endpoint
+    - name: ELASTIC_OTLP_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: elastic-secret-otel
+          key: elastic_api_key
+  config:
+    processors:
+      resourcedetection:
+        detectors: [env, system]
+        system:
+          hostname_sources: ["os"]
+          resource_attributes:
+            host.name:
+              enabled: true
+            host.arch:
+              enabled: true
+            host.ip:
+              enabled: true
+            host.mac:
+              enabled: true
+            host.cpu.vendor.id:
+              enabled: true
+            host.cpu.family:
+              enabled: true
+            host.cpu.model.id:
+              enabled: true
+            host.cpu.model.name:
+              enabled: true
+            host.cpu.stepping:
+              enabled: true
+            host.cpu.cache.l2.size:
+              enabled: true
+            os.description:
+              enabled: true
+            os.type:
+              enabled: true
+
+    exporters:
+      otlphttp/elastic:
+        endpoint: ${env:ELASTIC_OTLP_ENDPOINT}
+        headers:
+          Authorization: "ApiKey ${env:ELASTIC_OTLP_API_KEY}"
+
+    service:
+      pipelines:
+        traces:
+          exporters: [otlphttp/elastic, spanmetrics]
+        metrics:
+          exporters: [otlphttp/elastic]
+        logs:
+          exporters: [otlphttp/elastic]
+jaeger:
+  enabled: false
+prometheus:
+  enabled: false
+opensearch:
+  enabled: false
+grafana:
+  enabled: false
