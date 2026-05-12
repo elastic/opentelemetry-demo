@@ -57,6 +57,7 @@ usage() {
   echo "  docker self-hosted  Deploy to Docker with local start-local backend"
   echo "  docker upstream     Deploy to Docker with no EDOT, vanilla OTel"
   echo "  k8s                 Deploy to Kubernetes"
+  echo "  k8s upstream        Deploy to Kubernetes with no EDOT, vanilla OTel"
   echo
   echo "Self-hosted mode requires start-local with EDOT:"
   echo "  curl -fsSL https://elastic.co/start-local | sh -s -- --edot"
