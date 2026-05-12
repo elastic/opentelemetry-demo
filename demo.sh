@@ -179,6 +179,8 @@ start_docker_upstream() {
   export ELASTIC_OTLP_ENDPOINT="$elastic_otlp_endpoint"
   export ELASTIC_OTLP_API_KEY="$elastic_otlp_api_key"
 
+  export OTEL_COLLECTOR_CONFIG_EXTRAS="./src/otel-collector/otelcol-config-extras-elastic.yml"
+
   docker compose --env-file .env \
     -f docker-compose.yml \
     -f docker-compose.elastic.yml \
