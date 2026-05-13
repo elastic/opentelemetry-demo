@@ -50,6 +50,26 @@ to run Elasticsearch, Kibana, and the EDOT Collector locally.
 
 This works by using the demo's EDOT Collector as a gateway that forwards telemetry to the start-local EDOT Collector, which then exports to Elasticsearch.
 
+### Upstream Mode (No EDOT)
+
+For users who do not want to use the Elastic Distribution of OpenTelemetry (EDOT), while still sending telemetry to Elastic:
+
+1. Sign up for a free trial on [Elastic Cloud](https://cloud.elastic.co/) and depending on the deployment type choose the following:
+    - Elastic Cloud Hosted (ECH): In the "solution view" select "Elastic for Observability". Once that builds select Add data then Application and finally OpenTelemetry.
+    - Serverless: In the "choose type" choose the "Elastic for Observability" type. Once that builds select Add data then Application and finally OpenTelemetry.
+2. Copy the OTEL_EXPORTER_OTLP_ENDPOINT URL.
+3. Click "Create an API Key" to create one.
+4. Run the demo in upstream mode:
+   ```bash
+   ./demo.sh docker upstream
+   ```
+5. Access the demo at `http://localhost:8080`
+
+This mode uses the standard OpenTelemetry Collector contrib image with OTLP HTTP export configured for Elastic, 
+rather than the EDOT collector, also we do not use EDOT SDKs either, here we use the OTel SDKs to instrument services. All telemetry (traces, metrics, logs) is routed to Elastic via OTLP.
+
+> **Note**: Upstream mode is currently only supported for Docker deployments.
+
 ### Connect to a local Elasticsearch cluster
 The following steps shows how to start the Otel demo in a Docker container and send the generated otel data to an Elasticsearch instance running locally on the host.
 

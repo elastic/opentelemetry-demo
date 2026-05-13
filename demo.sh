@@ -45,6 +45,7 @@ sed_in_place() {
 platform=""
 destroy="false"
 self_hosted="false"
+upstream="false"
 elastic_otlp_endpoint=""
 elastic_otlp_api_key=""
 
@@ -54,6 +55,7 @@ usage() {
   echo "Options:"
   echo "  docker              Deploy to Docker (requires Elastic Cloud credentials)"
   echo "  docker self-hosted  Deploy to Docker with local start-local backend"
+  echo "  docker upstream     Deploy to Docker with no EDOT, vanilla OTel"
   echo "  k8s                 Deploy to Kubernetes"
   echo
   echo "Self-hosted mode requires start-local with EDOT:"
@@ -78,6 +80,7 @@ parse_args() {
       k8s) platform="k8s"; shift ;;
       docker) platform="docker"; shift ;;
       self-hosted) self_hosted="true"; shift ;;
+      upstream) upstream="true"; shift;;
       destroy)
         destroy="true"
         shift;
@@ -170,6 +173,21 @@ start_docker() {
   make start
 }
 
+start_docker_upstream() {
+  ensure_env_values
+
+  export ELASTIC_OTLP_ENDPOINT="$elastic_otlp_endpoint"
+  export ELASTIC_OTLP_API_KEY="$elastic_otlp_api_key"
+
+  export OTEL_COLLECTOR_CONFIG_EXTRAS="./src/otel-collector/otelcol-config-extras-elastic.yml"
+
+  # Here we use docker compose instead of make start as we do not want to use the .env.override file.
+  # This allows us to run the upstream demo, no EDOT collector and no EDOT SDKs.
+  docker compose --env-file .env \
+    -f docker-compose.yml \
+    -f docker-compose.elastic.yml \
+    up --force-recreate --remove-orphans --detach
+}
 
 start_docker_self_hosted() {
   echo
@@ -282,6 +300,8 @@ main() {
   echo
   if [ "$self_hosted" = "true" ]; then
     echo "⌛️ Starting OTel Demo + EDOT on '$platform' (self-hosted mode)..."
+  elif [ "$upstream" = "true" ]; then
+    echo "⌛️ Starting OTel Demo '$platform' (no EDOT)..."
   else
     echo "⌛️ Starting OTel Demo + EDOT on '$platform'..."
   fi
@@ -289,6 +309,8 @@ main() {
   if [ "$platform" = "docker" ]; then
     if [ "$self_hosted" = "true" ]; then
       start_docker_self_hosted
+    elif [ "$upstream" = "true" ]; then
+      start_docker_upstream
     else
       start_docker
     fi
@@ -301,6 +323,8 @@ main() {
     echo
     echo "📊 Open Kibana at http://localhost:5601"
     echo "🛒 Open Demo at http://localhost:8080"
+  elif [ "$upstream" = "true" ]; then
+    echo "🎉 OTel Demo and OTel collector are running on '$platform'; data is flowing to Elastic."
   else
     echo "🎉 OTel Demo and EDOT are running on '$platform'; data is flowing to Elastic."
   fi
