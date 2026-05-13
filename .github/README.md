@@ -52,8 +52,7 @@ This works by using the demo's EDOT Collector as a gateway that forwards telemet
 
 ### Upstream Mode (No EDOT)
 
-For users who want to use the vanilla upstream OpenTelemetry Collector instead of the Elastic Distribution (EDOT), 
-while still sending telemetry to Elastic:
+For users who do not want to use the Elastic Distribution of OpenTelemetry (EDOT), while still sending telemetry to Elastic:
 
 1. Sign up for a free trial on [Elastic Cloud](https://cloud.elastic.co/) and depending on the deployment type choose the following:
     - Elastic Cloud Hosted (ECH): In the "solution view" select "Elastic for Observability". Once that builds select Add data then Application and finally OpenTelemetry.
@@ -67,7 +66,7 @@ while still sending telemetry to Elastic:
 5. Access the demo at `http://localhost:8080`
 
 This mode uses the standard OpenTelemetry Collector contrib image with OTLP HTTP export configured for Elastic, 
-rather than the EDOT collector. All telemetry (traces, metrics, logs) is routed to Elastic via OTLP.
+rather than the EDOT collector, also we do not use EDOT SDKs either, here we use the OTel SDKs to instrument services. All telemetry (traces, metrics, logs) is routed to Elastic via OTLP.
 
 > **Note**: Upstream mode is currently only supported for Docker deployments.
 
