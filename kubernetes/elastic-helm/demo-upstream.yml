@@ -12,6 +12,14 @@ opentelemetry-collector:
           key: elastic_api_key
   config:
     processors:
+      resource:
+        attributes:
+          - action: insert
+            from_attribute: k8s.pod.uid
+            key: service.instance.id
+          - key: host.name
+            from_attribute: k8s.node.name
+            action: upsert
       resourcedetection:
         detectors: [env, system]
         system:
