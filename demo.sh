@@ -182,6 +182,8 @@ start_docker_upstream() {
 
   export OTEL_COLLECTOR_CONFIG_EXTRAS="./src/otel-collector/otelcol-config-extras-elastic.yml"
 
+  # Here we use docker compose instead of make start as we do not want to use the .env.override file.
+  # This allows us to run the upstream demo, no EDOT collector and no EDOT SDKs.
   docker compose --env-file .env \
     -f docker-compose.yml \
     -f docker-compose.elastic.yml \
