@@ -11,6 +11,35 @@ opentelemetry-collector:
           name: elastic-secret-otel
           key: elastic_api_key
   config:
+    receivers:
+        hostmetrics:
+          collection_interval: 60s
+          scrapers:
+            cpu:
+              metrics:
+                system.cpu.utilization:
+                  enabled: true
+                system.cpu.logical.count:
+                  enabled: true
+            memory:
+              metrics:
+                system.memory.utilization:
+                  enabled: true
+            load: {}
+            disk: {}
+            network: {}
+            processes: {}
+            filesystem: {}
+        kubeletstats:
+          auth_type: serviceAccount
+          endpoint: ${env:K8S_NODE_IP}:10250
+          node: ${env:K8S_NODE_NAME}
+          insecure_skip_verify: true
+          metrics:
+            k8s.pod.memory.node.utilization:
+              enabled: true
+            k8s.pod.cpu.node.utilization:
+              enabled: true
     processors:
       resource:
         attributes:
