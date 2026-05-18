@@ -57,6 +57,7 @@ usage() {
   echo "  docker self-hosted  Deploy to Docker with local start-local backend"
   echo "  docker upstream     Deploy to Docker with no EDOT, vanilla OTel"
   echo "  k8s                 Deploy to Kubernetes"
+  echo "  k8s upstream        Deploy to Kubernetes with no EDOT, vanilla OTel"
   echo
   echo "Self-hosted mode requires start-local with EDOT:"
   echo "  curl -fsSL https://elastic.co/start-local | sh -s -- --edot"
@@ -245,6 +246,21 @@ start_k8s() {
   install_demo_chart
 }
 
+start_k8s_upstream() {
+  ensure_env_values
+
+  export ELASTIC_OTLP_ENDPOINT="$elastic_otlp_endpoint"
+  export ELASTIC_OTLP_API_KEY="$elastic_otlp_api_key"
+
+  kubectl create secret generic elastic-secret-otel \
+    --from-literal=elastic_otlp_endpoint="$elastic_otlp_endpoint" \
+    --from-literal=elastic_api_key="$elastic_otlp_api_key" \
+    --dry-run=client -o yaml | kubectl apply -f -
+
+  helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
+  helm install my-otel-demo open-telemetry/opentelemetry-demo -f ./kubernetes/elastic-helm/demo-upstream.yml
+}
+
 destroy_docker() {
   echo
   make stop
@@ -315,7 +331,11 @@ main() {
       start_docker
     fi
   else
-    start_k8s
+    if [ "$upstream" = "true" ]; then
+      start_k8s_upstream
+    else
+      start_k8s
+    fi
   fi
   echo
   if [ "$self_hosted" = "true" ]; then
