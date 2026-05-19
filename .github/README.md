@@ -68,6 +68,8 @@ For users who do not want to use the Elastic Distribution of OpenTelemetry (EDOT
 This mode uses the standard OpenTelemetry Collector contrib image with OTLP HTTP export configured for Elastic, 
 rather than the EDOT collector, also we do not use EDOT SDKs either, here we use the OTel SDKs to instrument services. All telemetry (traces, metrics, logs) is routed to Elastic via OTLP.
 
+> **Note**: This mode has been tested with [upstream release 2.2.0](https://github.com/open-telemetry/opentelemetry-demo/releases/tag/2.2.0). Some Elastic dashboards may not be fully populated compared to EDOT mode. For general demo documentation, see the [upstream docs](https://opentelemetry.io/docs/demo/).
+
 ### Connect to a local Elasticsearch cluster
 The following steps shows how to start the Otel demo in a Docker container and send the generated otel data to an Elasticsearch instance running locally on the host.
 
@@ -136,6 +138,8 @@ For users who do not want to use the Elastic Distribution of OpenTelemetry (EDOT
 
 This mode uses the standard OpenTelemetry Collector contrib image with OTLP HTTP export configured for Elastic, 
 rather than the EDOT collector, also we do not use EDOT SDKs either, here we use the OTel SDKs to instrument services. All telemetry (traces, metrics, logs) is routed to Elastic via OTLP.
+
+> **Note**: This mode has been tested with [upstream release 2.2.0](https://github.com/open-telemetry/opentelemetry-demo/releases/tag/2.2.0). Some Elastic dashboards may not be fully populated compared to EDOT mode. For general demo documentation, see the [upstream docs](https://opentelemetry.io/docs/demo/).
 
 ### Manual Installation
 
