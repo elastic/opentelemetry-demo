@@ -4,6 +4,9 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+
 jobs:
   build_and_push_images:
     uses: ./.github/workflows/component_build-images-elastic.yml
