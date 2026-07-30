@@ -46,6 +46,7 @@ platform=""
 destroy="false"
 self_hosted="false"
 upstream="false"
+k8sattrs_v1="false"
 elastic_otlp_endpoint=""
 elastic_otlp_api_key=""
 
@@ -58,6 +59,7 @@ usage() {
   echo "  docker upstream     Deploy to Docker with no EDOT, vanilla OTel"
   echo "  k8s                 Deploy to Kubernetes"
   echo "  k8s upstream        Deploy to Kubernetes with no EDOT, vanilla OTel"
+  echo "  k8s --k8sattrs_v1_ovverides  Deploy to Kubernetes with k8s attributes v1 semconv feature gates"
   echo
   echo "Self-hosted mode requires start-local with EDOT:"
   echo "  curl -fsSL https://elastic.co/start-local | sh -s -- --edot"
@@ -82,6 +84,7 @@ parse_args() {
       docker) platform="docker"; shift ;;
       self-hosted) self_hosted="true"; shift ;;
       upstream) upstream="true"; shift;;
+      --k8sattrs_v1_ovverides) k8sattrs_v1="true"; shift ;;
       destroy)
         destroy="true"
         shift;
@@ -224,10 +227,15 @@ apply_k8s_secret() {
 }
 
 install_kube_stack() {
+  extra_values=""
+  if [ "$k8sattrs_v1" = "true" ]; then
+    extra_values="--values kubernetes/elastic-helm/k8sattrs_v1_ovverides.yml"
+  fi
   helm upgrade --install "$KUBE_STACK_RELEASE" "$KUBE_STACK_CHART" \
     --namespace "$NAMESPACE" \
     --values "$KUBE_STACK_VALUES_URL" \
     --values kubernetes/elastic-helm/kube-stack-overrides.yml \
+    $extra_values \
     --version "$KUBE_STACK_VERSION"
 }
 
