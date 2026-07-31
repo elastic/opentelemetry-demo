@@ -83,4 +83,4 @@ collectors:
           traces:
             receivers: [otlp]
             processors: [transform/sanitize_spans]
-            exporters: [debug, otlp/ingest_metrics_traces]
+            exporters: [debug, otlp_grpc/ingest_metrics_traces]
