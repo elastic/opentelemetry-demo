@@ -4,7 +4,7 @@ collectors:
       feature-gates: processor.k8sattributes.EmitV1K8sConventions,processor.k8sattributes.DontEmitV0K8sConventions
     config:
       processors:
-        k8s_attributes:
+        k8sattributes:
           passthrough: false
           pod_association:
             - sources:
@@ -41,8 +41,12 @@ collectors:
             annotations:
               - key: "foo_annotation"
                 from: pod
+              - key: "resource.opentelemetry.io/service.namespace"
+                from: pod
             labels:
               - key: "app"
+                from: pod
+              - key: "opentelemetry.io/name"
                 from: pod
 
   daemon:
@@ -50,7 +54,7 @@ collectors:
       feature-gates: processor.k8sattributes.EmitV1K8sConventions,processor.k8sattributes.DontEmitV0K8sConventions
     config:
       processors:
-        k8s_attributes:
+        k8sattributes:
           filter:
             node_from_env_var: OTEL_K8S_NODE_NAME
           passthrough: false
@@ -89,6 +93,10 @@ collectors:
             annotations:
               - key: "foo_annotation"
                 from: pod
+              - key: "resource.opentelemetry.io/service.namespace"
+                from: pod
             labels:
               - key: "app"
+                from: pod
+              - key: "opentelemetry.io/name"
                 from: pod
