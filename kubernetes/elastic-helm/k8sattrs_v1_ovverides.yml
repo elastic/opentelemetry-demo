@@ -4,7 +4,7 @@ collectors:
       feature-gates: processor.k8sattributes.EmitV1K8sConventions,processor.k8sattributes.DontEmitV0K8sConventions
     config:
       processors:
-        k8sattributes:
+        k8s_attributes:
           passthrough: false
           pod_association:
             - sources:
@@ -52,9 +52,12 @@ collectors:
   daemon:
     args:
       feature-gates: processor.k8sattributes.EmitV1K8sConventions,processor.k8sattributes.DontEmitV0K8sConventions
+    presets:
+      kubernetesAttributes:
+        enabled: false
     config:
       processors:
-        k8sattributes:
+        k8s_attributes:
           filter:
             node_from_env_var: OTEL_K8S_NODE_NAME
           passthrough: false
