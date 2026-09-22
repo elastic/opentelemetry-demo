@@ -99,6 +99,10 @@ collectors:
             receivers: [otlp]
             processors: [batch/metrics]
             exporters: [debug, otlp_http/ingest_metrics]
+          metrics/aggregated-otel-metrics:
+            receivers: [elasticapm]
+            processors: []
+            exporters: [debug, otlp_http/ingest_metrics]
           traces:
             receivers: [otlp]
             processors: [batch, elasticapm, transform/sanitize_spans]
