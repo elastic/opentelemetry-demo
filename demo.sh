@@ -15,7 +15,7 @@ DEMO_HELM_VERSION='0.40.7'
 
 KUBE_STACK_RELEASE="opentelemetry-kube-stack"
 KUBE_STACK_CHART="open-telemetry/opentelemetry-kube-stack"
-KUBE_STACK_VERSION='0.14.12'
+KUBE_STACK_VERSION='0.16.0'
 KUBE_STACK_VALUES_URL='https://raw.githubusercontent.com/elastic/elastic-agent/refs/tags/v'$ELASTIC_STACK_VERSION'/deploy/helm/edot-collector/kube-stack/values.yaml'
 SECRET_NAME='elastic-secret-otel'
 
