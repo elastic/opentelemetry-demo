@@ -37,6 +37,6 @@ COPY ./src/payment/logger.js logger.js
 ARG PAYMENT_PORT=50051
 EXPOSE ${PAYMENT_PORT}
 
-ENV OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+ENV NODE_OPTIONS="--require /otel-auto-instrumentation-nodejs/autoinstrumentation.js"
 
 CMD ["index.js"]
