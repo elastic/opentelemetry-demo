@@ -1,0 +1,76 @@
+# Copyright The OpenTelemetry Authors
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2021 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# https://mcr.microsoft.com/v2/dotnet/sdk/tags/list
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0.300@sha256:c0790639332692a0d56cdd81ed581cfd24d040d9839764c138994866df89a3b6 AS builder
+ARG TARGETARCH
+
+WORKDIR /usr/src/app/
+
+COPY ./src/cart/ ./
+COPY ./pb/ ./pb/
+
+RUN dotnet restore ./src/cart.csproj -r linux-musl-$TARGETARCH
+
+RUN dotnet publish ./src/cart.csproj -r linux-musl-$TARGETARCH --no-restore -o /cart
+
+# -----------------------------------------------------------------------------
+
+# Download the Elastic Distribution of OpenTelemetry .NET zero-code instrumentation
+# bundle for the target architecture, so cart gets Elastic's EDOT .NET agent attached
+# via the profiler (DOTNET_STARTUP_HOOKS/CORECLR_PROFILER) instead of a compile-time
+# SDK dependency. See https://github.com/elastic/elastic-otel-dotnet releases.
+FROM debian:stable-slim AS otel-instrumentation
+ARG TARGETARCH
+ARG ELASTIC_DOTNET_AUTO_VERSION=1.6.0
+RUN apt-get update && apt-get install -y --no-install-recommends curl unzip ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN case "$TARGETARCH" in \
+      amd64) DOTNET_ARCH=x64 ;; \
+      arm64) DOTNET_ARCH=arm64 ;; \
+      *) echo "Unsupported TARGETARCH: $TARGETARCH" >&2; exit 1 ;; \
+    esac \
+    && curl -sSfL -o /tmp/elastic-dotnet-instrumentation.zip \
+      "https://github.com/elastic/elastic-otel-dotnet/releases/download/${ELASTIC_DOTNET_AUTO_VERSION}/elastic-dotnet-instrumentation-linux-musl-${DOTNET_ARCH}.zip" \
+    && mkdir -p /otel-dotnet-auto \
+    && unzip -q /tmp/elastic-dotnet-instrumentation.zip -d /otel-dotnet-auto \
+    && rm /tmp/elastic-dotnet-instrumentation.zip
+
+# -----------------------------------------------------------------------------
+
+# https://mcr.microsoft.com/v2/dotnet/aspnet/tags/list
+FROM ghcr.io/grpc-ecosystem/grpc-health-probe:v0.4.52@sha256:0303b506a288d544ed99fef17a55c8c5ce872f498f643c396b532b3595089ac9 AS grpc-health-probe
+
+# Framework-dependent (not self-contained/single-file) runtime image, needed so the
+# zero-code profiler's own bundled assemblies (e.g. Google.Protobuf) don't collide
+# with cart's own self-contained copies at assembly-load time.
+FROM mcr.microsoft.com/dotnet/aspnet:10.0.8-alpine3.23@sha256:1e37a8236c558ae31bd6bc8144e38e6036b73cf1b0616fe56d79e60babb9d93b
+
+WORKDIR /usr/src/app/
+COPY --from=builder /cart/ ./
+COPY --from=grpc-health-probe /ko-app/grpc-health-probe /bin/grpc_health_probe
+COPY --from=otel-instrumentation /otel-dotnet-auto /otel-dotnet-auto
+
+ENV DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE=false
+
+# Zero-code instrumentation: instrument.sh auto-detects musl/arch at runtime and
+# sets DOTNET_STARTUP_HOOKS/CORECLR_ENABLE_PROFILING/CORECLR_PROFILER(_PATH).
+ENV OTEL_DOTNET_AUTO_HOME=/otel-dotnet-auto
+ENV OTEL_DOTNET_AUTO_TRACES_ADDITIONAL_SOURCES=OpenTelemetry.Demo.Cart
+ENV OTEL_DOTNET_AUTO_METRICS_ADDITIONAL_SOURCES=OpenTelemetry.Demo.Cart,OpenFeature
+ENV OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+
+EXPOSE ${CART_PORT}
+ENTRYPOINT [ "/otel-dotnet-auto/instrument.sh", "./cart" ]

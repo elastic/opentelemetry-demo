@@ -18,10 +18,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry.Instrumentation.StackExchangeRedis;
 using Microsoft.Extensions.Hosting;
-using OpenTelemetry;
-using OpenTelemetry.Trace;
 using OpenFeature;
 using OpenFeature.Hooks;
 using OpenFeature.Providers.Flagd;
@@ -33,15 +30,6 @@ if (string.IsNullOrEmpty(valkeyAddress))
     Console.WriteLine("VALKEY_ADDR environment variable is required.");
     Environment.Exit(1);
 }
-
-builder.AddElasticOpenTelemetry(otelBuilder => otelBuilder
-    .WithTracing(tracerBuilder => tracerBuilder
-        .AddSource("OpenTelemetry.Demo.Cart")
-        .AddRedisInstrumentation(
-            options => options.SetVerboseDatabaseStatements = true))
-    .WithMetrics(meterBuilder => meterBuilder
-        .AddMeter("OpenTelemetry.Demo.Cart")
-        .AddMeter("OpenFeature")));
 
 builder.Logging.AddConsole();
 
@@ -76,9 +64,6 @@ builder.Services.AddGrpcHealthChecks()
 builder.Services.AddSingleton<HealthServiceImpl>();
 
 var app = builder.Build();
-
-var ValkeyCartStore = (ValkeyCartStore)app.Services.GetRequiredService<ICartStore>();
-app.Services.GetRequiredService<StackExchangeRedisInstrumentation>().AddConnection(ValkeyCartStore.GetConnection());
 
 app.MapGrpcService<CartService>();
 app.MapGrpcService<HealthServiceImpl>();
