@@ -177,7 +177,7 @@ start_docker() {
     -f compose.observability.yaml \
     -f compose.extras.yaml \
     -f docker-compose.elastic.yml \
-    up --force-recreate --remove-orphans --detach
+    up --build --force-recreate --remove-orphans --detach
 }
 
 start_docker_upstream() {
@@ -194,7 +194,7 @@ start_docker_upstream() {
     -f compose.yaml \
     -f compose.full.yaml \
     -f compose.extras.yaml \
-    up --force-recreate --remove-orphans --detach
+    up --build --force-recreate --remove-orphans --detach
 }
 
 start_docker_self_hosted() {
@@ -213,7 +213,7 @@ start_docker_self_hosted() {
     -f compose.extras.yaml \
     -f docker-compose.elastic.yml \
     -f docker-compose.elastic-self-hosted.yml \
-    up --force-recreate --remove-orphans --detach
+    up --build --force-recreate --remove-orphans --detach
 
   echo ""
   echo "OpenTelemetry Demo is running."
