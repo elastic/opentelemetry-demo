@@ -675,6 +675,7 @@ This fork currently includes the following EDOT instrumentation:
 | Java | Ad, Fraud Detection, Kafka | EDOT Java agent in the Elastic Docker setup |
 | .NET | Cart | `Elastic.OpenTelemetry` package |
 | Node.js | Payment | `@elastic/opentelemetry-node` package |
+| PHP | Quote | EDOT PHP in [Dockerfile.elastic](../src/quote/Dockerfile.elastic) |
 
 See the Java services' `Dockerfile.elastic` files, the Cart and Payment package
 files, and [docker-compose.elastic.yml](../docker-compose.elastic.yml) for

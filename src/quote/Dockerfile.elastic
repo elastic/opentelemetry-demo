@@ -1,0 +1,58 @@
+# Copyright The OpenTelemetry Authors
+# SPDX-License-Identifier: Apache-2.0
+
+
+FROM ghcr.io/mlocati/php-extension-installer:2.11.12@sha256:b6d3fa381b9ba5cf051117c1c601d6a523b590e534bf3d56eb4fbe352949c138 AS installer
+
+FROM docker.io/library/composer:2.10.2@sha256:5946476338742b200bb9ff88f8be56275ddae4b3949c72305cb0dbf10cfcb760 AS vendor
+
+WORKDIR /tmp/
+
+COPY ./src/quote/composer.json composer.json
+
+RUN composer install \
+    --ignore-platform-reqs \
+    --no-interaction \
+    --no-plugins \
+    --no-scripts \
+    --no-dev \
+    --prefer-dist
+
+FROM docker.io/library/php:8.5.8-cli-alpine3.24@sha256:8d7090ce03736b6ecfd739d87a46ab59b5d1d0d837f1ac7c5d2702f1d312f5a0
+ARG TARGETARCH
+ARG ELASTIC_OTEL_PHP_VERSION=1.9.0
+
+COPY --from=installer /usr/bin/install-php-extensions /usr/local/bin/
+
+RUN install-php-extensions opcache pcntl protobuf
+
+# Install the Elastic Distribution of OpenTelemetry PHP. This is a self-contained
+# replacement for the community `opentelemetry` extension (not layered on top of
+# it - installing both trips a duplicate-module warning at startup), bundling its
+# own extension and PHP-level SDK classes. See
+# https://github.com/elastic/elastic-otel-php releases for the native package;
+# the apk install runs its own post-install script, which writes the
+# opentelemetry-distro.ini config automatically.
+RUN case "$TARGETARCH" in \
+      amd64) ELASTIC_OTEL_PHP_ARCH=x86_64 ;; \
+      arm64) ELASTIC_OTEL_PHP_ARCH=aarch64 ;; \
+      *) echo "Unsupported TARGETARCH: $TARGETARCH" >&2; exit 1 ;; \
+    esac \
+    && wget -q -O /tmp/elastic-otel-php.apk \
+      "https://github.com/elastic/elastic-otel-php/releases/download/v${ELASTIC_OTEL_PHP_VERSION}/elastic-otel-php_${ELASTIC_OTEL_PHP_VERSION}_${ELASTIC_OTEL_PHP_ARCH}.apk" \
+    && apk add --allow-untrusted /tmp/elastic-otel-php.apk \
+    && rm /tmp/elastic-otel-php.apk
+
+WORKDIR /var/www
+
+USER www-data
+
+COPY --from=vendor /tmp/vendor/ vendor/
+
+COPY ./src/quote/app/ app/
+COPY ./src/quote/public/ public/
+COPY ./src/quote/src/ src/
+
+EXPOSE ${QUOTE_PORT}
+
+CMD ["php", "public/index.php"]
