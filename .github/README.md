@@ -216,40 +216,24 @@ See [Clean up](#clean-up) for removal instructions.
 ### Kubernetes architecture
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"darkMode": true, "fontSize": "16px", "background": "#07101F", "primaryColor": "#0A2342", "primaryTextColor": "#E3E8F2", "primaryBorderColor": "#61A2FF", "lineColor": "#61A2FF", "textColor": "#E3E8F2", "edgeLabelBackground": "#111C2C", "clusterBkg": "#0B1628", "clusterBorder": "#485975"}}}%%
+%%{init: {"theme": "base", "flowchart": {"htmlLabels": true}, "markdownAutoWrap": false, "themeVariables": {"darkMode": true, "fontSize": "16px", "background": "#07101F", "primaryColor": "#0A2342", "primaryTextColor": "#E3E8F2", "primaryBorderColor": "#61A2FF", "lineColor": "#61A2FF", "textColor": "#E3E8F2", "edgeLabelBackground": "#111C2C", "clusterBkg": "#0B1628", "clusterBorder": "#485975"}}}%%
 flowchart LR
     subgraph ARCH["OpenTelemetry Demo with Elastic Observability"]
         direction LR
         subgraph K8S["Kubernetes cluster"]
             direction LR
 
-            APP["`**Demo services**
-            *OpenTelemetry instrumentation*
-            Ad · Payment · Shipping · …`"]
-            NODE["`**Node telemetry**
-            Container logs
-            Host and kubelet metrics`"]
+            APP["<b>Demo services</b><br/><br/><i>OpenTelemetry SDKs</i><br/>Ad · Payment · Shipping · …"]
+            NODE["<b>Node telemetry</b><br/><br/>Container logs<br/>Host and kubelet metrics"]
 
             subgraph AGENTS["opentelemetry-operator-system"]
                 direction LR
 
-                DAEMON["`**Node Elastic Agent**
-                *DaemonSet · one instance per node*
+                DAEMON["<b>Node Elastic Agent</b><br/><i>DaemonSet · one per node</i><br/><br/>App and node telemetry<br/>Metadata and batching"]
 
-                Collects application and node telemetry
-                Adds metadata and batches data`"]
+                CLUSTER["<b>Cluster Elastic Agent</b><br/><i>Deployment</i><br/><br/>Cluster metrics and events<br/>Kubernetes metadata"]
 
-                CLUSTER["`**Cluster Elastic Agent**
-                *Deployment*
-
-                Collects cluster metrics and events
-                Adds Kubernetes metadata`"]
-
-                GATEWAY["`**Gateway Elastic Agent**
-                *Deployment*
-
-                Processes and exports telemetry
-                Authenticates with an API key`"]
+                GATEWAY["<b>Gateway Elastic Agent</b><br/><i>Deployment</i><br/><br/>Process and export<br/>API key authentication"]
             end
 
             APP -->|"OTLP: traces, metrics, logs"| DAEMON
@@ -258,12 +242,8 @@ flowchart LR
             CLUSTER -->|OTLP| GATEWAY
         end
 
-        CLOUD["`**Elastic Cloud**
-        *OTLP ingestion endpoint*
-
-        Stores telemetry in Elasticsearch
-        **Explore in Kibana**`"]
-        GATEWAY -->|"OTLP: authenticated export"| CLOUD
+        CLOUD["<b>Elastic Cloud</b><br/><i>OTLP ingestion endpoint</i><br/><br/>Storage in Elasticsearch<br/>Explore in Kibana"]
+        GATEWAY -->|"OTLP export<br/>API key authentication"| CLOUD
 
     end
 
