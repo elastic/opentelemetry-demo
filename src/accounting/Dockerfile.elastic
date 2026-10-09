@@ -1,0 +1,62 @@
+# Copyright The OpenTelemetry Authors
+# SPDX-License-Identifier: Apache-2.0
+
+FROM --platform=${BUILDPLATFORM} mcr.microsoft.com/dotnet/sdk:10.0.302@sha256:ed034a8bf0b24ded0cbbac07e17825d8e9ebfe21e308191d0f7421eaf5ad4664 AS builder
+ARG TARGETARCH
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+COPY ["/src/accounting/", "Accounting/"]
+COPY ["/pb/demo.proto", "Accounting/src/protos/demo.proto"]
+RUN dotnet restore "./Accounting/Accounting.csproj" -r linux-$TARGETARCH
+WORKDIR "/src/Accounting"
+
+RUN dotnet build "./Accounting.csproj" -r linux-$TARGETARCH -c $BUILD_CONFIGURATION -o /app/build
+
+# -----------------------------------------------------------------------------
+
+FROM builder AS publish
+ARG TARGETARCH
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "./Accounting.csproj" -r linux-$TARGETARCH -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+
+# -----------------------------------------------------------------------------
+
+# Download the Elastic Distribution of OpenTelemetry .NET zero-code instrumentation
+# bundle for the target architecture, so accounting gets Elastic's EDOT .NET agent
+# attached via the profiler instead of the vanilla community
+# OpenTelemetry.AutoInstrumentation NuGet package already referenced by
+# Accounting.csproj (its own copied files are left in place, unused). See
+# https://github.com/elastic/elastic-otel-dotnet releases.
+FROM debian:stable-slim AS otel-instrumentation
+ARG TARGETARCH
+ARG ELASTIC_DOTNET_AUTO_VERSION=1.6.0
+RUN apt-get update && apt-get install -y --no-install-recommends curl unzip ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN case "$TARGETARCH" in \
+      amd64) DOTNET_ARCH=x64 ;; \
+      arm64) DOTNET_ARCH=arm64 ;; \
+      *) echo "Unsupported TARGETARCH: $TARGETARCH" >&2; exit 1 ;; \
+    esac \
+    && curl -sSfL -o /tmp/elastic-dotnet-instrumentation.zip \
+      "https://github.com/elastic/elastic-otel-dotnet/releases/download/${ELASTIC_DOTNET_AUTO_VERSION}/elastic-dotnet-instrumentation-linux-glibc-${DOTNET_ARCH}.zip" \
+    && mkdir -p /otel-dotnet-auto \
+    && unzip -q /tmp/elastic-dotnet-instrumentation.zip -d /otel-dotnet-auto \
+    && rm /tmp/elastic-dotnet-instrumentation.zip
+
+# -----------------------------------------------------------------------------
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0.10@sha256:1fa23fc4872d95fd71c2833ebe65d7e84a43b2d51a31d119516852f13d9505a7
+USER app
+WORKDIR /app
+COPY --from=publish /app/publish .
+
+USER root
+COPY --from=otel-instrumentation /otel-dotnet-auto /otel-dotnet-auto
+RUN mkdir -p "/var/log/opentelemetry/dotnet" \
+    && chown app "/var/log/opentelemetry/dotnet" \
+    && chown -R app /otel-dotnet-auto
+USER app
+
+ENV OTEL_DOTNET_AUTO_HOME=/otel-dotnet-auto
+ENV OTEL_DOTNET_AUTO_TRACES_ADDITIONAL_SOURCES=Accounting.Consumer
+
+ENTRYPOINT ["/otel-dotnet-auto/instrument.sh", "dotnet", "Accounting.dll"]
