@@ -216,45 +216,51 @@ See [Clean up](#clean-up) for removal instructions.
 ### Kubernetes architecture
 
 ```mermaid
+%%{init: {"theme": "base", "themeVariables": {"darkMode": true, "background": "#07101F", "primaryColor": "#0A2342", "primaryTextColor": "#E3E8F2", "primaryBorderColor": "#61A2FF", "lineColor": "#61A2FF", "textColor": "#E3E8F2", "edgeLabelBackground": "#111C2C", "clusterBkg": "#0B1628", "clusterBorder": "#485975"}}}%%
 flowchart LR
-    subgraph K8S["Kubernetes cluster"]
+    subgraph ARCH["OpenTelemetry Demo with Elastic Observability"]
         direction LR
-
-        APP["Demo services<br/>Ad · Payment · Shipping · …<br/>OpenTelemetry instrumentation"]
-        NODE["Node telemetry<br/>Container logs<br/>Host and kubelet metrics"]
-
-        subgraph AGENTS["opentelemetry-operator-system"]
+        subgraph K8S["Kubernetes cluster"]
             direction LR
 
-            DAEMON["Elastic Agent<br/>Node · DaemonSet per node<br/><br/>OTLP receiver<br/>filelog · hostmetrics · kubeletstats<br/>Kubernetes metadata<br/>Resource detection and batching"]
+            APP["Demo services<br/>Ad · Payment · Shipping · …<br/>OpenTelemetry instrumentation"]
+            NODE["Node telemetry<br/>Container logs<br/>Host and kubelet metrics"]
 
-            CLUSTER["Elastic Agent<br/>Cluster · Deployment<br/><br/>Cluster metrics<br/>Kubernetes events<br/>Kubernetes metadata"]
+            subgraph AGENTS["opentelemetry-operator-system"]
+                direction LR
 
-            GATEWAY["Elastic Agent<br/>Gateway · Deployment<br/><br/>OTLP receiver<br/>Span sanitization<br/>OTLP exporters<br/>API key from Kubernetes Secret"]
+                DAEMON["Elastic Agent<br/>Node · DaemonSet per node<br/><br/>OTLP receiver<br/>filelog · hostmetrics · kubeletstats<br/>Kubernetes metadata<br/>Resource detection and batching"]
+
+                CLUSTER["Elastic Agent<br/>Cluster · Deployment<br/><br/>Cluster metrics<br/>Kubernetes events<br/>Kubernetes metadata"]
+
+                GATEWAY["Elastic Agent<br/>Gateway · Deployment<br/><br/>OTLP receiver<br/>Span sanitization<br/>OTLP exporters<br/>API key from Kubernetes Secret"]
+            end
+
+            APP -->|"OTLP: traces, metrics, logs"| DAEMON
+            NODE -->|Collect| DAEMON
+            DAEMON -->|OTLP| GATEWAY
+            CLUSTER -->|OTLP| GATEWAY
         end
 
-        APP -->|"OTLP: traces, metrics, logs"| DAEMON
-        NODE -->|Collect| DAEMON
-        DAEMON -->|OTLP| GATEWAY
-        CLUSTER -->|OTLP| GATEWAY
+        CLOUD["Elastic Cloud<br/><br/>OTLP ingestion endpoint<br/>Elasticsearch<br/>Explore in Kibana"]
+        GATEWAY -->|"OTLP: authenticated export"| CLOUD
+
     end
 
-    CLOUD["Elastic Cloud<br/><br/>OTLP ingestion endpoint<br/>Elasticsearch<br/>Explore in Kibana"]
-    GATEWAY -->|"OTLP: authenticated export"| CLOUD
-
-    classDef application fill:#F1F6FF,stroke:#0B64DD,color:#111C2C
-    classDef node fill:#EAFBFA,stroke:#008B87,color:#111C2C
-    classDef cluster fill:#FFF0F8,stroke:#BC1E70,color:#111C2C
-    classDef cloud fill:#111C2C,stroke:#111C2C,color:#FFFFFF
+    classDef application fill:#0A2342,stroke:#61A2FF,color:#E3E8F2
+    classDef node fill:#03282B,stroke:#16C5C0,color:#E3E8F2
+    classDef cluster fill:#351725,stroke:#EE72A6,color:#E3E8F2
+    classDef cloud fill:#111C2C,stroke:#16C5C0,color:#E3E8F2
 
     class APP,DAEMON application
     class NODE,GATEWAY node
     class CLUSTER cluster
     class CLOUD cloud
 
-    style K8S fill:#F6F9FC,stroke:#CAD3E2,color:#111C2C
-    style AGENTS fill:#FFFFFF,stroke:#CAD3E2,color:#384861
-    linkStyle default stroke:#0B64DD,stroke-width:2px
+    style ARCH fill:#07101F,stroke:#2B394F,color:#E3E8F2
+    style K8S fill:#0B1628,stroke:#485975,color:#E3E8F2
+    style AGENTS fill:#111C2C,stroke:#485975,color:#B4C1D5
+    linkStyle default stroke:#61A2FF,stroke-width:2px
 ```
 
 Demo services send telemetry to the per-node Elastic Agent, which also collects
