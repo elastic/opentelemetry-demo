@@ -215,7 +215,12 @@ See [Clean up](#clean-up) for removal instructions.
 
 ### Kubernetes architecture
 
-![Deployment architecture](../kubernetes/elastic-helm/elastic-architecture.png)
+![EDOT collectors forwarding Kubernetes telemetry to Elastic Cloud](../kubernetes/elastic-helm/elastic-architecture-v2.png)
+
+In EDOT mode, demo services send telemetry to the per-node collector, which also
+collects container logs and host and kubelet metrics. A separate collector gathers
+cluster metrics and Kubernetes events. Both forward telemetry through the gateway
+to the Elastic Cloud OTLP endpoint.
 
 ## Verify telemetry and explore
 
