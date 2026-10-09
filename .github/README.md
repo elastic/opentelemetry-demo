@@ -216,9 +216,12 @@ See [Clean up](#clean-up) for removal instructions.
 ### Kubernetes architecture
 
 ```mermaid
-%%{init: {"theme": "base", "flowchart": {"htmlLabels": true}, "markdownAutoWrap": false, "themeVariables": {"darkMode": true, "fontSize": "16px", "background": "#07101F", "primaryColor": "#0A2342", "primaryTextColor": "#E3E8F2", "primaryBorderColor": "#61A2FF", "lineColor": "#61A2FF", "textColor": "#E3E8F2", "edgeLabelBackground": "#111C2C", "clusterBkg": "#0B1628", "clusterBorder": "#485975"}}}%%
+---
+title: OpenTelemetry Demo with Elastic Observability
+---
+%%{init: {"theme": "base", "flowchart": {"htmlLabels": true, "titleTopMargin": 24}, "markdownAutoWrap": false, "themeVariables": {"darkMode": true, "fontSize": "16px", "background": "#07101F", "primaryColor": "#0A2342", "primaryTextColor": "#E3E8F2", "primaryBorderColor": "#61A2FF", "lineColor": "#61A2FF", "textColor": "#E3E8F2", "edgeLabelBackground": "#111C2C", "clusterBkg": "#0B1628", "clusterBorder": "#485975"}}}%%
 flowchart LR
-    subgraph ARCH["OpenTelemetry Demo with Elastic Observability"]
+    subgraph ARCH[" "]
         direction LR
         subgraph K8S["Kubernetes cluster"]
             direction LR
