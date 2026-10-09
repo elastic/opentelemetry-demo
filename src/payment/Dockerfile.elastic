@@ -1,0 +1,53 @@
+# Copyright The OpenTelemetry Authors
+# SPDX-License-Identifier: Apache-2.0
+
+
+FROM ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs:0.78.0@sha256:576e2b00bdf9a6040a7e3a497dd5eea4e624f60dcfd28871d9190752a0f18955 AS otelagent
+
+# -----------------------------------------------------------------------------
+
+FROM docker.io/library/node:26.4.0-slim@sha256:a1d9d671994fc2d26e297ac56b4b1522a8bc7fa71c43b14cd1b1fe6c5116f7dc AS builder
+
+WORKDIR /usr/src/app/
+
+COPY ./src/payment/package.json package.json
+COPY ./src/payment/package-lock.json package-lock.json
+
+RUN npm ci --omit=dev
+
+ARG ELASTIC_OTEL_NODE_VERSION=1.5.0
+
+# Add the Elastic Distribution of OpenTelemetry Node.js as a second, separate
+# install, so package.json/package-lock.json stay byte-identical to upstream -
+# same technique as src/recommendation/Dockerfile.elastic's second pip install.
+# NODE_OPTIONS is pointed at this package by docker-compose.elastic.yml, which
+# has to remain: compose.yaml's own `environment: NODE_OPTIONS=...` always
+# overrides an image's ENV, so this can't be done with a Dockerfile ENV alone.
+RUN npm install --no-save @elastic/opentelemetry-node@${ELASTIC_OTEL_NODE_VERSION} && \
+    node -e "require.resolve('@elastic/opentelemetry-node')"
+
+# -----------------------------------------------------------------------------
+
+FROM gcr.io/distroless/nodejs22-debian12:nonroot@sha256:13593b7570658e8477de39e2f4a1dd25db2f836d68a0ba771251572d23bb4f8e
+
+WORKDIR /usr/src/app/
+
+COPY --from=builder /usr/src/app/node_modules/ node_modules/
+
+# Path and NODE_OPTIONS value match what the OpenTelemetry Operator injects, so a
+# statically built image and an operator-injected pod behave identically. Changing
+# either breaks that equivalence.
+COPY --from=otelagent /autoinstrumentation /otel-auto-instrumentation-nodejs
+
+COPY ./pb/demo.proto demo.proto
+
+COPY ./src/payment/charge.js charge.js
+COPY ./src/payment/index.js index.js
+COPY ./src/payment/logger.js logger.js
+
+ARG PAYMENT_PORT=50051
+EXPOSE ${PAYMENT_PORT}
+
+ENV NODE_OPTIONS="--require /otel-auto-instrumentation-nodejs/autoinstrumentation.js"
+
+CMD ["index.js"]
