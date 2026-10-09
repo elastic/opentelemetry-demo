@@ -9,6 +9,10 @@ language agents and **Elastic Agent** for OpenTelemetry collection. You can also
 run it with upstream OpenTelemetry instrumentation while sending telemetry to
 Elastic.
 
+**Explore without installing:** Open the [hosted OpenTelemetry demo in Elastic
+Observability](https://otel.demo.elastic.co/app/apm/services) to browse the
+Astronomy Shop's services and traces without deploying the demo yourself.
+
 ## Choose your setup
 
 | Goal | Start command | Backend |
@@ -116,10 +120,10 @@ flowchart LR
         direction LR
         subgraph DEMO["Demo Docker network"]
             APP["<b>Demo services</b><br/><br/><i>EDOT + OpenTelemetry</i><br/>Traces, metrics and logs"]
-            COLLECTOR["<b>Elastic Agent</b><br/><i>Demo collector</i><br/><br/>Batch telemetry<br/>Normalize span names"]
+            COLLECTOR["<b>Elastic Agent</b><br/><i>Demo collector</i><br/><br/>Process and export<br/>telemetry"]
             APP -->|OTLP| COLLECTOR
         end
-        HOST["<b>Infrastructure telemetry</b><br/><br/>Host metrics<br/>Frontend availability"]
+        HOST["<b>Infrastructure telemetry</b><br/><br/>Host metrics<br/>Frontend HTTP check"]
         HOST -->|Collect| COLLECTOR
         CLOUD["<b>Elastic Cloud</b><br/><i>OTLP ingestion endpoint</i><br/><br/>Storage in Elasticsearch<br/>Explore in Kibana"]
         COLLECTOR -->|"OTLP/HTTP export<br/>API key authentication"| CLOUD
@@ -180,13 +184,13 @@ flowchart LR
         direction LR
         subgraph DEMO["Demo Docker network"]
             APP["<b>Demo services</b><br/><br/><i>EDOT + OpenTelemetry</i><br/>Traces, metrics and logs"]
-            COLLECTOR["<b>Elastic Agent</b><br/><i>Demo collector</i><br/><br/>Batch telemetry<br/>Normalize span names"]
+            COLLECTOR["<b>Elastic Agent</b><br/><i>Demo collector</i><br/><br/>Process and export<br/>telemetry"]
             APP -->|OTLP| COLLECTOR
         end
-        HOST["<b>Infrastructure telemetry</b><br/><br/>Host metrics<br/>Frontend availability"]
+        HOST["<b>Infrastructure telemetry</b><br/><br/>Host metrics<br/>Frontend HTTP check"]
         HOST -->|Collect| COLLECTOR
         subgraph LOCAL["elastic-start-local_default network"]
-            LOCAL_AGENT["<b>Elastic Agent</b><br/><i>start-local collector</i><br/><br/>Receive OTLP<br/>Export to Elasticsearch"]
+            LOCAL_AGENT["<b>Elastic Agent</b><br/><i>start-local collector</i><br/><br/>Process and export<br/>telemetry"]
             ES["<b>Elasticsearch</b><br/><br/>Store telemetry"]
             KIBANA["<b>Kibana</b><br/><br/>Explore local telemetry"]
             LOCAL_AGENT -->|Export| ES
@@ -243,7 +247,7 @@ flowchart LR
         direction LR
         subgraph DEMO["Demo Docker network"]
             APP["<b>Demo services</b><br/><br/><i>Upstream OpenTelemetry</i><br/>Traces, metrics and logs"]
-            COLLECTOR["<b>OpenTelemetry Collector</b><br/><i>Contrib distribution</i><br/><br/>Receive and process OTLP<br/>Export to Elastic"]
+            COLLECTOR["<b>OpenTelemetry Collector</b><br/><i>Contrib distribution</i><br/><br/>Process and export<br/>telemetry"]
             APP -->|OTLP| COLLECTOR
         end
         HOST["<b>Infrastructure telemetry</b><br/><br/>Host and container metrics<br/>Service metrics"]
@@ -320,7 +324,7 @@ flowchart LR
         direction LR
         subgraph K8S["Kubernetes cluster · demo namespace"]
             APP["<b>Demo services</b><br/><br/><i>Upstream OpenTelemetry</i><br/>Traces, metrics and logs"]
-            COLLECTOR["<b>OpenTelemetry Collector</b><br/><i>Bundled with demo chart</i><br/><br/>Receive and process OTLP<br/>Export to Elastic"]
+            COLLECTOR["<b>OpenTelemetry Collector</b><br/><i>Bundled with demo chart</i><br/><br/>Process and export<br/>telemetry"]
             SECRET["<b>Kubernetes Secret</b><br/><br/>elastic-secret-otel<br/>Endpoint and API key"]
             APP -->|OTLP| COLLECTOR
             SECRET -.->|Configure| COLLECTOR
@@ -382,11 +386,11 @@ flowchart LR
             subgraph AGENTS["opentelemetry-operator-system"]
                 direction LR
 
-                DAEMON["<b>Node Elastic Agent</b><br/><i>DaemonSet · one per node</i><br/><br/>App and node telemetry<br/>Metadata and batching"]
+                DAEMON["<b>Node Elastic Agent</b><br/><i>DaemonSet · one per node</i><br/><br/>Collect and forward<br/>app and node telemetry"]
 
-                CLUSTER["<b>Cluster Elastic Agent</b><br/><i>Deployment</i><br/><br/>Cluster metrics and events<br/>Kubernetes metadata"]
+                CLUSTER["<b>Cluster Elastic Agent</b><br/><i>Deployment</i><br/><br/>Collect and forward<br/>cluster metrics and events"]
 
-                GATEWAY["<b>Gateway Elastic Agent</b><br/><i>Deployment</i><br/><br/>Process and export<br/>API key authentication"]
+                GATEWAY["<b>Gateway Elastic Agent</b><br/><i>Deployment</i><br/><br/>Process and export<br/>telemetry"]
             end
 
             APP -->|"OTLP: traces, metrics, logs"| DAEMON
@@ -464,21 +468,37 @@ can vary by Elastic deployment and version.
 
 ### Example screenshots
 
+These screenshots show the [hosted demo](https://otel.demo.elastic.co/app/apm/services)
+in Elastic's dark theme. Its live data and enabled features may differ from your
+own deployment. Click an image to view it at full size.
+
 #### Service map
 
-![Service map](service-map.png)
+Explore service dependencies and identify services with active alerts or violated
+SLOs.
 
-#### Traces
+[![Astronomy Shop service map with dependencies and service health](service-map.png)](service-map.png)
 
-![Traces](trace.png)
+#### Checkout trace
 
-#### Correlation
+Follow a checkout request across services. The waterfall shows time spent in each
+operation and a payment error propagating back through checkout and the frontend.
 
-![Correlation](correlation.png)
+[![Checkout trace waterfall spanning the shop services and showing a payment error](trace.png)](trace.png)
+
+#### Service inventory
+
+Compare latency, throughput, and failed transaction rates to decide which service
+to investigate first.
+
+[![Service inventory comparing latency, throughput, errors, alerts, and SLOs](service-inventory.png)](service-inventory.png)
 
 #### Logs
 
-![Logs](logs.png)
+Inspect the load generator's shopping activity alongside service and Kubernetes
+metadata.
+
+[![Load generator logs showing product browsing, cart activity, and checkout](logs.png)](logs.png)
 
 ## Troubleshooting
 
