@@ -216,24 +216,40 @@ See [Clean up](#clean-up) for removal instructions.
 ### Kubernetes architecture
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"darkMode": true, "background": "#07101F", "primaryColor": "#0A2342", "primaryTextColor": "#E3E8F2", "primaryBorderColor": "#61A2FF", "lineColor": "#61A2FF", "textColor": "#E3E8F2", "edgeLabelBackground": "#111C2C", "clusterBkg": "#0B1628", "clusterBorder": "#485975"}}}%%
+%%{init: {"theme": "base", "themeVariables": {"darkMode": true, "fontSize": "16px", "background": "#07101F", "primaryColor": "#0A2342", "primaryTextColor": "#E3E8F2", "primaryBorderColor": "#61A2FF", "lineColor": "#61A2FF", "textColor": "#E3E8F2", "edgeLabelBackground": "#111C2C", "clusterBkg": "#0B1628", "clusterBorder": "#485975"}}}%%
 flowchart LR
     subgraph ARCH["OpenTelemetry Demo with Elastic Observability"]
         direction LR
         subgraph K8S["Kubernetes cluster"]
             direction LR
 
-            APP["Demo services<br/>Ad · Payment · Shipping · …<br/>OpenTelemetry instrumentation"]
-            NODE["Node telemetry<br/>Container logs<br/>Host and kubelet metrics"]
+            APP["`**Demo services**
+            *OpenTelemetry instrumentation*
+            Ad · Payment · Shipping · …`"]
+            NODE["`**Node telemetry**
+            Container logs
+            Host and kubelet metrics`"]
 
             subgraph AGENTS["opentelemetry-operator-system"]
                 direction LR
 
-                DAEMON["Elastic Agent<br/>Node · DaemonSet per node<br/><br/>OTLP receiver<br/>filelog · hostmetrics · kubeletstats<br/>Kubernetes metadata<br/>Resource detection and batching"]
+                DAEMON["`**Node Elastic Agent**
+                *DaemonSet · one instance per node*
 
-                CLUSTER["Elastic Agent<br/>Cluster · Deployment<br/><br/>Cluster metrics<br/>Kubernetes events<br/>Kubernetes metadata"]
+                Collects application and node telemetry
+                Adds metadata and batches data`"]
 
-                GATEWAY["Elastic Agent<br/>Gateway · Deployment<br/><br/>OTLP receiver<br/>Span sanitization<br/>OTLP exporters<br/>API key from Kubernetes Secret"]
+                CLUSTER["`**Cluster Elastic Agent**
+                *Deployment*
+
+                Collects cluster metrics and events
+                Adds Kubernetes metadata`"]
+
+                GATEWAY["`**Gateway Elastic Agent**
+                *Deployment*
+
+                Processes and exports telemetry
+                Authenticates with an API key`"]
             end
 
             APP -->|"OTLP: traces, metrics, logs"| DAEMON
@@ -242,17 +258,24 @@ flowchart LR
             CLUSTER -->|OTLP| GATEWAY
         end
 
-        CLOUD["Elastic Cloud<br/><br/>OTLP ingestion endpoint<br/>Elasticsearch<br/>Explore in Kibana"]
+        CLOUD["`**Elastic Cloud**
+        *OTLP ingestion endpoint*
+
+        Stores telemetry in Elasticsearch
+        **Explore in Kibana**`"]
         GATEWAY -->|"OTLP: authenticated export"| CLOUD
 
     end
 
-    classDef application fill:#0A2342,stroke:#61A2FF,color:#E3E8F2
-    classDef node fill:#03282B,stroke:#16C5C0,color:#E3E8F2
-    classDef cluster fill:#351725,stroke:#EE72A6,color:#E3E8F2
-    classDef cloud fill:#111C2C,stroke:#16C5C0,color:#E3E8F2
+    classDef application fill:#0A2342,stroke:#61A2FF,color:#E3E8F2,font-size:16px
+    classDef node fill:#03282B,stroke:#16C5C0,color:#E3E8F2,font-size:16px
+    classDef cluster fill:#351725,stroke:#EE72A6,color:#E3E8F2,font-size:16px
+    classDef cloud fill:#111C2C,stroke:#16C5C0,color:#E3E8F2,font-size:16px
+
+    classDef source font-size:14px
 
     class APP,DAEMON application
+    class APP,NODE source
     class NODE,GATEWAY node
     class CLUSTER cluster
     class CLOUD cloud
@@ -267,6 +290,15 @@ Demo services send telemetry to the per-node Elastic Agent, which also collects
 container logs and host and kubelet metrics. A separate Elastic Agent gathers
 cluster metrics and Kubernetes events. Both forward telemetry through the gateway
 Elastic Agent to the Elastic Cloud OTLP endpoint.
+
+The diagram highlights each instance's role. Configuration details are summarized
+below:
+
+| Elastic Agent role | Configuration details |
+| ------------------ | --------------------- |
+| Node | OTLP receiver; `filelog`, `hostmetrics`, and `kubeletstats` receivers; Kubernetes metadata, resource detection, and batching |
+| Cluster | Cluster metrics and Kubernetes events receivers; Kubernetes metadata enrichment |
+| Gateway | OTLP receiver; span sanitization; OTLP exporters; API key from a Kubernetes Secret |
 
 ## Verify telemetry and explore
 
