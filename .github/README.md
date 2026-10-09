@@ -1,164 +1,395 @@
 <!-- markdownlint-disable-next-line -->
-# <img src="https://opentelemetry.io/img/logos/opentelemetry-logo-nav.png" alt="OTel logo" width="32"> :heavy_plus_sign: <img src="https://images.contentstack.io/v3/assets/bltefdd0b53724fa2ce/blt601c406b0b5af740/620577381692951393fdf8d6/elastic-logo-cluster.svg" alt="OTel logo" width="32"> OpenTelemetry Demo with Elastic Observability
+# <img src="https://opentelemetry.io/img/logos/opentelemetry-logo-nav.png" alt="OTel logo" width="32"> :heavy_plus_sign: <img src="https://images.contentstack.io/v3/assets/bltefdd0b53724fa2ce/blt601c406b0b5af740/620577381692951393fdf8d6/elastic-logo-cluster.svg" alt="Elastic logo" width="32"> OpenTelemetry Demo with Elastic Observability
 
-The following guide describes how to setup the OpenTelemetry demo with Elastic Observability using [Docker compose](#docker-compose) or [Kubernetes](#kubernetes). This fork introduces several changes to the agents used in the demo:
+Run the **Astronomy Shop**, a microservice demo that generates traffic
+automatically, and explore its traces, metrics, and logs in Elastic Observability.
 
-- The Java agent within the [Ad](../src/ad/Dockerfile.elastic), the [Fraud Detection](../src/fraud-detection/Dockerfile.elastic) and the [Kafka](../src/kafka/Dockerfile.elastic) services have been replaced with the Elastic distribution of the OpenTelemetry Java Agent. You can find more information about the Elastic distribution in [this blog post](https://www.elastic.co/observability-labs/blog/elastic-distribution-opentelemetry-java-agent).
-- The .NET agent within the [Cart service](../src/cart/src/Directory.Build.props) has been replaced with the Elastic distribution of the OpenTelemetry .NET Agent. You can find more information about the Elastic distribution in [this blog post](https://www.elastic.co/observability-labs/blog/elastic-opentelemetry-distribution-dotnet-applications).
-- The Elastic distribution of the OpenTelemetry Node.js Agent has replaced the OpenTelemetry Node.js agent in the [Payment service](../src/payment/package.json). Additional details about the Elastic distribution are available in [this blog post](https://www.elastic.co/observability-labs/blog/elastic-opentelemetry-distribution-node-js).
-- The Elastic distribution for OpenTelemetry Python has replaced the OpenTelemetry Python agent in the [Recommendation service](../src/recommendation/requirements.txt). Additional details about the Elastic distribution are available in [this blog post](https://www.elastic.co/observability-labs/blog/elastic-opentelemetry-distribution-python).
+This fork uses **Elastic Distributions of OpenTelemetry (EDOT)** for selected
+language agents and the collector. You can also run it with upstream
+OpenTelemetry instrumentation while sending telemetry to Elastic.
 
-Additionally, the OpenTelemetry Contrib collector has also been changed to the [Elastic OpenTelemetry Collector distribution](https://github.com/elastic/elastic-agent/blob/main/internal/pkg/otel/README.md). This ensures a more integrated and optimized experience with Elastic Observability.
+## Choose your setup
+
+| Goal | Start command | Backend |
+| ------ | --------------- | --------- |
+| Docker with EDOT | `./demo.sh docker` | Elastic Cloud |
+| Everything on your machine | `./demo.sh docker self-hosted` | Local Elastic Stack via start-local |
+| Docker with upstream OpenTelemetry | `./demo.sh docker upstream` | Elastic Cloud |
+| Kubernetes with EDOT | `./demo.sh k8s` | Elastic Cloud |
+| Kubernetes with upstream OpenTelemetry | `./demo.sh k8s upstream` | Elastic Cloud |
+
+For your first run, follow [Docker](#docker). To run without a Cloud account,
+choose [local Elastic Stack](#local-elastic-stack-with-start-local).
+
+- [Get the demo](#get-the-demo)
+- [Elastic Cloud credentials](#elastic-cloud-credentials)
+- [Docker](#docker)
+- [Kubernetes](#kubernetes)
+- [Verify telemetry and explore](#verify-telemetry-and-explore)
+- [Troubleshooting](#troubleshooting)
+- [Clean up](#clean-up)
+- [Advanced configuration](#advanced-configuration)
+- [How this fork differs](#how-this-fork-differs)
+
+## Get the demo
+
+Install [Git](https://git-scm.com/downloads), then clone the Elastic fork:
+
+```sh
+git clone https://github.com/elastic/opentelemetry-demo.git
+cd opentelemetry-demo
+```
+
+Run the commands below from this repository's root directory.
+
+## Elastic Cloud credentials
+
+Complete this section for any Elastic Cloud setup. Skip it for start-local.
+
+1. Use an existing Elastic Cloud Observability deployment or create one at
+   [Elastic Cloud](https://cloud.elastic.co/). Choose an Observability project
+   for Serverless, or an Observability deployment for Hosted.
+2. In Elastic Observability, open **Add data** and select the OpenTelemetry
+   application onboarding instructions. See the
+   [Elastic OpenTelemetry quickstarts][edot-quickstarts] for your deployment
+   type.
+3. Copy the `OTEL_EXPORTER_OTLP_ENDPOINT` value and create an API key using the
+   onboarding instructions. Keep both available for the startup prompts.
+
+Use the OTLP ingestion endpoint provided by onboarding. The collector is
+configured to export OTLP over HTTP; an Elasticsearch REST URL or Kibana URL
+is not a substitute for that endpoint.
+
+The startup script prompts for the endpoint and API key unless saved values
+already exist in `.env.override`. The API key is hidden while you type it.
+Docker EDOT and Kubernetes EDOT setup save these values in `.env.override`:
+
+```dotenv
+ELASTIC_OTLP_ENDPOINT="<your-OTLP-endpoint>"
+ELASTIC_OTLP_API_KEY="<your-API-key>"
+```
+
+To change credentials, edit these values before running the script again.
+Keep API keys out of commits. Kubernetes setup also creates a Secret in the
+cluster.
 
 ## Docker
 
-### Prerequisites:
+### Docker prerequisites
 
-- Install [Docker](https://docs.docker.com/get-started/get-docker/)
-- Install [Docker Compose](https://docs.docker.com/compose/install/)
+- Install [Docker](https://docs.docker.com/get-started/get-docker/) and
+  [Docker Compose v2](https://docs.docker.com/compose/install/).
+- Start Docker and confirm `docker info` and `docker compose version` work.
+- Review the upstream [Docker deployment requirements][docker-docs] for resource
+  requirements. Running a local Elastic Stack requires additional resources;
+  see [start-local][start-local].
+- Keep port `8080` available for the shop. start-local also uses ports
+  `9200` and `5601`.
 
-### Automated Installation
+### Docker with EDOT
 
-1. Sign up for a free trial on [Elastic Cloud](https://cloud.elastic.co/) and depending on the deployment type choose the following:
-    - Elastic Cloud Hosted (ECH): In the "solution view" select "Elastic for Observability". Once that builds select Add data then Application and finally OpenTelemetry.
-    - Serverless: In the "choose type" choose the "Elastic for Observability" type. Once that builds select Add data then Application and finally OpenTelemetry.
-2. Copy the OTEL_EXPORTER_OTLP_ENDPOINT URL.
-3. Click "Create an API Key" to create one.
-4. Run `./demo.sh docker`
+1. Prepare your [Elastic Cloud credentials](#elastic-cloud-credentials).
+2. Start the demo and enter the endpoint and API key when prompted:
 
-### Self-Hosted with start-local
+   ```sh
+   ./demo.sh docker
+   ```
 
-For local development without Elastic Cloud, use [start-local](https://github.com/elastic/start-local)
-to run Elasticsearch, Kibana, and the EDOT Collector locally.
+   The first run builds images and can take several minutes.
+3. Open the shop at <http://localhost:8080> and your Cloud deployment's
+   Observability UI. Continue with
+   [Verify telemetry and explore](#verify-telemetry-and-explore).
 
-1. Start the Elastic stack with EDOT:
-   ```bash
+To remove the demo later, use `./demo.sh destroy docker`. See
+[Clean up](#clean-up) for what this deletes.
+
+### Local Elastic Stack with start-local
+
+[start-local][start-local] runs Elasticsearch, Kibana, and an EDOT Collector on
+your machine for local testing.
+
+1. Start the Elastic Stack with EDOT from the repository root:
+
+   ```sh
    curl -fsSL https://elastic.co/start-local | sh -s -- --edot
    ```
-2. Start the demo in self-hosted mode:
-   ```bash
+
+   Keep the Kibana login credentials printed by the installer. The generated
+   files are placed in `elastic-start-local/`.
+2. Start the demo:
+
+   ```sh
    ./demo.sh docker self-hosted
    ```
-3. Access:
-   - Demo: `http://localhost:8080`
-   - Kibana: `http://localhost:5601` (credentials shown by start-local)
 
-4. Clean-up:
-   - `./demo.sh destroy docker`
-   - `./elastic-start-local/stop.sh`
-   - `./elastic-start-local/uninstall.sh`
+   This mode forwards telemetry through the start-local EDOT Collector and does
+   not prompt for Cloud credentials.
+3. Open the shop at <http://localhost:8080> and Kibana at
+   <http://localhost:5601>. Continue with
+   [Verify telemetry and explore](#verify-telemetry-and-explore).
 
-This works by using the demo's EDOT Collector as a gateway that forwards telemetry to the start-local EDOT Collector, which then exports to Elasticsearch.
+The telemetry path is:
+`demo services → demo EDOT Collector → start-local EDOT Collector →
+Elasticsearch`.
+See [Clean up](#clean-up) to stop or remove both stacks.
 
-### Upstream Mode (No EDOT)
+### Docker with upstream OpenTelemetry
 
-For users who do not want to use the Elastic Distribution of OpenTelemetry (EDOT), while still sending telemetry to Elastic:
-
-1. Sign up for a free trial on [Elastic Cloud](https://cloud.elastic.co/) and depending on the deployment type choose the following:
-    - Elastic Cloud Hosted (ECH): In the "solution view" select "Elastic for Observability". Once that builds select Add data then Application and finally OpenTelemetry.
-    - Serverless: In the "choose type" choose the "Elastic for Observability" type. Once that builds select Add data then Application and finally OpenTelemetry.
-2. Copy the OTEL_EXPORTER_OTLP_ENDPOINT URL.
-3. Click "Create an API Key" to create one.
-4. Run the demo in upstream mode:
-   ```bash
-   ./demo.sh docker upstream
-   ```
-5. Access the demo at `http://localhost:8080`
-
-This mode uses the standard OpenTelemetry Collector contrib image with OTLP HTTP export configured for Elastic,
-rather than the EDOT collector, also we do not use EDOT SDKs either, here we use the OTel SDKs to instrument services. All telemetry (traces, metrics, logs) is routed to Elastic via OTLP.
-
-> **Note**: This mode has been tested with [upstream release 2.2.0](https://github.com/open-telemetry/opentelemetry-demo/releases/tag/2.2.0). Some Elastic dashboards may not be fully populated compared to EDOT mode. For general demo documentation, see the [upstream docs](https://opentelemetry.io/docs/demo/).
-
-### Connect to a local Elasticsearch cluster
-The following steps shows how to start the Otel demo in a Docker container and send the generated otel data to an Elasticsearch instance running locally on the host.
-
-1. Create an API key
-```sh
-curl -X POST "http://localhost:9200/_security/api_key" -u USER:PASSWORD -H "Content-Type: application/json" -d'{ "name": "my_api_key" }'
-```
-
-2. Update `.env.overide` with URL and API key:
-```yml
-ELASTIC_OTLP_ENDPOINT="http://host.docker.internal:9200"
-ELASTIC_OTLP_API_KEY="<api key obtained in step 2>"
-```
-3. Start the Otel demo in a Docker container:
+Prepare your [Elastic Cloud credentials](#elastic-cloud-credentials), then run:
 
 ```sh
-make start
+./demo.sh docker upstream
 ```
 
+This mode uses upstream language instrumentation and the OpenTelemetry Collector
+Contrib distribution. It ignores `.env.override` for Compose configuration,
+although the script can reuse credentials from that file. Telemetry is exported
+to Elastic over OTLP HTTP.
 
-### Manual Installation
-<details>
-
-1. Sign up for a free trial on [Elastic Cloud](https://cloud.elastic.co/) and depending on the deployment type choose the following:
-    - Elastic Cloud Hosted (ECH): In the "solution view" select "Elastic for Observability". Once that builds select Add data then Application and finally OpenTelemetry.
-    - Serverless: In the "choose type" choose the "Elastic for Observability" type. Once that builds select Add data then Application and finally OpenTelemetry.
-2. Copy the OTEL_EXPORTER_OTLP_ENDPOINT URL.
-3. Click "Create an API Key" to create one.
-4. Open the file `.env.override` in an editor and fill in the following two variables:
-   - `ELASTIC_OTLP_ENDPOINT`: your OTEL_EXPORTER_OTLP_ENDPOINT URL.
-   - `ELASTIC_OTLP_API_KEY`: your Elastic API key.
-5. Start the demo with the following command from the repository's root directory:
-   ```
-   make start
-   ```
-</details>
+Open <http://localhost:8080>, then
+[verify telemetry](#verify-telemetry-and-explore). Some Elastic dashboards may
+show less data than in EDOT mode. Remove the demo with
+`./demo.sh destroy docker` when finished.
 
 ## Kubernetes
-### Prerequisites:
-- Create a Kubernetes cluster. There are no specific requirements, so you can create a local one, or use a managed Kubernetes cluster, such as [GKE](https://cloud.google.com/kubernetes-engine), [EKS](https://aws.amazon.com/eks/), or [AKS](https://azure.microsoft.com/en-us/products/kubernetes-service).
-- Set up [kubectl](https://kubernetes.io/docs/reference/kubectl/).
-- Set up [Helm](https://helm.sh/).
 
-### Automated Installation
+### Kubernetes prerequisites
 
-1. Sign up for a free trial on [Elastic Cloud](https://cloud.elastic.co/) and depending on the deployment type choose the following:
-    - Elastic Cloud Hosted (ECH): In the "solution view" select "Elastic for Observability". Once that builds select Add data then Application and finally OpenTelemetry.
-    - Serverless: In the "choose type" choose the "Elastic for Observability" type. Once that builds select Add data then Application and finally OpenTelemetry.
-2. Copy the OTEL_EXPORTER_OTLP_ENDPOINT URL.
-3. Click "Create an API Key" to create one.
-4. Run `./demo.sh k8s`
+- A running Kubernetes cluster with enough resources for the demo; review the
+  [upstream Kubernetes deployment requirements][kubernetes-docs].
+- [kubectl](https://kubernetes.io/docs/reference/kubectl/) configured to access
+  the cluster, and [Helm](https://helm.sh/) installed.
+- [Elastic Cloud credentials](#elastic-cloud-credentials).
 
-### Upstream Mode (No EDOT)
+Check the cluster you will deploy to:
 
-For users who do not want to use the Elastic Distribution of OpenTelemetry (EDOT), while still sending telemetry to Elastic:
+```sh
+kubectl config current-context
+kubectl get nodes
+helm version
+```
 
-1. Sign up for a free trial on [Elastic Cloud](https://cloud.elastic.co/) and depending on the deployment type choose the following:
-    - Elastic Cloud Hosted (ECH): In the "solution view" select "Elastic for Observability". Once that builds select Add data then Application and finally OpenTelemetry.
-    - Serverless: In the "choose type" choose the "Elastic for Observability" type. Once that builds select Add data then Application and finally OpenTelemetry.
-2. Copy the OTEL_EXPORTER_OTLP_ENDPOINT URL.
-3. Click "Create an API Key" to create one.
-4. Run the demo in upstream mode:
-   ```bash
-   ./demo.sh k8s upstream
-   ```
+The demo is installed in your current Kubernetes namespace. The EDOT collector
+stack is installed in `opentelemetry-operator-system`.
 
-This mode uses the standard OpenTelemetry Collector contrib image with OTLP HTTP export configured for Elastic,
-rather than the EDOT collector, also we do not use EDOT SDKs either, here we use the OTel SDKs to instrument services. All telemetry (traces, metrics, logs) is routed to Elastic via OTLP.
+### Kubernetes with EDOT
 
-> **Note**: This mode has been tested with [upstream release 2.2.0](https://github.com/open-telemetry/opentelemetry-demo/releases/tag/2.2.0). Some Elastic dashboards may not be fully populated compared to EDOT mode. For general demo documentation, see the [upstream docs](https://opentelemetry.io/docs/demo/).
+```sh
+./demo.sh k8s
+```
 
-### Manual Installation
+Enter the endpoint and API key when prompted. The script installs the EDOT
+collector stack and the demo using the chart versions pinned in
+[demo.sh](../demo.sh).
 
-<details>
+### Kubernetes with upstream OpenTelemetry
 
-- Follow the [EDOT Quick Start Guide](https://elastic.github.io/opentelemetry/quickstart/) for Kubernetes and your specific Elastic deployment to install the EDOT OpenTelemetry collector.
-- Deploy the Elastic OpenTelemetry Demo using the following command.
-  ```
-  helm install my-otel-demo open-telemetry/opentelemetry-demo --version 0.38.3 -f kubernetes/elastic-helm/demo.yml
-  ```
+```sh
+./demo.sh k8s upstream
+```
 
-</details>
+This installs the demo with upstream instrumentation and its bundled collector,
+configured to export telemetry to Elastic. The credential Secret is created in
+your current namespace. Some Elastic dashboards may show less data than in
+EDOT mode.
 
-#### Enabling Browser Traffic Generation
+### Open the shop
 
-In the installed configuration, browser-based load generation is disabled by default to avoid CORS (Cross-Origin Resource Sharing) issues when sending telemetry data from simulated browser clients to the OpenTelemetry Collector. If you'd like to enable browser traffic in the load generator again:
+Check the demo pods and find the frontend proxy Service:
 
-1. Set LOCUST_BROWSER_TRAFFIC_ENABLED to "true" in kubernetes/elastic-helm/demo.yml.
-2. Modify the OTLP HTTP receiver in the DaemonSet OpenTelemetry Collector values file (used in the [EDOT Quick Start Guide](https://elastic.github.io/opentelemetry/quickstart/)) to include CORS support:
+```sh
+kubectl get pods -l app.kubernetes.io/instance=my-otel-demo
+kubectl get services -l app.kubernetes.io/instance=my-otel-demo
+```
+
+Copy the Service name containing `frontend-proxy` and substitute it below:
+
+```sh
+kubectl port-forward service/<frontend-proxy-service-name> 8080:8080
+```
+
+Keep the command running while you visit <http://localhost:8080>. If you
+installed in another namespace, add `-n <namespace>` to the commands.
+Continue with [Verify telemetry and explore](#verify-telemetry-and-explore).
+See [Clean up](#clean-up) for removal instructions.
+
+### Kubernetes architecture
+
+![Deployment architecture](../kubernetes/elastic-helm/elastic-architecture.png)
+
+## Verify telemetry and explore
+
+The load generator automatically browses products, adds items to carts, and
+checks out. You can also browse the shop and complete a checkout with fake
+payment details to generate your own requests.
+
+1. Open your Elastic Observability UI (Cloud), or <http://localhost:5601>
+   (start-local).
+2. Select a recent time range, such as the last 15 minutes, and open the APM
+   **Services** view. Allow a few minutes for initial telemetry to appear and
+   refresh the view.
+3. Find `frontend` or `checkout`, open its transactions, and inspect a trace
+   sample. A checkout trace should include calls to other shop services such as
+   cart, payment, or shipping.
+4. Open the service map to explore dependencies. If services or traces are
+   missing, follow [Troubleshooting](#troubleshooting).
+
+Use these views to explore further. Navigation names and available dashboards
+can vary by Elastic deployment and version.
+
+| View | What to explore |
+| ------ | ----------------- |
+| APM services | Latency, throughput, errors, and transaction traces |
+| Service map | Dependencies between the shop's services |
+| Logs / Discover | Service logs and correlation with trace IDs |
+| Hosts | CPU, memory, disk, and network metrics collected by EDOT |
+| Infrastructure | Available container, pod, and node telemetry |
+| Dashboards | `[System] OTel Host Metrics` and, for Kubernetes, `[Kubernetes] Cluster Overview`, when installed |
+
+### Example screenshots
+
+#### Service map
+
+![Service map](service-map.png)
+
+#### Traces
+
+![Traces](trace.png)
+
+#### Correlation
+
+![Correlation](correlation.png)
+
+#### Logs
+
+![Logs](logs.png)
+
+## Troubleshooting
+
+| Symptom | What to check |
+| --------- | --------------- |
+| Docker cannot start containers | Run `docker info`; start Docker if needed. Check available memory against the deployment requirements. |
+| Port already in use | Free port `8080` for the shop; for start-local, also check `9200` and `5601`. Stop another demo before switching modes. |
+| No services or traces in Elastic | Check the UI time range, generate a checkout, and inspect collector logs for export errors. |
+| Collector reports HTTP 401 or 403 | Check the API key and its ingestion permissions. Update `.env.override` and rerun the selected startup command. |
+| Collector reports connection or endpoint errors | Use the OTLP HTTP endpoint from onboarding and check connectivity from the collector's environment. |
+| Self-hosted startup reports a missing network | Run start-local with `--edot` first; the demo expects the `elastic-start-local_default` Docker network. |
+| Kubernetes pods stay Pending or restart | Inspect pod events and logs for resource, image-pull, or configuration errors. |
+
+For Docker, inspect container status and collector logs:
+
+```sh
+docker ps -a --filter name=otel-collector
+docker logs --tail 100 otel-collector
+```
+
+For Kubernetes, inspect the demo and collector pods:
+
+```sh
+kubectl get pods -l app.kubernetes.io/instance=my-otel-demo
+kubectl get pods -n opentelemetry-operator-system
+kubectl describe pod <pod-name> -n <namespace>
+kubectl logs <collector-pod-name> -n <namespace> --tail=100
+```
+
+For upstream mode, find the collector in the demo namespace. For start-local
+installation problems, see the [start-local troubleshooting
+guidance][start-local].
+
+## Clean up
+
+Run cleanup from the repository root.
+
+### Docker demo
+
+```sh
+./demo.sh destroy docker
+```
+
+This removes the demo containers and its Compose volumes through `make stop`.
+It does not remove the separately installed start-local backend.
+
+### Local Elastic Stack
+
+After removing the demo, stop Elasticsearch, Kibana, and the local collector:
+
+```sh
+./elastic-start-local/stop.sh
+```
+
+To uninstall the local Elastic Stack and permanently delete its data:
+
+```sh
+./elastic-start-local/uninstall.sh
+```
+
+### Kubernetes demo
+
+For EDOT mode:
+
+```sh
+./demo.sh destroy k8s
+```
+
+Run this in the namespace used for installation. It removes the demo release,
+the collector stack, its credential Secret, and the
+`opentelemetry-operator-system` namespace. Use this cleanup only when that
+namespace is dedicated to this demo.
+
+For upstream mode, remove the demo release and its Secret in the demo namespace:
+
+```sh
+helm uninstall my-otel-demo
+kubectl delete secret elastic-secret-otel
+```
+
+These commands do not delete telemetry already stored in Elastic Cloud.
+
+## Advanced configuration
+
+### Manual Docker configuration
+
+Prepare your [Elastic Cloud credentials](#elastic-cloud-credentials), then edit
+`.env.override` with your endpoint and API key. Keep the Elastic image,
+Dockerfile, and collector overrides provided by this fork.
+
+Start the demo with the same Compose layers used by the automated EDOT setup:
+
+```sh
+docker compose --env-file .env --env-file .env.override \
+  -f compose.yaml -f compose.full.yaml -f compose.observability.yaml \
+  -f compose.extras.yaml -f docker-compose.elastic.yml \
+  up --build --force-recreate --remove-orphans --detach
+```
+
+### Manual Kubernetes configuration
+
+Follow the [EDOT Kubernetes quickstart][edot-quickstarts] for your Elastic
+deployment type. The demo's
+[Helm values](../kubernetes/elastic-helm/demo.yml) expect the collector at
+`opentelemetry-kube-stack-daemon-collector.opentelemetry-operator-system.svc.cluster.local`.
+If your collector uses a different name or namespace, update
+`default.envOverrides` in those values before installation.
+
+Use the demo chart version pinned by `DEMO_HELM_VERSION` in
+[demo.sh](../demo.sh):
+
+```sh
+helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
+helm repo update open-telemetry
+helm upgrade --install my-otel-demo open-telemetry/opentelemetry-demo \
+  --version <DEMO_HELM_VERSION> -f kubernetes/elastic-helm/demo.yml
+```
+
+### Enable Kubernetes browser traffic
+
+Browser traffic generation is disabled in the EDOT demo values. To enable it:
+
+1. Set `LOCUST_BROWSER_TRAFFIC_ENABLED` to `"true"` in
+   [demo.yml](../kubernetes/elastic-helm/demo.yml).
+2. Configure CORS on the daemon collector's OTLP HTTP receiver to allow the
+   simulated browser's origin:
+
    ```yaml
    receivers:
      otlp:
@@ -168,122 +399,60 @@ In the installed configuration, browser-based load generation is disabled by def
              allowed_origins:
                - http://frontend-proxy:8080
    ```
-   This configuration allows the OTLP HTTP endpoint to accept trace data from browser-based sources running at http://frontend-proxy:8080.
-3. Upgrade the EDOT Quick Start deployment.
 
-#### Kubernetes architecture diagram
+3. Apply the collector configuration through your Helm values and upgrade the
+   demo release with the updated `demo.yml`.
 
-![Deployment architecture](../kubernetes/elastic-helm/elastic-architecture.png "K8s architecture")
+### Test a custom collector component
 
-## Exploring the Demo
+Build a collector image following the
+[Elastic collector components instructions][collector-components]. Define the
+component in the collector configuration and include it in the relevant
+`service.pipelines` entry.
 
-### What the demo does
+For Docker, set `COLLECTOR_CONTRIB_IMAGE` and `OTEL_COLLECTOR_CONFIG` in
+`.env.override`, then use [manual Docker setup](#manual-docker-configuration).
+The automated Cloud EDOT command resets those two values.
 
-The **Astronomy Shop** is a fully functional e-commerce application built with microservices. It demonstrates real-world distributed system patterns:
-- **Microservice architecture**: 15+ services written in different languages (Go, Java, .NET, Node.js, Python, etc.)
-- **Automatic traffic generation**: A load generator continuously simulates user activity—browsing products, adding items to cart, and completing checkouts
-- **Distributed communication**: Services communicate via HTTP and gRPC, producing distributed traces that show request flow across the system
-- **Agentic observability**: The optional agent, chatbot, and MCP services demonstrate telemetry from an AI-assisted shopping workflow
+For Kubernetes, customize the collector image and configuration in
+[kube-stack-overrides.yml](../kubernetes/elastic-helm/kube-stack-overrides.yml)
+using the values supported by the pinned kube-stack chart, then upgrade the
+collector release. See [demo.sh](../demo.sh) for the release, chart version,
+and values files used by automated setup.
 
-### How to access the demo
+### Optional agentic services
 
-| Deployment | Demo URL | Description |
-|------------|----------|-------------|
-| Docker | http://localhost:8080 | Frontend of the Astronomy Shop |
-| Kubernetes | Depends on your ingress/port-forward setup | Use `kubectl port-forward` if needed |
+The chatbot, agent, and MCP services demonstrate an AI-assisted shopping
+workflow. See the [agent README](../src/agent/README.md) and
+[chatbot README](../src/chatbot/README.md) for startup instructions and how to
+configure an OpenAI-compatible LLM.
 
-**Interacting with the shop:**
-1. Browse the product catalog
-2. Add items to your cart
-3. Complete a checkout (use any fake payment details)
-> **Note**: The load generator runs automatically in the background. You don't need to manually interact with the shop to generate telemetry—data is already flowing to Elastic.
+## How this fork differs
 
-### What to look at in Elastic
+The EDOT modes replace selected upstream agents and the collector:
 
-| Where | What to explore |
-|-------|-----------------|
-| **APM → Services** | See all demo services; click one to explore transactions, latency, throughput, and errors |
-| **APM → Service map** | Visualize how services depend on each other; see the request flow architecture |
-| **APM → Traces** | View distributed traces; follow a single request across multiple services (e.g., a checkout flow) |
-| **APM → Services** | Explore telemetry from the optional agentic services when that layer is enabled |
-| **Hosts** | See the host running the demo; explore CPU, memory, disk, and network metrics |
-| **Infrastructure → Inventory** | See containers (Docker) or pods/nodes (Kubernetes) |
-| **Dashboards → [System] OTel Host Metrics** | Host-level metrics dashboard |
-| **Dashboards → [Kubernetes] Cluster Overview** | Kubernetes metrics dashboard (K8s deployments only) |
+| Language | Services | Implementation |
+| ---------- | ---------- | ---------------- |
+| Java | Ad, Fraud Detection, Kafka | EDOT Java agent |
+| .NET | Cart, Accounting | EDOT .NET with zero-code instrumentation |
+| Node.js | Payment | EDOT Node.js agent |
+| Python | Recommendation | EDOT Python |
+| PHP | Quote | EDOT PHP with zero-code instrumentation |
 
-### What you're seeing
+See the services' `Dockerfile.elastic` files and
+[docker-compose.elastic.yml](../docker-compose.elastic.yml) for configuration.
+The collector uses the [Elastic OpenTelemetry Collector
+distribution][edot-collector].
+Upstream modes use upstream instrumentation and the Collector Contrib
+distribution instead.
 
-**Traces**
-Each user action (browse, add to cart, checkout) generates a distributed trace that spans multiple services. For example, a checkout request flows through:
-`frontend → checkout → cart → payment → shipping → email`
+For general application documentation, see the
+[upstream demo documentation](https://opentelemetry.io/docs/demo/).
+To contribute, read [CONTRIBUTING.md](../CONTRIBUTING.md).
 
-**Service map**
-Shows the architecture of the demo application:
-- Frontend calls product catalog, cart, checkout, recommendation, and other core services
-- Checkout orchestrates calls to payment, shipping, and email services
-- The optional chatbot calls the agent, which uses MCP tools to interact with the shop
-- All services report to the OpenTelemetry Collector
-
-**Infrastructure metrics**
-CPU, memory, disk I/O, and network metrics from the host and containers running the demo services.
-
-**Kubernetes metrics** (K8s deployments only)
-Pod, node, and deployment metrics from your cluster, including resource utilization and pod status.
-
-**Agentic observability**
-The optional agentic layer includes chatbot, agent, and MCP services. To use a real OpenAI-compatible LLM, configure `.env.override`:
-> ```
-> LLM_BASE_URL=https://api.openai.com/v1
-> LLM_MODEL=gpt-4o-mini
-> OPENAI_API_KEY=<your-api-key>
-> ```
-
-### Screenshots
-
-#### Service map
-
-![Service map](service-map.png "Service map")
-
-#### Traces
-
-![Traces](trace.png "Traces")
-
-#### Correlation
-
-![Correlation](correlation.png "Correlation")
-
-#### Logs
-
-![Logs](logs.png "Logs")
-
-## Testing with a custom component
-
-Suppose you want to see how your new processor is going to play out in this demo app. You can create a custom OpenTelemetry collector and test it within this demo app by following these steps:
-1. Follow the instructions in the [elastic-collector-components](https://github.com/elastic/opentelemetry-collector-components/blob/main/README.md) repo in order to build a Docker image
-   that contains your custom component
-2. Edit the [deployment.yaml](https://github.com/elastic/opentelemetry-demo/blob/main/kubernetes/elastic-helm/deployment.yaml) file:
-   - change the `opentelemetry-collector` [image definitions](https://github.com/elastic/opentelemetry-demo/blob/27b4923ba9acd316d3726a29aad1f7e32299bc8c/kubernetes/elastic-helm/deployment.yaml#L36)
-   to point at your custom image repository and tag
-   - add your component configuration to the proper sub-section of the [`config` section](https://github.com/elastic/opentelemetry-demo/blob/27b4923ba9acd316d3726a29aad1f7e32299bc8c/kubernetes/elastic-helm/deployment.yaml#L62). For example, if you are testing a processor, make sure to add its config to the `processors` sub-section.
-   - add your component to the proper sub-section of the [`service` section](https://github.com/elastic/opentelemetry-demo/blob/27b4923ba9acd316d3726a29aad1f7e32299bc8c/kubernetes/elastic-helm/deployment.yaml#L96). For example, if you are testing a logs processor, make sure to add its config to the `processors` sub-section of the `logs` pipeline.
-3. If you wish to enable Kubernetes node level metrics collection, edit the [daemonset.yaml](https://github.com/elastic/opentelemetry-demo/blob/main/kubernetes/elastic-helm/daemonset.yaml) file:
-   - change the [`image` section](https://github.com/elastic/opentelemetry-demo/blob/27b4923ba9acd316d3726a29aad1f7e32299bc8c/kubernetes/elastic-helm/deployment.yaml#L36)
-   to point at your custom image repository and tag
-   - add your component configuration to the proper sub-section of the [`config` section](https://github.com/elastic/opentelemetry-demo/blob/27b4923ba9acd316d3726a29aad1f7e32299bc8c/kubernetes/elastic-helm/daemonset.yaml#L57). For example, if you are testing a processor, make sure to add its config to the `processors` sub-section.
-   - add your component to the proper sub-section of the [`service` section](https://github.com/elastic/opentelemetry-demo/blob/27b4923ba9acd316d3726a29aad1f7e32299bc8c/kubernetes/elastic-helm/daemonset.yaml#L309). For example, if you are testing a logs processor, make sure to add its config to the `processors` sub-section of the `logs` pipeline.
-4. Apply the Helm chart changes and install it:
-   ```
-   # !(when running it for the first time) add the open-telemetry Helm repostiroy
-   helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
-
-   # !(when an older helm open-telemetry repo exists) update the open-telemetry helm repo
-   helm repo update open-telemetry
-
-   # deploy the demo through helm install
-   helm install -f deployment.yaml my-otel-demo open-telemetry/opentelemetry-demo
-   ```
-
-## Clean-up
-
-- **Docker**. Run `./demo.sh destroy docker`
-- **Kubernetes**. Run `./demo.sh destroy k8s`
+[docker-docs]: https://opentelemetry.io/docs/demo/docker-deployment/
+[kubernetes-docs]: https://opentelemetry.io/docs/demo/kubernetes-deployment/
+[start-local]: https://github.com/elastic/start-local
+[edot-quickstarts]: https://www.elastic.co/docs/solutions/observability/get-started/opentelemetry/quickstart
+[edot-collector]: https://www.elastic.co/docs/reference/opentelemetry/edot-collector
+[collector-components]: https://github.com/elastic/opentelemetry-collector-components
