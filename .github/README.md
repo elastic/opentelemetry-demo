@@ -5,17 +5,18 @@ Run the **Astronomy Shop**, a microservice demo that generates traffic
 automatically, and explore its traces, metrics, and logs in Elastic Observability.
 
 This fork uses **Elastic Distributions of OpenTelemetry (EDOT)** for selected
-language agents and the collector. You can also run it with upstream
-OpenTelemetry instrumentation while sending telemetry to Elastic.
+language agents and **Elastic Agent** for OpenTelemetry collection. You can also
+run it with upstream OpenTelemetry instrumentation while sending telemetry to
+Elastic.
 
 ## Choose your setup
 
 | Goal | Start command | Backend |
 | ------ | --------------- | --------- |
-| Docker with EDOT | `./demo.sh docker` | Elastic Cloud |
+| Docker with Elastic Agent | `./demo.sh docker` | Elastic Cloud |
 | Everything on your machine | `./demo.sh docker self-hosted` | Local Elastic Stack via start-local |
 | Docker with upstream OpenTelemetry | `./demo.sh docker upstream` | Elastic Cloud |
-| Kubernetes with EDOT | `./demo.sh k8s` | Elastic Cloud |
+| Kubernetes with Elastic Agent | `./demo.sh k8s` | Elastic Cloud |
 | Kubernetes with upstream OpenTelemetry | `./demo.sh k8s upstream` | Elastic Cloud |
 
 For your first run, follow [Docker](#docker). To run without a Cloud account,
@@ -62,7 +63,7 @@ is not a substitute for that endpoint.
 
 The startup script prompts for the endpoint and API key unless saved values
 already exist in `.env.override`. The API key is hidden while you type it.
-Docker EDOT and Kubernetes EDOT setup save these values in `.env.override`:
+Docker and Kubernetes Elastic Agent setups save these values in `.env.override`:
 
 ```dotenv
 ELASTIC_OTLP_ENDPOINT="<your-OTLP-endpoint>"
@@ -86,7 +87,7 @@ cluster.
 - Keep port `8080` available for the shop. start-local also uses ports
   `9200` and `5601`.
 
-### Docker with EDOT
+### Docker with Elastic Agent
 
 1. Prepare your [Elastic Cloud credentials](#elastic-cloud-credentials).
 2. Start the demo and enter the endpoint and API key when prompted:
@@ -105,10 +106,10 @@ To remove the demo later, use `./demo.sh destroy docker`. See
 
 ### Local Elastic Stack with start-local
 
-[start-local][start-local] runs Elasticsearch, Kibana, and an EDOT Collector on
-your machine for local testing.
+[start-local][start-local] runs Elasticsearch, Kibana, and Elastic Agent on your
+machine for local testing.
 
-1. Start the Elastic Stack with EDOT from the repository root:
+1. Start the Elastic Stack with OpenTelemetry collection enabled:
 
    ```sh
    curl -fsSL https://elastic.co/start-local | sh -s -- --edot
@@ -122,15 +123,14 @@ your machine for local testing.
    ./demo.sh docker self-hosted
    ```
 
-   This mode forwards telemetry through the start-local EDOT Collector and does
+   This mode forwards telemetry through the start-local Elastic Agent and does
    not prompt for Cloud credentials.
 3. Open the shop at <http://localhost:8080> and Kibana at
    <http://localhost:5601>. Continue with
    [Verify telemetry and explore](#verify-telemetry-and-explore).
 
 The telemetry path is:
-`demo services → demo EDOT Collector → start-local EDOT Collector →
-Elasticsearch`.
+`demo services → demo Elastic Agent → start-local Elastic Agent → Elasticsearch`.
 See [Clean up](#clean-up) to stop or remove both stacks.
 
 ### Docker with upstream OpenTelemetry
@@ -148,7 +148,7 @@ to Elastic over OTLP HTTP.
 
 Open <http://localhost:8080>, then
 [verify telemetry](#verify-telemetry-and-explore). Some Elastic dashboards may
-show less data than in EDOT mode. Remove the demo with
+show less data than with Elastic Agent. Remove the demo with
 `./demo.sh destroy docker` when finished.
 
 ## Kubernetes
@@ -169,17 +169,17 @@ kubectl get nodes
 helm version
 ```
 
-The demo is installed in your current Kubernetes namespace. The EDOT collector
+The demo is installed in your current Kubernetes namespace. The Elastic Agent
 stack is installed in `opentelemetry-operator-system`.
 
-### Kubernetes with EDOT
+### Kubernetes with Elastic Agent
 
 ```sh
 ./demo.sh k8s
 ```
 
-Enter the endpoint and API key when prompted. The script installs the EDOT
-collector stack and the demo using the chart versions pinned in
+Enter the endpoint and API key when prompted. The script installs the Elastic Agent
+stack and the demo using the chart versions pinned in
 [demo.sh](../demo.sh).
 
 ### Kubernetes with upstream OpenTelemetry
@@ -191,7 +191,7 @@ collector stack and the demo using the chart versions pinned in
 This installs the demo with upstream instrumentation and its bundled collector,
 configured to export telemetry to Elastic. The credential Secret is created in
 your current namespace. Some Elastic dashboards may show less data than in
-EDOT mode.
+Elastic Agent mode.
 
 ### Open the shop
 
@@ -215,12 +215,12 @@ See [Clean up](#clean-up) for removal instructions.
 
 ### Kubernetes architecture
 
-![EDOT collectors forwarding Kubernetes telemetry to Elastic Cloud](../kubernetes/elastic-helm/elastic-architecture-v2.png)
+![Elastic Agent instances forwarding Kubernetes telemetry to Elastic Cloud](../kubernetes/elastic-helm/elastic-architecture-v2.png)
 
-In EDOT mode, demo services send telemetry to the per-node collector, which also
-collects container logs and host and kubelet metrics. A separate collector gathers
+Demo services send telemetry to the per-node Elastic Agent, which also collects
+container logs and host and kubelet metrics. A separate Elastic Agent gathers
 cluster metrics and Kubernetes events. Both forward telemetry through the gateway
-to the Elastic Cloud OTLP endpoint.
+Elastic Agent to the Elastic Cloud OTLP endpoint.
 
 ## Verify telemetry and explore
 
@@ -247,7 +247,7 @@ can vary by Elastic deployment and version.
 | APM services | Latency, throughput, errors, and transaction traces |
 | Service map | Dependencies between the shop's services |
 | Logs / Discover | Service logs and correlation with trace IDs |
-| Hosts | CPU, memory, disk, and network metrics collected by EDOT |
+| Hosts | CPU, memory, disk, and network metrics collected by Elastic Agent |
 | Infrastructure | Available container, pod, and node telemetry |
 | Dashboards | `[System] OTel Host Metrics` and, for Kubernetes, `[Kubernetes] Cluster Overview`, when installed |
 
@@ -330,7 +330,7 @@ To uninstall the local Elastic Stack and permanently delete its data:
 
 ### Kubernetes demo
 
-For EDOT mode:
+For Elastic Agent mode:
 
 ```sh
 ./demo.sh destroy k8s
@@ -358,7 +358,8 @@ Prepare your [Elastic Cloud credentials](#elastic-cloud-credentials), then edit
 `.env.override` with your endpoint and API key. Keep the Elastic image,
 Dockerfile, and collector overrides provided by this fork.
 
-Start the demo with the same Compose layers used by the automated EDOT setup:
+Start the demo with the same Compose layers used by the automated Elastic Agent
+setup:
 
 ```sh
 docker compose --env-file .env --env-file .env.override \
@@ -369,8 +370,8 @@ docker compose --env-file .env --env-file .env.override \
 
 ### Manual Kubernetes configuration
 
-Follow the [EDOT Kubernetes quickstart][edot-quickstarts] for your Elastic
-deployment type. The demo's
+Follow the [Elastic OpenTelemetry Kubernetes quickstart][edot-quickstarts] for
+your Elastic deployment type. The demo's
 [Helm values](../kubernetes/elastic-helm/demo.yml) expect the collector at
 `opentelemetry-kube-stack-daemon-collector.opentelemetry-operator-system.svc.cluster.local`.
 If your collector uses a different name or namespace, update
@@ -388,7 +389,8 @@ helm upgrade --install my-otel-demo open-telemetry/opentelemetry-demo \
 
 ### Enable Kubernetes browser traffic
 
-Browser traffic generation is disabled in the EDOT demo values. To enable it:
+Browser traffic generation is disabled in the Elastic Agent demo values.
+To enable it:
 
 1. Set `LOCUST_BROWSER_TRAFFIC_ENABLED` to `"true"` in
    [demo.yml](../kubernetes/elastic-helm/demo.yml).
@@ -417,7 +419,7 @@ component in the collector configuration and include it in the relevant
 
 For Docker, set `COLLECTOR_CONTRIB_IMAGE` and `OTEL_COLLECTOR_CONFIG` in
 `.env.override`, then use [manual Docker setup](#manual-docker-configuration).
-The automated Cloud EDOT command resets those two values.
+The automated Cloud Elastic Agent command resets those two values.
 
 For Kubernetes, customize the collector image and configuration in
 [kube-stack-overrides.yml](../kubernetes/elastic-helm/kube-stack-overrides.yml)
@@ -434,7 +436,7 @@ configure an OpenAI-compatible LLM.
 
 ## How this fork differs
 
-The EDOT modes replace selected upstream agents and the collector:
+Elastic Agent setups also replace selected upstream language agents with EDOT:
 
 | Language | Services | Implementation |
 | ---------- | ---------- | ---------------- |
@@ -446,8 +448,8 @@ The EDOT modes replace selected upstream agents and the collector:
 
 See the services' `Dockerfile.elastic` files and
 [docker-compose.elastic.yml](../docker-compose.elastic.yml) for configuration.
-The collector uses the [Elastic OpenTelemetry Collector
-distribution][edot-collector].
+[Elastic Agent][elastic-agent] includes the OpenTelemetry Collector used by
+this fork.
 Upstream modes use upstream instrumentation and the Collector Contrib
 distribution instead.
 
@@ -459,5 +461,5 @@ To contribute, read [CONTRIBUTING.md](../CONTRIBUTING.md).
 [kubernetes-docs]: https://opentelemetry.io/docs/demo/kubernetes-deployment/
 [start-local]: https://github.com/elastic/start-local
 [edot-quickstarts]: https://www.elastic.co/docs/solutions/observability/get-started/opentelemetry/quickstart
-[edot-collector]: https://www.elastic.co/docs/reference/opentelemetry/edot-collector
+[elastic-agent]: https://www.elastic.co/docs/reference/edot-collector
 [collector-components]: https://github.com/elastic/opentelemetry-collector-components
