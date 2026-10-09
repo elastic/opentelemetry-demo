@@ -215,7 +215,47 @@ See [Clean up](#clean-up) for removal instructions.
 
 ### Kubernetes architecture
 
-![Elastic Agent instances forwarding Kubernetes telemetry to Elastic Cloud](../kubernetes/elastic-helm/elastic-architecture-v2.png)
+```mermaid
+flowchart LR
+    subgraph K8S["Kubernetes cluster"]
+        direction LR
+
+        APP["Demo services<br/>Ad · Payment · Shipping · …<br/>OpenTelemetry instrumentation"]
+        NODE["Node telemetry<br/>Container logs<br/>Host and kubelet metrics"]
+
+        subgraph AGENTS["opentelemetry-operator-system"]
+            direction LR
+
+            DAEMON["Elastic Agent<br/>Node · DaemonSet per node<br/><br/>OTLP receiver<br/>filelog · hostmetrics · kubeletstats<br/>Kubernetes metadata<br/>Resource detection and batching"]
+
+            CLUSTER["Elastic Agent<br/>Cluster · Deployment<br/><br/>Cluster metrics<br/>Kubernetes events<br/>Kubernetes metadata"]
+
+            GATEWAY["Elastic Agent<br/>Gateway · Deployment<br/><br/>OTLP receiver<br/>Span sanitization<br/>OTLP exporters<br/>API key from Kubernetes Secret"]
+        end
+
+        APP -->|"OTLP: traces, metrics, logs"| DAEMON
+        NODE -->|Collect| DAEMON
+        DAEMON -->|OTLP| GATEWAY
+        CLUSTER -->|OTLP| GATEWAY
+    end
+
+    CLOUD["Elastic Cloud<br/><br/>OTLP ingestion endpoint<br/>Elasticsearch<br/>Explore in Kibana"]
+    GATEWAY -->|"OTLP: authenticated export"| CLOUD
+
+    classDef application fill:#F1F6FF,stroke:#0B64DD,color:#111C2C
+    classDef node fill:#EAFBFA,stroke:#008B87,color:#111C2C
+    classDef cluster fill:#FFF0F8,stroke:#BC1E70,color:#111C2C
+    classDef cloud fill:#111C2C,stroke:#111C2C,color:#FFFFFF
+
+    class APP,DAEMON application
+    class NODE,GATEWAY node
+    class CLUSTER cluster
+    class CLOUD cloud
+
+    style K8S fill:#F6F9FC,stroke:#CAD3E2,color:#111C2C
+    style AGENTS fill:#FFFFFF,stroke:#CAD3E2,color:#384861
+    linkStyle default stroke:#0B64DD,stroke-width:2px
+```
 
 Demo services send telemetry to the per-node Elastic Agent, which also collects
 container logs and host and kubelet metrics. A separate Elastic Agent gathers
