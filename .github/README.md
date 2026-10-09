@@ -104,6 +104,41 @@ cluster.
 To remove the demo later, use `./demo.sh destroy docker`. See
 [Clean up](#clean-up) for what this deletes.
 
+#### Docker Elastic Agent architecture
+
+```mermaid
+---
+title: Docker with Elastic Agent
+---
+%%{init: {"theme": "base", "flowchart": {"htmlLabels": true, "titleTopMargin": 24}, "markdownAutoWrap": false, "themeVariables": {"darkMode": true, "fontSize": "16px", "background": "#07101F", "primaryColor": "#0A2342", "primaryTextColor": "#E3E8F2", "primaryBorderColor": "#61A2FF", "lineColor": "#61A2FF", "textColor": "#E3E8F2", "edgeLabelBackground": "#111C2C", "clusterBkg": "#0B1628", "clusterBorder": "#485975"}}}%%
+flowchart LR
+    subgraph ARCH[" "]
+        direction LR
+        subgraph DEMO["Demo Docker network"]
+            APP["<b>Demo services</b><br/><br/><i>EDOT + OpenTelemetry</i><br/>Traces, metrics and logs"]
+            COLLECTOR["<b>Elastic Agent</b><br/><i>Demo collector</i><br/><br/>Batch telemetry<br/>Normalize span names"]
+            APP -->|OTLP| COLLECTOR
+        end
+        HOST["<b>Infrastructure telemetry</b><br/><br/>Host metrics<br/>Frontend availability"]
+        HOST -->|Collect| COLLECTOR
+        CLOUD["<b>Elastic Cloud</b><br/><i>OTLP ingestion endpoint</i><br/><br/>Storage in Elasticsearch<br/>Explore in Kibana"]
+        COLLECTOR -->|"OTLP/HTTP export<br/>API key authentication"| CLOUD
+    end
+
+    class APP application
+    class COLLECTOR agent
+    class HOST source
+    class CLOUD backend
+    style DEMO fill:#0B1628,stroke:#485975,color:#E3E8F2
+    classDef application fill:#0A2342,stroke:#61A2FF,color:#E3E8F2,font-size:16px
+    classDef agent fill:#03282B,stroke:#16C5C0,color:#E3E8F2,font-size:16px
+    classDef source fill:#351725,stroke:#EE72A6,color:#E3E8F2,font-size:14px
+    classDef backend fill:#111C2C,stroke:#16C5C0,color:#E3E8F2,font-size:16px
+
+    style ARCH fill:#07101F,stroke:#2B394F,color:#E3E8F2
+    linkStyle default stroke:#61A2FF,stroke-width:2px
+```
+
 ### Local Elastic Stack with start-local
 
 [start-local][start-local] runs Elasticsearch, Kibana, and Elastic Agent on your
@@ -133,6 +168,51 @@ The telemetry path is:
 `demo services → demo Elastic Agent → start-local Elastic Agent → Elasticsearch`.
 See [Clean up](#clean-up) to stop or remove both stacks.
 
+#### Local Elastic Stack architecture
+
+```mermaid
+---
+title: Local Elastic Stack with start-local
+---
+%%{init: {"theme": "base", "flowchart": {"htmlLabels": true, "titleTopMargin": 24}, "markdownAutoWrap": false, "themeVariables": {"darkMode": true, "fontSize": "16px", "background": "#07101F", "primaryColor": "#0A2342", "primaryTextColor": "#E3E8F2", "primaryBorderColor": "#61A2FF", "lineColor": "#61A2FF", "textColor": "#E3E8F2", "edgeLabelBackground": "#111C2C", "clusterBkg": "#0B1628", "clusterBorder": "#485975"}}}%%
+flowchart LR
+    subgraph ARCH[" "]
+        direction LR
+        subgraph DEMO["Demo Docker network"]
+            APP["<b>Demo services</b><br/><br/><i>EDOT + OpenTelemetry</i><br/>Traces, metrics and logs"]
+            COLLECTOR["<b>Elastic Agent</b><br/><i>Demo collector</i><br/><br/>Batch telemetry<br/>Normalize span names"]
+            APP -->|OTLP| COLLECTOR
+        end
+        HOST["<b>Infrastructure telemetry</b><br/><br/>Host metrics<br/>Frontend availability"]
+        HOST -->|Collect| COLLECTOR
+        subgraph LOCAL["elastic-start-local_default network"]
+            LOCAL_AGENT["<b>Elastic Agent</b><br/><i>start-local collector</i><br/><br/>Receive OTLP<br/>Export to Elasticsearch"]
+            ES["<b>Elasticsearch</b><br/><br/>Store telemetry"]
+            KIBANA["<b>Kibana</b><br/><br/>Explore local telemetry"]
+            LOCAL_AGENT -->|Export| ES
+            ES -->|"Telemetry data"| KIBANA
+        end
+        COLLECTOR -->|"OTLP/HTTP · port 4318"| LOCAL_AGENT
+    end
+
+    class APP application
+    class HOST source
+    class COLLECTOR,LOCAL_AGENT agent
+    class ES,KIBANA backend
+    style DEMO fill:#0B1628,stroke:#485975,color:#E3E8F2
+    style LOCAL fill:#111C2C,stroke:#485975,color:#B4C1D5
+    classDef application fill:#0A2342,stroke:#61A2FF,color:#E3E8F2,font-size:16px
+    classDef agent fill:#03282B,stroke:#16C5C0,color:#E3E8F2,font-size:16px
+    classDef source fill:#351725,stroke:#EE72A6,color:#E3E8F2,font-size:14px
+    classDef backend fill:#111C2C,stroke:#16C5C0,color:#E3E8F2,font-size:16px
+
+    style ARCH fill:#07101F,stroke:#2B394F,color:#E3E8F2
+    linkStyle default stroke:#61A2FF,stroke-width:2px
+```
+
+The demo collector joins both Docker networks to reach the start-local collector.
+This local forwarding path does not require Elastic Cloud credentials.
+
 ### Docker with upstream OpenTelemetry
 
 Prepare your [Elastic Cloud credentials](#elastic-cloud-credentials), then run:
@@ -150,6 +230,41 @@ Open <http://localhost:8080>, then
 [verify telemetry](#verify-telemetry-and-explore). Some Elastic dashboards may
 show less data than with Elastic Agent. Remove the demo with
 `./demo.sh destroy docker` when finished.
+
+#### Docker upstream architecture
+
+```mermaid
+---
+title: Docker with upstream OpenTelemetry
+---
+%%{init: {"theme": "base", "flowchart": {"htmlLabels": true, "titleTopMargin": 24}, "markdownAutoWrap": false, "themeVariables": {"darkMode": true, "fontSize": "16px", "background": "#07101F", "primaryColor": "#0A2342", "primaryTextColor": "#E3E8F2", "primaryBorderColor": "#61A2FF", "lineColor": "#61A2FF", "textColor": "#E3E8F2", "edgeLabelBackground": "#111C2C", "clusterBkg": "#0B1628", "clusterBorder": "#485975"}}}%%
+flowchart LR
+    subgraph ARCH[" "]
+        direction LR
+        subgraph DEMO["Demo Docker network"]
+            APP["<b>Demo services</b><br/><br/><i>Upstream OpenTelemetry</i><br/>Traces, metrics and logs"]
+            COLLECTOR["<b>OpenTelemetry Collector</b><br/><i>Contrib distribution</i><br/><br/>Receive and process OTLP<br/>Export to Elastic"]
+            APP -->|OTLP| COLLECTOR
+        end
+        HOST["<b>Infrastructure telemetry</b><br/><br/>Host and container metrics<br/>Service metrics"]
+        HOST -->|Collect| COLLECTOR
+        CLOUD["<b>Elastic Cloud</b><br/><i>OTLP ingestion endpoint</i><br/><br/>Storage in Elasticsearch<br/>Explore in Kibana"]
+        COLLECTOR -->|"OTLP/HTTP export<br/>API key authentication"| CLOUD
+    end
+
+    class APP application
+    class COLLECTOR agent
+    class HOST source
+    class CLOUD backend
+    style DEMO fill:#0B1628,stroke:#485975,color:#E3E8F2
+    classDef application fill:#0A2342,stroke:#61A2FF,color:#E3E8F2,font-size:16px
+    classDef agent fill:#03282B,stroke:#16C5C0,color:#E3E8F2,font-size:16px
+    classDef source fill:#351725,stroke:#EE72A6,color:#E3E8F2,font-size:14px
+    classDef backend fill:#111C2C,stroke:#16C5C0,color:#E3E8F2,font-size:16px
+
+    style ARCH fill:#07101F,stroke:#2B394F,color:#E3E8F2
+    linkStyle default stroke:#61A2FF,stroke-width:2px
+```
 
 ## Kubernetes
 
@@ -193,6 +308,41 @@ configured to export telemetry to Elastic. The credential Secret is created in
 your current namespace. Some Elastic dashboards may show less data than in
 Elastic Agent mode.
 
+#### Kubernetes upstream architecture
+
+```mermaid
+---
+title: Kubernetes with upstream OpenTelemetry
+---
+%%{init: {"theme": "base", "flowchart": {"htmlLabels": true, "titleTopMargin": 24}, "markdownAutoWrap": false, "themeVariables": {"darkMode": true, "fontSize": "16px", "background": "#07101F", "primaryColor": "#0A2342", "primaryTextColor": "#E3E8F2", "primaryBorderColor": "#61A2FF", "lineColor": "#61A2FF", "textColor": "#E3E8F2", "edgeLabelBackground": "#111C2C", "clusterBkg": "#0B1628", "clusterBorder": "#485975"}}}%%
+flowchart LR
+    subgraph ARCH[" "]
+        direction LR
+        subgraph K8S["Kubernetes cluster · demo namespace"]
+            APP["<b>Demo services</b><br/><br/><i>Upstream OpenTelemetry</i><br/>Traces, metrics and logs"]
+            COLLECTOR["<b>OpenTelemetry Collector</b><br/><i>Bundled with demo chart</i><br/><br/>Receive and process OTLP<br/>Export to Elastic"]
+            SECRET["<b>Kubernetes Secret</b><br/><br/>elastic-secret-otel<br/>Endpoint and API key"]
+            APP -->|OTLP| COLLECTOR
+            SECRET -.->|Configure| COLLECTOR
+        end
+        CLOUD["<b>Elastic Cloud</b><br/><i>OTLP ingestion endpoint</i><br/><br/>Storage in Elasticsearch<br/>Explore in Kibana"]
+        COLLECTOR -->|"OTLP/HTTP export<br/>API key authentication"| CLOUD
+    end
+
+    class APP application
+    class COLLECTOR agent
+    class SECRET source
+    class CLOUD backend
+    style K8S fill:#0B1628,stroke:#485975,color:#E3E8F2
+    classDef application fill:#0A2342,stroke:#61A2FF,color:#E3E8F2,font-size:16px
+    classDef agent fill:#03282B,stroke:#16C5C0,color:#E3E8F2,font-size:16px
+    classDef source fill:#351725,stroke:#EE72A6,color:#E3E8F2,font-size:14px
+    classDef backend fill:#111C2C,stroke:#16C5C0,color:#E3E8F2,font-size:16px
+
+    style ARCH fill:#07101F,stroke:#2B394F,color:#E3E8F2
+    linkStyle default stroke:#61A2FF,stroke-width:2px
+```
+
 ### Open the shop
 
 Check the demo pods and find the frontend proxy Service:
@@ -213,7 +363,7 @@ installed in another namespace, add `-n <namespace>` to the commands.
 Continue with [Verify telemetry and explore](#verify-telemetry-and-explore).
 See [Clean up](#clean-up) for removal instructions.
 
-### Kubernetes architecture
+### Kubernetes Elastic Agent architecture
 
 ```mermaid
 ---
