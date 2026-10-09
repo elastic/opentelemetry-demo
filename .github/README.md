@@ -475,7 +475,7 @@ own deployment. Click an image to view it at full size.
 #### Service map
 
 Explore service dependencies and identify services with active alerts or violated
-SLOs.
+SLOs. [Explore the live service map](https://otel.demo.elastic.co/app/apm/service-map).
 
 [![Astronomy Shop service map with dependencies and service health](service-map.png)](service-map.png)
 
@@ -483,20 +483,21 @@ SLOs.
 
 Follow a checkout request across services. The waterfall shows time spent in each
 operation and a payment error propagating back through checkout and the frontend.
+[Explore live checkout traces](https://otel.demo.elastic.co/app/apm/services/load-generator/transactions/view?transactionName=user_checkout_single&transactionType=unknown&rangeFrom=now-1h&rangeTo=now-2m&environment=ENVIRONMENT_ALL).
 
 [![Checkout trace waterfall spanning the shop services and showing a payment error](trace.png)](trace.png)
 
 #### Service inventory
 
 Compare latency, throughput, and failed transaction rates to decide which service
-to investigate first.
+to investigate first. [Explore the live service inventory](https://otel.demo.elastic.co/app/apm/services).
 
 [![Service inventory comparing latency, throughput, errors, alerts, and SLOs](service-inventory.png)](service-inventory.png)
 
 #### Logs
 
 Inspect the load generator's shopping activity alongside service and Kubernetes
-metadata.
+metadata. [Explore live service logs](https://otel.demo.elastic.co/app/apm/services/load-generator/logs?rangeFrom=now-15m&rangeTo=now&environment=ENVIRONMENT_ALL).
 
 [![Load generator logs showing product browsing, cart activity, and checkout](logs.png)](logs.png)
 
