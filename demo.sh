@@ -281,7 +281,7 @@ destroy_docker() {
 destroy_k8s() {
   echo
   helm uninstall "$DEMO_RELEASE" --ignore-not-found
-  helm uninstall "$KUBE_STACK_RELEASE" -n "$NAMESPACE" --ignore-not-found
+  helm uninstall "$KUBE_STACK_RELEASE" -n "$NAMESPACE" --ignore-not-found --timeout 10m
   kubectl delete secret "$SECRET_NAME" -n "$NAMESPACE" --ignore-not-found
   kubectl delete namespace "$NAMESPACE" --ignore-not-found --wait=false --timeout=60s
   echo
