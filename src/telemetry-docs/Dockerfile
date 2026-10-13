@@ -4,32 +4,28 @@
 # Two-stage build: Generate service-centric Markdown with Weaver, then serve with mkdocs
 
 # Stage 1: Generate Markdown files from telemetry schema using Weaver
-FROM docker.io/otel/weaver:v0.24.2@sha256:d1fb16d279f39810c340fbbf1cf9e5e995a3a9cefa531938e9012437e3bc00c1 AS registry-builder
+FROM docker.io/otel/weaver:v0.26.1@sha256:9094862c0ab261bdbcb079bb981f9a573b3659b130a6d2ab8616eca6ba37aaec AS registry-builder
 
-WORKDIR /workspace
+WORKDIR /home/weaver
 
-# Copy the telemetry schema
-COPY telemetry-schema /workspace/telemetry-schema
+# Copy the telemetry schema and templates, owned by the running user
+COPY --chown=weaver:weaver telemetry-schema ./telemetry-schema
+COPY --chown=weaver:weaver src/telemetry-docs/templates ./templates
 
-# Copy the Weaver templates
-COPY src/telemetry-docs/templates /workspace/templates
-
-# Generate service-centric pages and mkdocs.yml using Weaver
 RUN /weaver/weaver registry generate \
-    --registry=/workspace/telemetry-schema \
-    --templates=/workspace/templates \
+    --registry=./telemetry-schema \
+    --templates=./templates \
     markdown \
-    /workspace/docs
+    ./docs
 
-# Generate packaged resolved schema
 RUN /weaver/weaver registry package \
-    --registry=/workspace/telemetry-schema \
+    --registry=./telemetry-schema \
     --resolved-schema-uri=https://opentelemetry.io/schemas/1.40.0 \
-    --output=/workspace/docs/schema \
+    --output=./docs/schema \
     --v2
 
 # Stage 2: Build static site
-FROM docker.io/library/python:3.14.6-slim-bookworm@sha256:86f975aca15cf04a40b399eebede9aea7c82eae084d1f1a0a6ef6bcaae871a30 AS site-builder
+FROM docker.io/library/python:3.14.8-slim-bookworm@sha256:c8137f4c460908c8763f281c8f22c431eb5c538514ba9553fc3a89c06b7cfb88 AS site-builder
 
 WORKDIR /app
 
@@ -38,7 +34,7 @@ COPY src/telemetry-docs/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir --require-hashes -r requirements.txt
 
 COPY src/telemetry-docs/mkdocs.yml /app/mkdocs-base.yml
-COPY --from=registry-builder /workspace/docs /app/docs
+COPY --from=registry-builder /home/weaver/docs /app/docs
 
 RUN mv /app/docs/mkdocs.yml /app/mkdocs.yml && \
     mkdocs build --clean
@@ -51,6 +47,7 @@ USER 101
 COPY --from=site-builder /app/site /static
 COPY src/telemetry-docs/nginx.conf.template /nginx.conf.template
 
+ARG TELEMETRY_DOCS_PORT=8000
 EXPOSE ${TELEMETRY_DOCS_PORT}
 
 STOPSIGNAL SIGQUIT

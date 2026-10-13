@@ -2,6 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+FROM ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs:0.78.0@sha256:576e2b00bdf9a6040a7e3a497dd5eea4e624f60dcfd28871d9190752a0f18955 AS otelagent
+
+# -----------------------------------------------------------------------------
+
 FROM docker.io/library/node:26.4.0-slim@sha256:a1d9d671994fc2d26e297ac56b4b1522a8bc7fa71c43b14cd1b1fe6c5116f7dc AS builder
 
 WORKDIR /usr/src/app/
@@ -19,12 +23,18 @@ WORKDIR /usr/src/app/
 
 COPY --from=builder /usr/src/app/node_modules/ node_modules/
 
+# Path and NODE_OPTIONS value match what the OpenTelemetry Operator injects, so a
+# statically built image and an operator-injected pod behave identically. Changing
+# either breaks that equivalence.
+COPY --from=otelagent /autoinstrumentation /otel-auto-instrumentation-nodejs
+
 COPY ./pb/demo.proto demo.proto
 
 COPY ./src/payment/charge.js charge.js
 COPY ./src/payment/index.js index.js
 COPY ./src/payment/logger.js logger.js
 
+ARG PAYMENT_PORT=50051
 EXPOSE ${PAYMENT_PORT}
 
 ENV OTEL_EXPORTER_OTLP_PROTOCOL=grpc

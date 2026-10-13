@@ -74,6 +74,8 @@ var (
 	initResourcesOnce sync.Once
 )
 
+const emailRequestTimeout = time.Second
+
 func initResource() *sdkresource.Resource {
 	initResourcesOnce.Do(func() {
 		extraResources, _ := sdkresource.New(
@@ -269,15 +271,13 @@ func main() {
 	healthcheck := health.NewServer()
 	healthpb.RegisterHealthServer(srv, healthcheck)
 	logger.Info(fmt.Sprintf("starting to listen on tcp: %q", lis.Addr().String()))
-	err = srv.Serve(lis)
-	logger.Error(err.Error())
 
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGKILL)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
 	go func() {
 		if err := srv.Serve(lis); err != nil {
-			logger.Error(err.Error())
+			logger.Error("Failed to serve gRPC server", slog.Any("error", err))
 		}
 	}()
 
@@ -309,6 +309,14 @@ func (cs *checkout) PlaceOrder(ctx context.Context, req *pb.PlaceOrderRequest) (
 		attribute.String("user.id", req.UserId),
 		attribute.String("demo.user_context.selected_currency", req.UserCurrency),
 	)
+
+	if flags.EmitRawPii.Value(ctx, openfeature.EvaluationContext{}) {
+		span.SetAttributes(
+			attribute.String("user.email", req.GetEmail()),
+			attribute.String("demo.payment.card_number", req.GetCreditCard().GetCreditCardNumber()),
+			attribute.Int("demo.payment.card_cvv", int(req.GetCreditCard().GetCreditCardCvv())),
+		)
+	}
 
 	if baggage.FromContext(ctx).Member("synthetic_request").Value() == "true" {
 		span.SetAttributes(attribute.String("user_agent.synthetic.type", "test"))
@@ -495,7 +503,7 @@ func (cs *checkout) quoteShipping(ctx context.Context, address *pb.Address, item
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed POST to email service: expected 200, got %d", resp.StatusCode)
+		return nil, fmt.Errorf("failed POST to shipping service: expected 200, got %d", resp.StatusCode)
 	}
 
 	shippingQuoteBytes, err := io.ReadAll(resp.Body)
@@ -589,7 +597,10 @@ func (cs *checkout) sendOrderConfirmation(ctx context.Context, email string, ord
 		return fmt.Errorf("failed to marshal order to JSON: %+v", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", cs.emailSvcAddr+"/send_order_confirmation", bytes.NewBuffer(emailPayload))
+	emailCtx, cancel := context.WithTimeout(ctx, emailRequestTimeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(emailCtx, "POST", cs.emailSvcAddr+"/send_order_confirmation", bytes.NewBuffer(emailPayload))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %+v", err)
 	}
@@ -628,7 +639,7 @@ func (cs *checkout) shipOrder(ctx context.Context, address *pb.Address, items []
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("failed POST to email service: expected 200, got %d", resp.StatusCode)
+		return "", fmt.Errorf("failed POST to shipping service: expected 200, got %d", resp.StatusCode)
 	}
 
 	trackingRespBytes, err := io.ReadAll(resp.Body)

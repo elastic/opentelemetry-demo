@@ -9,20 +9,20 @@ import com.google.protobuf.gradle.*
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    kotlin("jvm") version "2.4.10"
+    kotlin("jvm") version "2.4.20"
     application
     id("java")
     id("idea")
     id("com.google.protobuf") version "0.10.0"
-    id("com.gradleup.shadow") version "9.6.0"
+    id("com.gradleup.shadow") version "9.6.1"
 }
 
 group = "io.opentelemetry"
 version = "1.0"
 
 
-val grpcVersion = "1.82.2"
-val protobufVersion = "4.35.1"
+val grpcVersion = "1.84.0"
+val protobufVersion = "4.36.2"
 
 
 repositories {
@@ -37,19 +37,19 @@ dependencies {
     testImplementation(kotlin("test"))
     implementation(kotlin("script-runtime"))
     implementation("org.apache.kafka:kafka-clients:4.3.1")
-    implementation("com.google.api.grpc:proto-google-common-protos:2.73.0")
+    implementation("com.google.api.grpc:proto-google-common-protos:2.78.0")
     implementation("io.grpc:grpc-protobuf:${grpcVersion}")
     implementation("io.grpc:grpc-stub:${grpcVersion}")
     implementation("io.grpc:grpc-netty:${grpcVersion}")
     implementation("io.grpc:grpc-services:${grpcVersion}")
-    implementation("io.opentelemetry:opentelemetry-api:1.64.0")
-    implementation("io.opentelemetry:opentelemetry-sdk:1.64.0")
+    implementation("io.opentelemetry:opentelemetry-api:1.66.0")
+    implementation("io.opentelemetry:opentelemetry-sdk:1.66.0")
     implementation("io.opentelemetry:opentelemetry-extension-annotations:1.18.0")
     implementation("org.apache.logging.log4j:log4j-core:2.26.1")
-    implementation("org.slf4j:slf4j-api:2.0.18")
+    implementation("org.slf4j:slf4j-api:2.0.20")
     implementation("com.google.protobuf:protobuf-kotlin:${protobufVersion}")
-    implementation("dev.openfeature:sdk:1.21.0")
-    implementation("dev.openfeature.contrib.providers:flagd:0.14.0")
+    implementation("dev.openfeature:sdk:1.23.0")
+    implementation("dev.openfeature.contrib.providers:flagd:0.14.2")
 
     if (JavaVersion.current().isJava9Compatible) {
         // Workaround for @javax.annotation.Generated

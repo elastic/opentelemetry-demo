@@ -61,21 +61,22 @@ keeping it up to date for you.
 
 |                           |                |                                  |
 |---------------------------|----------------|----------------------------------|
-| [AlibabaCloud LogService] | [Elastic]      | [Oracle]                         |
-| [Amazon Web Services]     | [Google Cloud] | [Parseable]                      |
-| [Apache Doris]            | [Grafana Labs] | [Sentry]                         |
-| [AppDynamics]             | [Guance]       | [ServiceNow Cloud Observability] |
-| [Aspecto]                 | [Honeycomb.io] | [SigNoz]                         |
-| [Axiom]                   | [Instana]      | [SolarWinds Observability]       |
-| [Axoflow]                 | [Kloudfuse]    | [Splunk]                         |
-| [Azure Data Explorer]     | [Kopai]        | [Sumo Logic]                     |
-| [Bronto]                  | [Last9]        | [TelemetryHub]                   |
-| [Causely]                 | [Liatrio]      | [Teletrace]                      |
-| [ClickStack]              | [Logz.io]      | [Tinybird]                       |
-| [Coralogix]               | [New Relic]    | [Tracetest]                      |
-| [Dash0]                   | [Oodle]        | [Tsuga]                          |
-| [Datadog]                 | [OpenObserve]  | [Uptrace]                        |
-| [Dynatrace]               | [OpenSearch]   | [VictoriaMetrics]                |
+| [AlibabaCloud LogService] | [Google Cloud] | [Rootprint]                      |
+| [Amazon Web Services]     | [Grafana Labs] | [Sentry]                         |
+| [Apache Doris]            | [Guance]       | [ServiceNow Cloud Observability] |
+| [AppDynamics]             | [Honeycomb.io] | [SigNoz]                         |
+| [Aspecto]                 | [Instana]      | [SolarWinds Observability]       |
+| [Axiom]                   | [Kloudfuse]    | [Splunk]                         |
+| [Axoflow]                 | [Kopai]        | [Sumo Logic]                     |
+| [Azure Data Explorer]     | [Last9]        | [TelemetryHub]                   |
+| [Bronto]                  | [Liatrio]      | [Teletrace]                      |
+| [Causely]                 | [Logz.io]      | [Tinybird]                       |
+| [ClickStack]              | [New Relic]    | [Trace0]                         |
+| [Coralogix]               | [Oodle]        | [Tracetest]                      |
+| [Dash0]                   | [OpenObserve]  | [Tsuga]                          |
+| [Datadog]                 | [OpenSearch]   | [Uptrace]                        |
+| [Dynatrace]               | [Oracle]       | [VictoriaMetrics]                |
+| [Elastic]                 | [Parseable]    |                                  |
 
 ## Contributing
 
@@ -83,11 +84,15 @@ To get involved with the project see our [CONTRIBUTING](CONTRIBUTING.md)
 documentation. Our [SIG Calls](CONTRIBUTING.md#join-a-sig-call) are every other
 Wednesday at 8:30 AM PST and anyone is welcome.
 
+New to CNCF Slack? [Create an account](https://slack.cncf.io/) first, then join
+us in
+[`#otel-community-demo`](https://cloud-native.slack.com/archives/C03B4CWV4DA).
+
 ### Maintainers
 
 - [Cyrille Le Clerc](https://github.com/cyrille-leclerc), Datadog
 - [Juliano Costa](https://github.com/julianocosta89), Datadog
-- [Pierre Tessier](https://github.com/puckpuck), Resolve AI
+- [Shenoy Pratik](https://github.com/ps48), AWS OpenSearch
 
 For more information about the maintainer role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer).
 
@@ -95,7 +100,6 @@ For more information about the maintainer role, see the [community repository](h
 
 - [D&#xF3;nal O'Sullivan](https://github.com/osullivandonal), Elastic
 - [Piotr Kie&#x142;kowicz](https://github.com/Kielek), Splunk
-- [Shenoy Pratik](https://github.com/ps48), AWS OpenSearch
 
 For more information about the approver role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).
 
@@ -108,6 +112,7 @@ For more information about the approver role, see the [community repository](htt
 - [Mikko Viitanen](https://github.com/mviitane), Maintainer
 - [Morgan McLean](https://github.com/mtwo), Approver
 - [Penghan Wang](https://github.com/wph95), Approver
+- [Pierre Tessier](https://github.com/puckpuck), Maintainer
 - [Reiley Yang](https://github.com/reyang), Approver
 - [Roger Coll](https://github.com/rogercoll), Maintainer
 - [Ziqi Zhao](https://github.com/fatsheep9146), Approver
@@ -154,6 +159,7 @@ For more information about the emeritus role, see the [community repository](htt
 [OpenObserve]: https://openobserve.ai/blog/opentelemetry-astronomy-shop-demo/
 [Oracle]: https://github.com/oracle-quickstart/oci-o11y-solutions/blob/main/knowledge-content/opentelemetry-demo
 [Parseable]: https://www.parseable.com/blog/open-telemetry-demo-with-parseable-a-complete-observability-setup
+[Rootprint]: https://demo.rootprint.io
 [Sentry]: https://github.com/getsentry/opentelemetry-demo
 [ServiceNow Cloud Observability]: https://docs.lightstep.com/otel/quick-start-operator#send-data-from-the-opentelemetry-demo
 [SigNoz]: https://signoz.io/blog/opentelemetry-demo/
@@ -163,6 +169,7 @@ For more information about the emeritus role, see the [community repository](htt
 [TelemetryHub]: https://github.com/TelemetryHub/opentelemetry-demo/tree/telemetryhub-backend
 [Teletrace]: https://github.com/teletrace/opentelemetry-demo
 [Tinybird]: https://github.com/tinybirdco/opentelemetry-demo
+[Trace0]: https://github.com/Trace0-HQ/opentelemetry-demo
 [Tracetest]: https://github.com/kubeshop/opentelemetry-demo
 [Tsuga]: https://github.com/tsuga-dev/opentelemetry-demo
 [Uptrace]: https://github.com/uptrace/uptrace/tree/master/example/opentelemetry-demo

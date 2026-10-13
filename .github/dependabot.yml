@@ -321,7 +321,7 @@ updates:
     patterns:
       - "*"
     multi-ecosystem-group: "src-chatbot"
-  - package-ecosystem: "gomod"  # zizmor: ignore[dependabot-cooldown] cooldown prevents multi-ecosystem batching
+  - package-ecosystem: "pip"  # zizmor: ignore[dependabot-cooldown] cooldown prevents multi-ecosystem batching
     directories:
       - "/src/load-generator/**"
     patterns:
@@ -408,6 +408,10 @@ updates:
     multi-ecosystem-group: "src-react-native-app"
     allow:
       - dependency-type: "all"
+    ignore:
+      - dependency-name: "json"
+        update-types:
+          - "version-update:semver-major"
   - package-ecosystem: "docker"  # zizmor: ignore[dependabot-cooldown] cooldown prevents multi-ecosystem batching
     directories:
       - "/src/react-native-app/**"
