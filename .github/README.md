@@ -5,9 +5,8 @@ Run the **Astronomy Shop**, a microservice demo that generates traffic
 automatically, and explore its traces, metrics, and logs in Elastic Observability.
 
 This fork uses **Elastic Distributions of OpenTelemetry (EDOT)** for selected
-language agents and **Elastic Agent** for OpenTelemetry collection. You can also
-run it with upstream OpenTelemetry instrumentation while sending telemetry to
-Elastic.
+language agents and **Elastic Agent** for OpenTelemetry collection. Upstream
+Collector modes can also send telemetry to Elastic.
 
 **Explore without installing:** Open the [hosted OpenTelemetry demo in Elastic
 Observability](https://otel.demo.elastic.co/app/apm/services) to browse the
@@ -19,7 +18,7 @@ Astronomy Shop's services and traces without deploying the demo yourself.
 | ------ | --------------- | --------- |
 | Docker with Elastic Agent | `./demo.sh docker` | Elastic Cloud |
 | Everything on your machine | `./demo.sh docker self-hosted` | Local Elastic Stack via start-local |
-| Docker with upstream OpenTelemetry | `./demo.sh docker upstream` | Elastic Cloud |
+| Docker with upstream Collector | `./demo.sh docker upstream` | Elastic Cloud |
 | Kubernetes with Elastic Agent | `./demo.sh k8s` | Elastic Cloud |
 | Kubernetes with upstream OpenTelemetry | `./demo.sh k8s upstream` | Elastic Cloud |
 
@@ -217,7 +216,7 @@ flowchart LR
 The demo collector joins both Docker networks to reach the start-local collector.
 This local forwarding path does not require Elastic Cloud credentials.
 
-### Docker with upstream OpenTelemetry
+### Docker with upstream Collector
 
 Prepare your [Elastic Cloud credentials](#elastic-cloud-credentials), then run:
 
@@ -225,10 +224,11 @@ Prepare your [Elastic Cloud credentials](#elastic-cloud-credentials), then run:
 ./demo.sh docker upstream
 ```
 
-This mode uses upstream language instrumentation and the OpenTelemetry Collector
-Contrib distribution. It ignores `.env.override` for Compose configuration,
-although the script can reuse credentials from that file. Telemetry is exported
-to Elastic over OTLP HTTP.
+This mode uses the upstream OpenTelemetry Collector Contrib distribution and
+upstream Docker images for the Java services. Cart and Payment still include
+EDOT instrumentation in their source. The mode ignores `.env.override`
+for Compose configuration, although the script can reuse credentials from that
+file. Telemetry is exported to Elastic over OTLP HTTP.
 
 Open <http://localhost:8080>, then
 [verify telemetry](#verify-telemetry-and-explore). Some Elastic dashboards may
@@ -239,14 +239,14 @@ show less data than with Elastic Agent. Remove the demo with
 
 ```mermaid
 ---
-title: Docker with upstream OpenTelemetry
+title: Docker with upstream Collector
 ---
 %%{init: {"theme": "base", "flowchart": {"htmlLabels": true, "titleTopMargin": 24}, "markdownAutoWrap": false, "themeVariables": {"darkMode": true, "fontSize": "16px", "background": "#07101F", "primaryColor": "#0A2342", "primaryTextColor": "#E3E8F2", "primaryBorderColor": "#61A2FF", "lineColor": "#61A2FF", "textColor": "#E3E8F2", "edgeLabelBackground": "#111C2C", "clusterBkg": "#0B1628", "clusterBorder": "#485975"}}}%%
 flowchart LR
     subgraph ARCH[" "]
         direction LR
         subgraph DEMO["Demo Docker network"]
-            APP["<b>Demo services</b><br/><br/><i>Upstream OpenTelemetry</i><br/>Traces, metrics and logs"]
+            APP["<b>Demo services</b><br/><br/><i>Upstream OTel + Cart/Payment EDOT</i><br/>Traces, metrics and logs"]
             COLLECTOR["<b>OpenTelemetry Collector</b><br/><i>Contrib distribution</i><br/><br/>Process and export<br/>telemetry"]
             APP -->|OTLP| COLLECTOR
         end
@@ -668,22 +668,22 @@ configure an OpenAI-compatible LLM.
 
 ## How this fork differs
 
-Elastic Agent setups also replace selected upstream language agents with EDOT:
+This fork currently includes the following EDOT instrumentation:
 
 | Language | Services | Implementation |
 | ---------- | ---------- | ---------------- |
-| Java | Ad, Fraud Detection, Kafka | EDOT Java agent |
-| .NET | Cart, Accounting | EDOT .NET with zero-code instrumentation |
-| Node.js | Payment | EDOT Node.js agent |
-| Python | Recommendation | EDOT Python |
-| PHP | Quote | EDOT PHP with zero-code instrumentation |
+| Java | Ad, Fraud Detection, Kafka | EDOT Java agent in the Elastic Docker setup |
+| .NET | Cart | `Elastic.OpenTelemetry` package |
+| Node.js | Payment | `@elastic/opentelemetry-node` package |
 
-See the services' `Dockerfile.elastic` files and
-[docker-compose.elastic.yml](../docker-compose.elastic.yml) for configuration.
+See the Java services' `Dockerfile.elastic` files, the Cart and Payment package
+files, and [docker-compose.elastic.yml](../docker-compose.elastic.yml) for
+configuration.
 [Elastic Agent][elastic-agent] includes the OpenTelemetry Collector used by
 this fork.
-Upstream modes use upstream instrumentation and the Collector Contrib
-distribution instead.
+The Docker upstream mode uses Collector Contrib but retains the Cart and Payment
+EDOT packages. The Kubernetes upstream mode uses the upstream demo chart and
+Collector Contrib distribution.
 
 For general application documentation, see the
 [upstream demo documentation](https://opentelemetry.io/docs/demo/).
