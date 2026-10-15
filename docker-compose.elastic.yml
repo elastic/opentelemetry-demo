@@ -29,6 +29,10 @@ services:
 
   otel-collector:
     image: ${COLLECTOR_CONTRIB_IMAGE}
+    deploy:
+      resources:
+        limits:
+          memory: ${OTEL_COLLECTOR_MEMORY_LIMIT:-400M}
     command:
       - --config=/etc/otelcol-config.yml
       - --config=/etc/otelcol-config-extras.yml

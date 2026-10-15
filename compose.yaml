@@ -847,7 +847,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: ${OTEL_COLLECTOR_MEMORY_LIMIT:-400M}
+          memory: 400M
     restart: unless-stopped
     command:
       - --config=/etc/otelcol-config.yml
@@ -872,9 +872,6 @@ services:
       - OTEL_COLLECTOR_HOST
       - OTEL_COLLECTOR_PORT_GRPC
       - OTEL_COLLECTOR_PORT_HTTP
-      - ELASTIC_AGENT_OTEL
-      - ELASTIC_OTLP_ENDPOINT
-      - ELASTIC_OTLP_API_KEY
       - POSTGRES_HOST
       - POSTGRES_PORT
       - POSTGRES_MONITORING_PASSWORD
