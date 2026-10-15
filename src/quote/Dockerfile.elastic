@@ -55,4 +55,6 @@ COPY ./src/quote/src/ src/
 
 EXPOSE ${QUOTE_PORT}
 
+ENV OTEL_PHP_SCOPED_DEPS_BRIDGE_ENABLED=true
+
 CMD ["php", "public/index.php"]
