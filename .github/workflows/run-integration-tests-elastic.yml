@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       INTEGRATION_TEST_IMAGE_NAME: otel-demo-integration-tests
+      UPSTREAM_TEST_IMAGE_NAME: otel-demo-upstream-integration-tests
       INTEGRATION_TEST_DEMO_VERSION: test
 
     steps:
@@ -45,6 +46,20 @@ jobs:
             -f compose.extras.yaml \
             -f docker-compose.elastic.yml \
             build --parallel
+
+      - name: Build upstream images from source
+        run: |
+          IMAGE_NAME="$UPSTREAM_TEST_IMAGE_NAME" \
+            DEMO_VERSION="$INTEGRATION_TEST_DEMO_VERSION" \
+            docker compose --env-file .env \
+            -f compose.yaml \
+            -f compose.full.yaml \
+            -f compose.extras.yaml \
+            -f docker-compose.upstream.yml \
+            build --parallel
+
+      - name: Verify Docker modes and .NET telemetry
+        run: python3 test/elastic/docker_mode_smoke.py
 
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1

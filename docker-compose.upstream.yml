@@ -1,0 +1,68 @@
+# Copyright The OpenTelemetry Authors
+# SPDX-License-Identifier: Apache-2.0
+# Keep the upstream Docker mode independent of Elastic Dockerfile and collector overrides.
+services:
+  accounting:
+    build:
+      dockerfile: ./src/accounting/Dockerfile
+  ad:
+    build:
+      dockerfile: ./src/ad/Dockerfile
+  cart:
+    build:
+      dockerfile: ./src/cart/src/Dockerfile
+  checkout:
+    build:
+      dockerfile: ./src/checkout/Dockerfile
+  currency:
+    build:
+      dockerfile: ./src/currency/Dockerfile
+  email:
+    build:
+      dockerfile: ./src/email/Dockerfile
+  flagd-ui:
+    build:
+      dockerfile: ./src/flagd-ui/Dockerfile
+  fraud-detection:
+    build:
+      dockerfile: ./src/fraud-detection/Dockerfile
+  frontend:
+    build:
+      dockerfile: ./src/frontend/Dockerfile
+  frontend-proxy:
+    build:
+      dockerfile: ./src/frontend-proxy/Dockerfile
+  image-provider:
+    build:
+      dockerfile: ./src/image-provider/Dockerfile
+  kafka:
+    build:
+      dockerfile: ./src/kafka/Dockerfile
+  load-generator:
+    build:
+      dockerfile: ./src/load-generator/Dockerfile
+  payment:
+    build:
+      dockerfile: ./src/payment/Dockerfile
+  product-catalog:
+    build:
+      dockerfile: ./src/product-catalog/Dockerfile
+  quote:
+    build:
+      dockerfile: ./src/quote/Dockerfile
+  recommendation:
+    build:
+      dockerfile: ./src/recommendation/Dockerfile
+  shipping:
+    build:
+      dockerfile: ./src/shipping/Dockerfile
+  telemetry-docs:
+    build:
+      dockerfile: ./src/telemetry-docs/Dockerfile
+
+  otel-collector:
+    image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.160.0
+    volumes:
+      - ./src/otel-collector/otelcol-config.yml:/etc/otelcol-config.yml
+      - ./src/otel-collector/otelcol-config-full.yml:/etc/otelcol-config-full.yml
+      - ./src/otel-collector/otelcol-config-extras-elastic.yml:/etc/otelcol-config-extras.yml

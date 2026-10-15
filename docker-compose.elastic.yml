@@ -3,14 +3,37 @@
 # Selects the standalone Elastic collector configuration after the upstream
 # full and observability layers have been applied.
 services:
+  accounting:
+    build:
+      dockerfile: ./src/accounting/Dockerfile.elastic
+  ad:
+    build:
+      dockerfile: ./src/ad/Dockerfile.elastic
+  cart:
+    build:
+      dockerfile: ./src/cart/src/Dockerfile.elastic
+  fraud-detection:
+    build:
+      dockerfile: ./src/fraud-detection/Dockerfile.elastic
+  kafka:
+    build:
+      dockerfile: ./src/kafka/Dockerfile.elastic
   payment:
+    build:
+      dockerfile: ./src/payment/Dockerfile.elastic
     environment:
       - NODE_OPTIONS=--require @elastic/opentelemetry-node
+  quote:
+    build:
+      dockerfile: ./src/quote/Dockerfile.elastic
 
   otel-collector:
+    image: ${COLLECTOR_CONTRIB_IMAGE}
     command:
       - --config=/etc/otelcol-config.yml
       - --config=/etc/otelcol-config-extras.yml
+    volumes:
+      - ./src/otel-collector/otelcol-elastic-config.yaml:/etc/otelcol-config.yml
     environment:
       - ELASTIC_OTLP_ENDPOINT
       - ELASTIC_OTLP_API_KEY

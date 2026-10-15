@@ -7,6 +7,9 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["/src/accounting/", "Accounting/"]
 COPY ["/pb/demo.proto", "Accounting/src/protos/demo.proto"]
+WORKDIR /src/Accounting
+RUN git apply --check -p3 elastic/edot.patch && git apply -p3 elastic/edot.patch
+WORKDIR /src
 RUN dotnet restore "./Accounting/Accounting.csproj" -r linux-$TARGETARCH
 WORKDIR "/src/Accounting"
 
@@ -23,10 +26,7 @@ RUN dotnet publish "./Accounting.csproj" -r linux-$TARGETARCH -c $BUILD_CONFIGUR
 
 # Download the Elastic Distribution of OpenTelemetry .NET zero-code instrumentation
 # bundle for the target architecture, so accounting gets Elastic's EDOT .NET agent
-# attached via the profiler instead of the vanilla community
-# OpenTelemetry.AutoInstrumentation NuGet package already referenced by
-# Accounting.csproj (its own copied files are left in place, unused). See
-# https://github.com/elastic/elastic-otel-dotnet releases.
+# attached via the profiler. See https://github.com/elastic/elastic-otel-dotnet releases.
 FROM debian:stable-slim AS otel-instrumentation
 ARG TARGETARCH
 ARG ELASTIC_DOTNET_AUTO_VERSION=1.6.0

@@ -23,6 +23,8 @@ WORKDIR /usr/src/app/
 COPY ./src/cart/ ./
 COPY ./pb/ ./pb/
 
+RUN git apply --check -p3 elastic/zero-code.patch && git apply -p3 elastic/zero-code.patch
+
 RUN dotnet restore ./src/cart.csproj -r linux-musl-$TARGETARCH
 
 RUN dotnet publish ./src/cart.csproj -r linux-musl-$TARGETARCH --no-restore -o /cart

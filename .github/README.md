@@ -225,11 +225,10 @@ Prepare your [Elastic Cloud credentials](#elastic-cloud-credentials), then run:
 ```
 
 This mode uses the upstream OpenTelemetry Collector Contrib distribution and
-the default service Dockerfiles. Cart's compile-time OpenTelemetry packages
-are removed for Elastic's zero-code instrumentation, so Cart is not instrumented
-in this mode. The mode ignores `.env.override`
-for Compose configuration, although the script can reuse credentials from that
-file. Telemetry is exported to Elastic over OTLP HTTP.
+the default service Dockerfiles. Cart and Accounting retain their upstream
+OpenTelemetry instrumentation. The mode ignores `.env.override` for Compose
+configuration, although the script can reuse credentials from that file.
+Telemetry is exported to Elastic over OTLP HTTP.
 
 Open <http://localhost:8080>, then
 [verify telemetry](#verify-telemetry-and-explore). Some Elastic dashboards may
@@ -677,6 +676,12 @@ This fork currently includes the following EDOT instrumentation:
 | .NET | Cart, Accounting | EDOT .NET zero-code instrumentation in each service's `Dockerfile.elastic` |
 | Node.js | Payment | EDOT Node.js installed in [Dockerfile.elastic](../src/payment/Dockerfile.elastic) |
 | PHP | Quote | EDOT PHP in [Dockerfile.elastic](../src/quote/Dockerfile.elastic) |
+
+Cart and Accounting keep their upstream .NET source for the standard Docker
+build. Their Elastic Dockerfiles apply the [Cart](../src/cart/elastic/zero-code.patch)
+and [Accounting](../src/accounting/elastic/edot.patch) build patches before
+restoring packages. If an upstream change makes a patch inapplicable, the
+Elastic image build stops so the change can be reviewed.
 
 See each service's `Dockerfile.elastic` and
 [docker-compose.elastic.yml](../docker-compose.elastic.yml) for configuration.
