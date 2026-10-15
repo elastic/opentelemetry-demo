@@ -4,8 +4,8 @@
 Run the **Astronomy Shop**, a microservice demo that generates traffic
 automatically, and explore its traces, metrics, and logs in Elastic Observability.
 
-This fork uses **Elastic Distributions of OpenTelemetry (EDOT)** for selected
-language agents and **Elastic Agent** for OpenTelemetry collection. Upstream
+This fork uses [**Elastic Distributions of OpenTelemetry (EDOT)**](https://www.elastic.co/docs/reference/opentelemetry/edot-sdks) for selected
+language agents and [**Elastic Agent**](https://www.elastic.co/docs/reference/fleet/elastic-agent-as-otel-collector) for OpenTelemetry collection. Upstream
 Collector modes can also send telemetry to Elastic.
 
 **Explore without installing:** Open the [hosted OpenTelemetry demo in Elastic
