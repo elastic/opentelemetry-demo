@@ -4,8 +4,6 @@
   "repository": "https://github.com/opentelemetry/opentelemetry-demo",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "semistandard *.js",
     "start": "node --require @opentelemetry/auto-instrumentations-node/register index.js"
   },
   "author": "Jonathan Lui",
