@@ -174,7 +174,6 @@ start_docker() {
   docker compose --env-file .env --env-file .env.override \
     -f compose.yaml \
     -f compose.full.yaml \
-    -f compose.observability.yaml \
     -f compose.extras.yaml \
     -f docker-compose.elastic.yml \
     up --build --force-recreate --remove-orphans --detach
@@ -206,7 +205,6 @@ start_docker_self_hosted() {
   docker compose --env-file .env --env-file .env.override \
     -f compose.yaml \
     -f compose.full.yaml \
-    -f compose.observability.yaml \
     -f compose.extras.yaml \
     -f docker-compose.elastic.yml \
     -f docker-compose.elastic-self-hosted.yml \

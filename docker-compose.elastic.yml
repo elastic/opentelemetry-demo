@@ -1,7 +1,7 @@
 # Copyright The OpenTelemetry Authors
 # SPDX-License-Identifier: Apache-2.0
 # Selects the standalone Elastic collector configuration after the upstream
-# full and observability layers have been applied.
+# full layer has been applied.
 services:
   accounting:
     build:

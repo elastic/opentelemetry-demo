@@ -18,7 +18,6 @@ BASE_FILES = ["compose.yaml", "compose.full.yaml", "compose.extras.yaml"]
 ELASTIC_FILES = [
     "compose.yaml",
     "compose.full.yaml",
-    "compose.observability.yaml",
     "compose.extras.yaml",
     "docker-compose.elastic.yml",
 ]
@@ -64,6 +63,9 @@ def compose_config(mode):
 
 
 def validate_modes(upstream, elastic):
+    unexpected = {"grafana", "jaeger", "opensearch", "prometheus", "opamp-server"} & elastic.keys()
+    if unexpected:
+        raise AssertionError(f"Elastic mode includes upstream observability services: {unexpected}")
     for service, config in upstream.items():
         if "build" in config and not config["build"]["dockerfile"].endswith("/Dockerfile"):
             raise AssertionError(f"Upstream mode selects a nonstandard Dockerfile for {service}")
