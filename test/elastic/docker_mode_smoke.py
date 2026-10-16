@@ -83,6 +83,9 @@ def validate_modes(upstream, elastic):
             raise AssertionError(f"Elastic mode selects the wrong Dockerfile for {service}")
     if "opentelemetry-collector-contrib" not in upstream["otel-collector"]["image"]:
         raise AssertionError("Upstream mode does not select Collector Contrib")
+    for variable in ("ELASTIC_OTLP_ENDPOINT", "ELASTIC_OTLP_API_KEY"):
+        if not upstream["otel-collector"]["environment"].get(variable):
+            raise AssertionError(f"Upstream collector is missing {variable}")
     if "elastic-agent" not in elastic["otel-collector"]["image"]:
         raise AssertionError("Elastic mode does not select Elastic Agent")
     if elastic["otel-collector"]["environment"].get("ELASTIC_AGENT_OTEL") != "true":

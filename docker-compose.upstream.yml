@@ -62,6 +62,9 @@ services:
 
   otel-collector:
     image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.160.0
+    environment:
+      - ELASTIC_OTLP_ENDPOINT
+      - ELASTIC_OTLP_API_KEY
     volumes:
       - ./src/otel-collector/otelcol-config.yml:/etc/otelcol-config.yml
       - ./src/otel-collector/otelcol-config-full.yml:/etc/otelcol-config-full.yml
