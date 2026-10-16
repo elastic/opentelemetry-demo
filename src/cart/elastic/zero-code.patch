@@ -1,0 +1,236 @@
+diff --git a/src/cart/Directory.Packages.props b/src/cart/Directory.Packages.props
+index 22e4d8b9..d4917249 100644
+--- a/src/cart/Directory.Packages.props
++++ b/src/cart/Directory.Packages.props
+@@ -12,17 +12,6 @@
+     <PackageVersion Include="OpenFeature" Version="2.14.1" />
+     <PackageVersion Include="OpenFeature.Hosting" Version="2.14.1" />
+     <PackageVersion Include="OpenFeature.Providers.Flagd" Version="0.7.3" />
+-    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.19.1" />
+-    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.19.1" />
+-    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.19.0" />
+-    <PackageVersion Include="OpenTelemetry.Instrumentation.GrpcNetClient" Version="1.19.1-beta.1" />
+-    <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.19.0" />
+-    <PackageVersion Include="OpenTelemetry.Instrumentation.Process" Version="1.19.0-rc.1" />
+-    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.19.0" />
+-    <PackageVersion Include="OpenTelemetry.Instrumentation.StackExchangeRedis" Version="1.19.0-beta.1" />
+-    <PackageVersion Include="OpenTelemetry.OpAmp.Client" Version="0.7.0-alpha.2" />
+-    <PackageVersion Include="OpenTelemetry.Resources.Container" Version="1.19.1-beta.1" />
+-    <PackageVersion Include="OpenTelemetry.Resources.Host" Version="1.19.1-beta.1" />
+     <PackageVersion Include="StackExchange.Redis" Version="3.4.0" />
+     <PackageVersion Include="xunit" Version="2.9.3" />
+     <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.1" />
+diff --git a/src/cart/src/OpAmpClientSetup.cs b/src/cart/src/OpAmpClientSetup.cs
+deleted file mode 100644
+index 6c348431..00000000
+--- a/src/cart/src/OpAmpClientSetup.cs
++++ /dev/null
+@@ -1,64 +0,0 @@
+-// Copyright The OpenTelemetry Authors
+-// SPDX-License-Identifier: Apache-2.0
+-using System;
+-using System.Collections.Generic;
+-using System.Net.WebSockets;
+-using System.Threading.Tasks;
+-
+-using OpenTelemetry.OpAmp.Client;
+-using OpenTelemetry.OpAmp.Client.Settings;
+-using OpenTelemetry.Resources;
+-
+-internal static class OpAmpClientSetup
+-{
+-    private static readonly HashSet<string> IdentifyingKeys = new()
+-    {
+-        "service.name",
+-        "service.instance.id",
+-        "service.namespace",
+-    };
+-
+-    public static async Task<OpAmpClient> StartAsync(
+-        string endpoint,
+-        Resource resource,
+-        bool skipTlsCertificateVerification)
+-    {
+-        var client = new OpAmpClient(opts =>
+-        {
+-            opts.ConnectionType = ConnectionType.WebSocket;
+-            opts.ServerUrl = new Uri(endpoint);
+-
+-            foreach (var attribute in resource.Attributes)
+-            {
+-                var value = attribute.Value?.ToString();
+-                if (value is null)
+-                {
+-                    continue;
+-                }
+-
+-                if (IdentifyingKeys.Contains(attribute.Key))
+-                {
+-                    opts.Identification.AddIdentifyingAttribute(attribute.Key, value);
+-                }
+-                else
+-                {
+-                    opts.Identification.AddNonIdentifyingAttribute(attribute.Key, value);
+-                }
+-            }
+-
+-            if (skipTlsCertificateVerification)
+-            {
+-                opts.ClientWebSocketFactory = () =>
+-                {
+-                    var socket = new ClientWebSocket();
+-                    socket.Options.RemoteCertificateValidationCallback =
+-                        static (_, _, _, _) => true;
+-                    return socket;
+-                };
+-            }
+-        });
+-
+-        await client.StartAsync();
+-        return client;
+-    }
+-}
+diff --git a/src/cart/src/Program.cs b/src/cart/src/Program.cs
+index 92b73a25..5b3272c1 100644
+--- a/src/cart/src/Program.cs
++++ b/src/cart/src/Program.cs
+@@ -15,19 +15,13 @@ using cart.healthcheck;
+ 
+ using Microsoft.AspNetCore.Builder;
+ using Microsoft.AspNetCore.Http;
+-using Microsoft.Extensions.Configuration;
+ using Microsoft.Extensions.DependencyInjection;
+ using Microsoft.Extensions.Diagnostics.HealthChecks;
+ using Microsoft.Extensions.Logging;
+-using OpenTelemetry.Instrumentation.StackExchangeRedis;
+-using OpenTelemetry.Logs;
+-using OpenTelemetry.Metrics;
+-using OpenTelemetry.Resources;
+-using OpenTelemetry.Trace;
++using Microsoft.Extensions.Hosting;
+ using OpenFeature;
+ using OpenFeature.Hooks;
+ using OpenFeature.Providers.Flagd;
+-using OpenTelemetry.OpAmp.Client;
+ 
+ var builder = WebApplication.CreateBuilder(args);
+ string valkeyAddress = builder.Configuration["VALKEY_ADDR"];
+@@ -37,9 +31,7 @@ if (string.IsNullOrEmpty(valkeyAddress))
+     Environment.Exit(1);
+ }
+ 
+-builder.Logging
+-    .AddOpenTelemetry(options => options.AddOtlpExporter())
+-    .AddConsole();
++builder.Logging.AddConsole();
+ 
+ builder.Services.AddSingleton<ICartStore>(x =>
+ {
+@@ -64,32 +56,6 @@ builder.Services.AddSingleton(x =>
+ ));
+ 
+ 
+-var serviceInstanceId = Guid.NewGuid().ToString();
+-
+-Action<ResourceBuilder> appResourceBuilder =
+-    resource => resource
+-        .AddService(builder.Environment.ApplicationName, serviceInstanceId: serviceInstanceId)
+-        .AddContainerDetector()
+-        .AddHostDetector();
+-
+-builder.Services.AddOpenTelemetry()
+-    .ConfigureResource(appResourceBuilder)
+-    .WithTracing(tracerBuilder => tracerBuilder
+-        .AddSource("OpenTelemetry.Demo.Cart")
+-        .AddRedisInstrumentation(
+-            options => options.SetVerboseDatabaseStatements = true)
+-        .AddAspNetCoreInstrumentation()
+-        .AddGrpcClientInstrumentation()
+-        .AddHttpClientInstrumentation()
+-        .AddOtlpExporter())
+-    .WithMetrics(meterBuilder => meterBuilder
+-        .AddMeter("OpenTelemetry.Demo.Cart")
+-        .AddMeter("OpenFeature")
+-        .AddProcessInstrumentation()
+-        .AddRuntimeInstrumentation()
+-        .AddAspNetCoreInstrumentation()
+-        .SetExemplarFilter(ExemplarFilterType.TraceBased)
+-        .AddOtlpExporter());
+ builder.Services.AddGrpc();
+ builder.Services.AddSingleton<readinessCheck>();
+ builder.Services.AddGrpcHealthChecks()
+@@ -99,32 +65,6 @@ builder.Services.AddSingleton<HealthServiceImpl>();
+ 
+ var app = builder.Build();
+ 
+-OpAmpClient opAmpClient = null;
+-var opampEndpoint = builder.Configuration["OPAMP_SERVER_ENDPOINT"];
+-var opampSkipTlsCertificateVerification =
+-    builder.Configuration.GetValue<bool>("OPAMP_SERVER_TLS_INSECURE_SKIP_VERIFY");
+-if (!string.IsNullOrEmpty(opampEndpoint))
+-{
+-    var opAmpLogger = app.Services.GetRequiredService<ILogger<Program>>();
+-    try
+-    {
+-        var opAmpResourceBuilder = ResourceBuilder.CreateDefault();
+-        appResourceBuilder(opAmpResourceBuilder);
+-        opAmpClient = await OpAmpClientSetup.StartAsync(
+-            opampEndpoint,
+-            opAmpResourceBuilder.Build(),
+-            opampSkipTlsCertificateVerification);
+-    }
+-    catch (Exception ex)
+-    {
+-        opAmpLogger.LogWarning(ex, "Failed to start OpAMP client");
+-        opAmpClient = null;
+-    }
+-}
+-
+-var ValkeyCartStore = (ValkeyCartStore)app.Services.GetRequiredService<ICartStore>();
+-app.Services.GetRequiredService<StackExchangeRedisInstrumentation>().AddConnection(ValkeyCartStore.GetConnection());
+-
+ app.MapGrpcService<CartService>();
+ app.MapGrpcService<HealthServiceImpl>();
+ 
+@@ -135,8 +75,3 @@ app.MapGet("/", async context =>
+ 
+ app.Run();
+ 
+-if (opAmpClient != null)
+-{
+-    await opAmpClient.StopAsync();
+-    opAmpClient.Dispose();
+-}
+diff --git a/src/cart/src/cart.csproj b/src/cart/src/cart.csproj
+index 23d5545d..0a1cd552 100644
+--- a/src/cart/src/cart.csproj
++++ b/src/cart/src/cart.csproj
+@@ -4,8 +4,8 @@
+     <TargetFramework>net10.0</TargetFramework>
+     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+     <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
+-    <PublishSingleFile>true</PublishSingleFile>
+-    <SelfContained>true</SelfContained>
++    <PublishSingleFile>false</PublishSingleFile>
++    <SelfContained>false</SelfContained>
+     <PublishTrimmed>false</PublishTrimmed>
+     <ProtosDir>$(ProjectDir)..\pb</ProtosDir>
+   </PropertyGroup>
+@@ -18,17 +18,6 @@
+     <PackageReference Include="Grpc.AspNetCore" />
+     <PackageReference Include="Grpc.AspNetCore.HealthChecks" />
+     <PackageReference Include="Grpc.Net.Client" />
+-    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+-    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+-    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
+-    <PackageReference Include="OpenTelemetry.Instrumentation.GrpcNetClient" />
+-    <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
+-    <PackageReference Include="OpenTelemetry.Instrumentation.Process" />
+-    <PackageReference Include="OpenTelemetry.Instrumentation.StackExchangeRedis" />
+-    <PackageReference Include="OpenTelemetry.OpAmp.Client" />
+-    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
+-    <PackageReference Include="OpenTelemetry.Resources.Container" />
+-    <PackageReference Include="OpenTelemetry.Resources.Host" />
+     <PackageReference Include="StackExchange.Redis" />
+     <PackageReference Include="OpenFeature.Providers.Flagd" />
+     <PackageReference Include="OpenFeature" />
