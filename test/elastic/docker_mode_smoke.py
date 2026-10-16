@@ -83,6 +83,8 @@ def validate_modes(upstream, elastic):
         raise AssertionError("Upstream mode does not select Collector Contrib")
     if "elastic-agent" not in elastic["otel-collector"]["image"]:
         raise AssertionError("Elastic mode does not select Elastic Agent")
+    if elastic["otel-collector"]["environment"].get("ELASTIC_AGENT_OTEL") != "true":
+        raise AssertionError("Elastic Agent is not configured to run in OTel mode")
     for mode, services, expected in (
         ("upstream", upstream, "otelcol-config-extras-elastic.yml"),
         ("elastic", elastic, "otelcol-elastic-config.yaml"),

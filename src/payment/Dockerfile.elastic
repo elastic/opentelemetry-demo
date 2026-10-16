@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-FROM ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs:0.78.0@sha256:bec336cd9581df9be51b4dfb8fb19e76723c275b8f824b60d7a18c7ae5943942 AS otelagent
+FROM docker.elastic.co/observability/elastic-otel-node:1.19.0 AS edot
 
 # -----------------------------------------------------------------------------
 
@@ -15,16 +15,6 @@ COPY ./src/payment/package-lock.json package-lock.json
 
 RUN npm ci --omit=dev
 
-ARG ELASTIC_OTEL_NODE_VERSION=1.5.0
-
-# Add the Elastic Distribution of OpenTelemetry Node.js as a separate
-# install, so package.json/package-lock.json do not carry this dependency.
-# NODE_OPTIONS is pointed at this package by docker-compose.elastic.yml, which
-# has to remain: compose.yaml's own `environment: NODE_OPTIONS=...` always
-# overrides an image's ENV, so this can't be done with a Dockerfile ENV alone.
-RUN npm install --no-save @elastic/opentelemetry-node@${ELASTIC_OTEL_NODE_VERSION} && \
-    node -e "require.resolve('@elastic/opentelemetry-node')"
-
 # -----------------------------------------------------------------------------
 
 FROM gcr.io/distroless/nodejs22-debian12:nonroot@sha256:13593b7570658e8477de39e2f4a1dd25db2f836d68a0ba771251572d23bb4f8e
@@ -36,7 +26,7 @@ COPY --from=builder /usr/src/app/node_modules/ node_modules/
 # Path and NODE_OPTIONS value match what the OpenTelemetry Operator injects, so a
 # statically built image and an operator-injected pod behave identically. Changing
 # either breaks that equivalence.
-COPY --from=otelagent /autoinstrumentation /otel-auto-instrumentation-nodejs
+COPY --from=edot /autoinstrumentation /otel-auto-instrumentation-nodejs
 
 COPY ./pb/demo.proto demo.proto
 

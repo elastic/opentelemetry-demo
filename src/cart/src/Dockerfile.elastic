@@ -31,24 +31,7 @@ RUN dotnet publish ./src/cart.csproj -r linux-musl-$TARGETARCH --no-restore -o /
 
 # -----------------------------------------------------------------------------
 
-# Download the Elastic Distribution of OpenTelemetry .NET zero-code instrumentation
-# bundle for the target architecture, so cart gets Elastic's EDOT .NET agent attached
-# via the profiler (DOTNET_STARTUP_HOOKS/CORECLR_PROFILER) instead of a compile-time
-# SDK dependency. See https://github.com/elastic/elastic-otel-dotnet releases.
-FROM debian:stable-slim AS otel-instrumentation
-ARG TARGETARCH
-ARG ELASTIC_DOTNET_AUTO_VERSION=1.6.0
-RUN apt-get update && apt-get install -y --no-install-recommends curl unzip ca-certificates && rm -rf /var/lib/apt/lists/*
-RUN case "$TARGETARCH" in \
-      amd64) DOTNET_ARCH=x64 ;; \
-      arm64) DOTNET_ARCH=arm64 ;; \
-      *) echo "Unsupported TARGETARCH: $TARGETARCH" >&2; exit 1 ;; \
-    esac \
-    && curl -sSfL -o /tmp/elastic-dotnet-instrumentation.zip \
-      "https://github.com/elastic/elastic-otel-dotnet/releases/download/${ELASTIC_DOTNET_AUTO_VERSION}/elastic-dotnet-instrumentation-linux-musl-${DOTNET_ARCH}.zip" \
-    && mkdir -p /otel-dotnet-auto \
-    && unzip -q /tmp/elastic-dotnet-instrumentation.zip -d /otel-dotnet-auto \
-    && rm /tmp/elastic-dotnet-instrumentation.zip
+FROM docker.elastic.co/observability/elastic-otel-dotnet:1.6.0 AS edot
 
 # -----------------------------------------------------------------------------
 
@@ -63,7 +46,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0.8-alpine3.23@sha256:1e37a8236c558ae31b
 WORKDIR /usr/src/app/
 COPY --from=builder /cart/ ./
 COPY --from=grpc-health-probe /ko-app/grpc-health-probe /bin/grpc_health_probe
-COPY --from=otel-instrumentation /otel-dotnet-auto /otel-dotnet-auto
+COPY --from=edot /autoinstrumentation /otel-dotnet-auto
 
 ENV DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE=false
 

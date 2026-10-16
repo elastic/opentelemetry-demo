@@ -21,8 +21,6 @@ services:
   payment:
     build:
       dockerfile: ./src/payment/Dockerfile.elastic
-    environment:
-      - NODE_OPTIONS=--require @elastic/opentelemetry-node
   quote:
     build:
       dockerfile: ./src/quote/Dockerfile.elastic
@@ -39,5 +37,6 @@ services:
     volumes:
       - ./src/otel-collector/otelcol-elastic-config.yaml:/etc/otelcol-config.yml
     environment:
+      - ELASTIC_AGENT_OTEL=true
       - ELASTIC_OTLP_ENDPOINT
       - ELASTIC_OTLP_API_KEY
