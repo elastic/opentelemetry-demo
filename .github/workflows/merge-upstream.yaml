@@ -80,7 +80,7 @@ jobs:
           if [ "$HAS_CONFLICTS" = true ]; then
             args+=(--draft)
           fi
-          PR_URL=$(gh pr create "${args[@]}")
+          PR_URL=$(gh pr create --repo "$GITHUB_REPOSITORY" "${args[@]}")
           echo "url=$PR_URL" >> "$GITHUB_OUTPUT"
 
       - name: Notify Slack about merge conflicts
