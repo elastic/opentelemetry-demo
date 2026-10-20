@@ -22,12 +22,12 @@ jobs:
       - name: Get token
         id: get_token
         if: ${{ github.event_name == 'schedule' || github.event.inputs.dry_run == 'false' }}
-        uses: elastic/oblt-actions/github/create-token@v1
+        uses: elastic/oblt-actions/github/create-token@fd3d4bb6f88d0f957f474764b7648cd652a9fcba  # v1.42.1
         with:
           token-policy: token-policy-e96fbab0a32e
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
         with:
           ref: ${{ github.ref_name }}
           fetch-depth: 0
@@ -36,7 +36,7 @@ jobs:
 
       - name: Configure git user
         if: ${{ github.event_name == 'schedule' || github.event.inputs.dry_run == 'false' }}
-        uses: elastic/oblt-actions/git/setup@v1
+        uses: elastic/oblt-actions/git/setup@fd3d4bb6f88d0f957f474764b7648cd652a9fcba  # v1.42.1
         with:
           github-token: ${{ steps.get_token.outputs.token }}
 
@@ -85,7 +85,7 @@ jobs:
 
       - name: Notify Slack about merge conflicts
         if: ${{ steps.prepare.outputs.has_conflicts == 'true' && steps.pr.outputs.url != '' }}
-        uses: elastic/oblt-actions/slack/send@v1
+        uses: elastic/oblt-actions/slack/send@fd3d4bb6f88d0f957f474764b7648cd652a9fcba  # v1.42.1
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: "C0AA2B1949M"  # otel-demo-ci
@@ -100,7 +100,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Slack notification if any error
-        uses: elastic/oblt-actions/slack/send@v1
+        uses: elastic/oblt-actions/slack/send@fd3d4bb6f88d0f957f474764b7648cd652a9fcba  # v1.42.1
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           channel-id: "C0AA2B1949M"  # otel-demo-ci
