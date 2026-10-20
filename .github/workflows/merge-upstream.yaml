@@ -21,7 +21,7 @@ jobs:
     steps:
       - name: Get token
         id: get_token
-        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.dry_run }}
+        if: ${{ github.event_name == 'schedule' || github.event.inputs.dry_run == 'false' }}
         uses: elastic/oblt-actions/github/create-token@v1
         with:
           token-policy: token-policy-e96fbab0a32e
@@ -32,16 +32,16 @@ jobs:
           ref: ${{ github.ref_name }}
           fetch-depth: 0
           token: ${{ steps.get_token.outputs.token || github.token }}
-          persist-credentials: ${{ github.event_name != 'workflow_dispatch' || !inputs.dry_run }}
+          persist-credentials: ${{ github.event_name == 'schedule' || github.event.inputs.dry_run == 'false' }}
 
       - name: Configure git user
-        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.dry_run }}
+        if: ${{ github.event_name == 'schedule' || github.event.inputs.dry_run == 'false' }}
         uses: elastic/oblt-actions/git/setup@v1
         with:
           github-token: ${{ steps.get_token.outputs.token }}
 
       - name: Configure dry-run git user
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run != 'false' }}
         run: |
           git config user.name 'upstream-merge-dry-run'
           git config user.email 'upstream-merge-dry-run@example.invalid'
@@ -61,14 +61,14 @@ jobs:
             --output-dir "$RUNNER_TEMP"
 
       - name: Push sync branch
-        if: ${{ steps.prepare.outputs.has_changes == 'true' && (github.event_name != 'workflow_dispatch' || !inputs.dry_run) }}
+        if: ${{ steps.prepare.outputs.has_changes == 'true' && (github.event_name == 'schedule' || github.event.inputs.dry_run == 'false') }}
         env:
           BRANCH_NAME: ${{ steps.prepare.outputs.branch_name }}
         run: git push origin "$BRANCH_NAME"
 
       - name: Create pull request
         id: pr
-        if: ${{ steps.prepare.outputs.has_changes == 'true' && (github.event_name != 'workflow_dispatch' || !inputs.dry_run) }}
+        if: ${{ steps.prepare.outputs.has_changes == 'true' && (github.event_name == 'schedule' || github.event.inputs.dry_run == 'false') }}
         env:
           GH_TOKEN: ${{ steps.get_token.outputs.token }}
           BRANCH_NAME: ${{ steps.prepare.outputs.branch_name }}
@@ -96,7 +96,7 @@ jobs:
 
   notify-failure:
     needs: [create_upstream_pr]
-    if: ${{ failure() && (github.event_name != 'workflow_dispatch' || !inputs.dry_run) }}
+    if: ${{ failure() && (github.event_name == 'schedule' || github.event.inputs.dry_run == 'false') }}
     runs-on: ubuntu-latest
     steps:
       - name: Slack notification if any error
