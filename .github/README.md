@@ -225,10 +225,10 @@ Prepare your [Elastic Cloud credentials](#elastic-cloud-credentials), then run:
 ```
 
 This mode uses the upstream OpenTelemetry Collector Contrib distribution and
-upstream Docker images for the Java services. Cart and Payment still include
-EDOT instrumentation in their source. The mode ignores `.env.override`
-for Compose configuration, although the script can reuse credentials from that
-file. Telemetry is exported to Elastic over OTLP HTTP.
+the default service Dockerfiles. Cart and Accounting retain their upstream
+OpenTelemetry instrumentation. The mode ignores `.env.override` for Compose
+configuration, although the script can reuse credentials from that file.
+Telemetry is exported to Elastic over OTLP HTTP.
 
 Open <http://localhost:8080>, then
 [verify telemetry](#verify-telemetry-and-explore). Some Elastic dashboards may
@@ -246,7 +246,7 @@ flowchart LR
     subgraph ARCH[" "]
         direction LR
         subgraph DEMO["Demo Docker network"]
-            APP["<b>Demo services</b><br/><br/><i>Upstream OTel + Cart/Payment EDOT</i><br/>Traces, metrics and logs"]
+            APP["<b>Demo services</b><br/><br/><i>Upstream OpenTelemetry</i><br/>Traces, metrics and logs"]
             COLLECTOR["<b>OpenTelemetry Collector</b><br/><i>Contrib distribution</i><br/><br/>Process and export<br/>telemetry"]
             APP -->|OTLP| COLLECTOR
         end
@@ -595,7 +595,7 @@ setup:
 
 ```sh
 docker compose --env-file .env --env-file .env.override \
-  -f compose.yaml -f compose.full.yaml -f compose.observability.yaml \
+  -f compose.yaml -f compose.full.yaml \
   -f compose.extras.yaml -f docker-compose.elastic.yml \
   up --build --force-recreate --remove-orphans --detach
 ```
@@ -673,16 +673,22 @@ This fork currently includes the following EDOT instrumentation:
 | Language | Services | Implementation |
 | ---------- | ---------- | ---------------- |
 | Java | Ad, Fraud Detection, Kafka | EDOT Java agent in the Elastic Docker setup |
-| .NET | Cart | `Elastic.OpenTelemetry` package |
-| Node.js | Payment | `@elastic/opentelemetry-node` package |
+| .NET | Cart, Accounting | EDOT .NET zero-code instrumentation in each service's `Dockerfile.elastic` |
+| Node.js | Payment | EDOT Node.js installed in [Dockerfile.elastic](../src/payment/Dockerfile.elastic) |
+| PHP | Quote | EDOT PHP in [Dockerfile.elastic](../src/quote/Dockerfile.elastic) |
 
-See the Java services' `Dockerfile.elastic` files, the Cart and Payment package
-files, and [docker-compose.elastic.yml](../docker-compose.elastic.yml) for
-configuration.
+Cart and Accounting keep their upstream .NET source for the standard Docker
+build. Their Elastic Dockerfiles apply the [Cart](../src/cart/elastic/zero-code.patch)
+and [Accounting](../src/accounting/elastic/edot.patch) build patches before
+restoring packages. If an upstream change makes a patch inapplicable, the
+Elastic image build stops so the change can be reviewed.
+
+See each service's `Dockerfile.elastic` and
+[docker-compose.elastic.yml](../docker-compose.elastic.yml) for configuration.
 [Elastic Agent][elastic-agent] includes the OpenTelemetry Collector used by
 this fork.
-The Docker upstream mode uses Collector Contrib but retains the Cart and Payment
-EDOT packages. The Kubernetes upstream mode uses the upstream demo chart and
+The Docker upstream mode uses Collector Contrib and the default service
+Dockerfiles. The Kubernetes upstream mode uses the upstream demo chart and
 Collector Contrib distribution.
 
 For general application documentation, see the

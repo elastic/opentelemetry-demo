@@ -174,10 +174,9 @@ start_docker() {
   docker compose --env-file .env --env-file .env.override \
     -f compose.yaml \
     -f compose.full.yaml \
-    -f compose.observability.yaml \
     -f compose.extras.yaml \
     -f docker-compose.elastic.yml \
-    up --force-recreate --remove-orphans --detach
+    up --build --force-recreate --remove-orphans --detach
 }
 
 start_docker_upstream() {
@@ -186,15 +185,12 @@ start_docker_upstream() {
   export ELASTIC_OTLP_ENDPOINT="$elastic_otlp_endpoint"
   export ELASTIC_OTLP_API_KEY="$elastic_otlp_api_key"
 
-  export OTEL_COLLECTOR_CONFIG_EXTRAS="./src/otel-collector/otelcol-config-extras-elastic.yml"
-
-  # Here we use docker compose instead of make start as we do not want to use the .env.override file.
-  # This allows us to run the upstream demo, no EDOT collector and no EDOT SDKs.
   docker compose --env-file .env \
     -f compose.yaml \
     -f compose.full.yaml \
     -f compose.extras.yaml \
-    up --force-recreate --remove-orphans --detach
+    -f docker-compose.upstream.yml \
+    up --build --force-recreate --remove-orphans --detach
 }
 
 start_docker_self_hosted() {
@@ -209,11 +205,10 @@ start_docker_self_hosted() {
   docker compose --env-file .env --env-file .env.override \
     -f compose.yaml \
     -f compose.full.yaml \
-    -f compose.observability.yaml \
     -f compose.extras.yaml \
     -f docker-compose.elastic.yml \
     -f docker-compose.elastic-self-hosted.yml \
-    up --force-recreate --remove-orphans --detach
+    up --build --force-recreate --remove-orphans --detach
 
   echo ""
   echo "OpenTelemetry Demo is running."
@@ -281,7 +276,7 @@ destroy_docker() {
 destroy_k8s() {
   echo
   helm uninstall "$DEMO_RELEASE" --ignore-not-found
-  helm uninstall "$KUBE_STACK_RELEASE" -n "$NAMESPACE" --ignore-not-found
+  helm uninstall "$KUBE_STACK_RELEASE" -n "$NAMESPACE" --ignore-not-found --timeout 10m
   kubectl delete secret "$SECRET_NAME" -n "$NAMESPACE" --ignore-not-found
   kubectl delete namespace "$NAMESPACE" --ignore-not-found --wait=false --timeout=60s
   echo

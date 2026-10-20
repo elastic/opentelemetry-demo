@@ -6,3 +6,4 @@ CHANGELOG.md merge=union
 
 gradlew text eol=lf
 src/flagd-ui/rel/overlays/bin/server text eol=lf
+src/*/elastic/*.patch -whitespace
