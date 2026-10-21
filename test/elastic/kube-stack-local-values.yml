@@ -1,0 +1,10 @@
+collectors:
+  gateway:
+    config:
+      exporters:
+        otlp/ingest_logs:
+          tls:
+            insecure: true
+        otlp/ingest_metrics_traces:
+          tls:
+            insecure: true
