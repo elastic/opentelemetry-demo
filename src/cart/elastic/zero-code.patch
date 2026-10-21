@@ -1,5 +1,5 @@
 diff --git a/src/cart/Directory.Packages.props b/src/cart/Directory.Packages.props
-index 22e4d8b9..d4917249 100644
+index 6c5ec159..ebfbad8f 100644
 --- a/src/cart/Directory.Packages.props
 +++ b/src/cart/Directory.Packages.props
 @@ -12,17 +12,6 @@
@@ -17,7 +17,7 @@ index 22e4d8b9..d4917249 100644
 -    <PackageVersion Include="OpenTelemetry.OpAmp.Client" Version="0.7.0-alpha.2" />
 -    <PackageVersion Include="OpenTelemetry.Resources.Container" Version="1.19.1-beta.1" />
 -    <PackageVersion Include="OpenTelemetry.Resources.Host" Version="1.19.1-beta.1" />
-     <PackageVersion Include="StackExchange.Redis" Version="3.4.0" />
+     <PackageVersion Include="StackExchange.Redis" Version="3.4.5" />
      <PackageVersion Include="xunit" Version="2.9.3" />
      <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.1" />
 diff --git a/src/cart/src/OpAmpClientSetup.cs b/src/cart/src/OpAmpClientSetup.cs
