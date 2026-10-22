@@ -67,6 +67,13 @@ Non-exhaustively, the important points are:
 * Manually test all changes locally before creating a PR
 * Do not add new services without collaborating with the maintainers
 
+## Elastic fork maintenance
+
+For upstream syncs and Elastic deployment or instrumentation changes, read
+[the Elastic maintenance guide](.github/ELASTIC_MAINTENANCE.md). When resolving
+an upstream sync or updating an Elastic override after upstream changes, use
+the `elastic-upstream-sync` skill in `.agents/skills/elastic-upstream-sync/`.
+
 ## Commit formatting
 
 We appreciate it if users disclose the use of AI tools when the significant part
