@@ -23,13 +23,12 @@ function get_http_response_code() {
 }
 
 function start_local_elastic_stack() {
-  printf "CURRENT_DIR=%s\n" "$CURRENT_DIR"
-  curl -fsSL https://elastic.co/start-local | sh -s -- --esonly
-  # shellcheck source=test/elastic/bootstrap.sh
+  curl -fsSL https://elastic.co/start-local | sh -s -- --esonly --edot >/dev/null
+  set -a
   source "${START_LOCAL_ENV_PATH}"
-  sleep 2
-  result=$(get_http_response_code "http://localhost:9200" "elastic" "${ES_LOCAL_PASSWORD}")
-  assert_equals "200" "$result"
+  set +a
+  result=$(get_http_response_code "$ES_LOCAL_URL" "elastic" "$ES_LOCAL_PASSWORD")
+  [[ "$result" == "200" ]]
 }
 
 function uninstall_local_elastic_stack() {
@@ -39,17 +38,17 @@ function uninstall_local_elastic_stack() {
 
 function launch_demo() {
   local platform="$1"
-  local elastic_otlp_endpoint="${ES_LOCAL_URL:-$2}"
-  local elastic_otlp_api_key="${ES_LOCAL_API_KEY}"
-  echo "Launching demo with:"
-  echo "  platform: $platform"
-  echo "  elastic_otlp_endpoint: $elastic_otlp_endpoint"
-  echo "  elastic_otlp_api_key: $elastic_otlp_api_key"
+  if [[ "$platform" == "docker" ]]; then
+    "${CURRENT_DIR}/demo.sh" docker self-hosted
+    return
+  fi
 
-  "${CURRENT_DIR}/demo.sh" \
-    "$platform" \
-    "$elastic_otlp_endpoint" \
-    "$elastic_otlp_api_key"
+  docker network connect kind "$EDOT_LOCAL_CONTAINER_NAME"
+  local collector_ip
+  collector_ip=$(docker inspect --format '{{(index .NetworkSettings.Networks "kind").IPAddress}}' "$EDOT_LOCAL_CONTAINER_NAME")
+  [[ -n "$collector_ip" ]] || return 1
+  KUBE_STACK_EXTRA_VALUES_FILE=test/elastic/kube-stack-local-values.yml \
+    CI=true "${CURRENT_DIR}/demo.sh" k8s "${collector_ip}:4317" "$ES_LOCAL_API_KEY"
 }
 
 function destroy_demo() {

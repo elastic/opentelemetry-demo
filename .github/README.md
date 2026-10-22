@@ -216,6 +216,9 @@ flowchart LR
 The demo collector joins both Docker networks to reach the start-local collector.
 This local forwarding path does not require Elastic Cloud credentials.
 
+Contributors can [run the Elastic integration tests locally](../test/elastic/README.md)
+before pushing changes.
+
 ### Docker with upstream Collector
 
 Prepare your [Elastic Cloud credentials](#elastic-cloud-credentials), then run:

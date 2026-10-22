@@ -15,6 +15,7 @@ jobs:
   run-tests:
     name: Test
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     env:
       INTEGRATION_TEST_IMAGE_NAME: otel-demo-integration-tests
       UPSTREAM_TEST_IMAGE_NAME: otel-demo-upstream-integration-tests
@@ -28,12 +29,15 @@ jobs:
           sudo docker builder prune -a
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Set up Docker Compose
-        uses: docker/setup-compose-action@v1
+        uses: docker/setup-compose-action@2fe291b7677a45ee1269ec56a42604c143505e7e # v1
         with:
           version: latest
+
+      - name: Verify Elastic telemetry assertions
+        run: python3 -m unittest discover -s test/elastic -p test_verify_telemetry.py
 
       - name: Build images from source
         run: |
@@ -42,7 +46,6 @@ jobs:
             docker compose --env-file .env --env-file .env.override \
             -f compose.yaml \
             -f compose.full.yaml \
-            -f compose.observability.yaml \
             -f compose.extras.yaml \
             -f docker-compose.elastic.yml \
             build --parallel
@@ -62,15 +65,24 @@ jobs:
         run: python3 test/elastic/docker_mode_smoke.py
 
       - name: Create k8s Kind Cluster
-        uses: helm/kind-action@v1
+        uses: helm/kind-action@ef37e7f390d99f746eb8b610417061a60e82a6cc # v1
+
+      - name: Load PR-built demo images into Kind
+        run: |
+          mapfile -t images < <(docker image ls "${INTEGRATION_TEST_IMAGE_NAME}:${INTEGRATION_TEST_DEMO_VERSION}-*" --format '{{.Repository}}:{{.Tag}}')
+          if [ "${#images[@]}" -eq 0 ]; then
+            echo "No PR-built demo images were found" >&2
+            exit 1
+          fi
+          kind load docker-image --name chart-testing "${images[@]}"
 
       - name: Set up helm
-        uses: azure/setup-helm@v4.3.0
+        uses: azure/setup-helm@b9e51907a09c216f16ebe8536097933489208112 # v4.3.0
 
-      - name: Install bashunit
-        run: |
-          curl -sSL https://bashunit.com/install.sh | bash -s bin
+      - name: Test Docker Elastic telemetry
+        timeout-minutes: 25
+        run: bash test/elastic/run_integration.sh docker
 
-      - name: Run the tests
-        run: |
-          ./bin/bashunit --env .env.bashunit
+      - name: Test Kubernetes Elastic telemetry with PR images
+        timeout-minutes: 30
+        run: bash test/elastic/run_integration.sh k8s

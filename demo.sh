@@ -230,15 +230,29 @@ apply_k8s_secret() {
 }
 
 install_kube_stack() {
-  helm upgrade --install "$KUBE_STACK_RELEASE" "$KUBE_STACK_CHART" \
+  set -- upgrade --install "$KUBE_STACK_RELEASE" "$KUBE_STACK_CHART" \
     --namespace "$NAMESPACE" \
     --values "$KUBE_STACK_VALUES_URL" \
     --values kubernetes/elastic-helm/kube-stack-overrides.yml \
     --version "$KUBE_STACK_VERSION"
+  if [ -n "${KUBE_STACK_EXTRA_VALUES_FILE:-}" ]; then
+    set -- "$@" --values "$KUBE_STACK_EXTRA_VALUES_FILE"
+  fi
+  helm "$@"
 }
 
 install_demo_chart() {
-  helm upgrade --install "$DEMO_RELEASE" "$DEMO_CHART" --version "$DEMO_HELM_VERSION" -f kubernetes/elastic-helm/demo.yml
+  kubectl create configmap product-catalog-otel-config \
+    --from-file=otel-config.yml \
+    --dry-run=client -o yaml | kubectl apply -f -
+  set -- upgrade --install "$DEMO_RELEASE" "$DEMO_CHART" --version "$DEMO_HELM_VERSION" -f kubernetes/elastic-helm/demo.yml
+  if [ -n "${DEMO_HELM_IMAGE_REPOSITORY:-}" ]; then
+    set -- "$@" --set-string "default.image.repository=$DEMO_HELM_IMAGE_REPOSITORY"
+  fi
+  if [ -n "${DEMO_HELM_IMAGE_TAG:-}" ]; then
+    set -- "$@" --set-string "default.image.tag=$DEMO_HELM_IMAGE_TAG"
+  fi
+  helm "$@"
 }
 
 start_k8s() {
@@ -276,6 +290,7 @@ destroy_docker() {
 destroy_k8s() {
   echo
   helm uninstall "$DEMO_RELEASE" --ignore-not-found
+  kubectl delete configmap product-catalog-otel-config --ignore-not-found
   helm uninstall "$KUBE_STACK_RELEASE" -n "$NAMESPACE" --ignore-not-found --timeout 10m
   kubectl delete secret "$SECRET_NAME" -n "$NAMESPACE" --ignore-not-found
   kubectl delete namespace "$NAMESPACE" --ignore-not-found --wait=false --timeout=60s
