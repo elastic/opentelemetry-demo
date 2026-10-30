@@ -2,6 +2,7 @@
 # Copyright The OpenTelemetry Authors
 # SPDX-License-Identifier: Apache-2.0
 
+import argparse
 import json
 import os
 import platform
@@ -63,6 +64,8 @@ def compose_config(mode):
 
 
 def validate_modes(upstream, elastic):
+    if upstream.keys() != elastic.keys():
+        raise AssertionError("Docker modes render different service sets")
     unexpected = {"grafana", "jaeger", "opensearch", "prometheus", "opamp-server"} & elastic.keys()
     if unexpected:
         raise AssertionError(f"Elastic mode includes upstream observability services: {unexpected}")
@@ -81,6 +84,11 @@ def validate_modes(upstream, elastic):
     for service, dockerfile in elastic_dockerfiles.items():
         if elastic[service]["build"]["dockerfile"] != dockerfile:
             raise AssertionError(f"Elastic mode selects the wrong Dockerfile for {service}")
+    for service, config in elastic.items():
+        if service in elastic_dockerfiles or "build" not in config:
+            continue
+        if config["build"]["dockerfile"] != upstream[service]["build"]["dockerfile"]:
+            raise AssertionError(f"Elastic mode unexpectedly changes the Dockerfile for {service}")
     if "opentelemetry-collector-contrib" not in upstream["otel-collector"]["image"]:
         raise AssertionError("Upstream mode does not select Collector Contrib")
     for variable in ("ELASTIC_OTLP_ENDPOINT", "ELASTIC_OTLP_API_KEY"):
@@ -221,9 +229,15 @@ def check_distro(spans, name, expected):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config-only", action="store_true", help="validate rendered Compose modes without running containers")
+    args = parser.parse_args()
     upstream = compose_config("upstream")
     elastic = compose_config("elastic")
     validate_modes(upstream, elastic)
+    if args.config_only:
+        print("Docker mode configuration checks passed")
+        return
     suffix = uuid.uuid4().hex[:8]
     network = f"otel-mode-smoke-{suffix}"
     receiver = Receiver()
