@@ -8,7 +8,6 @@ WORKDIR /src
 COPY ["/src/accounting/", "Accounting/"]
 COPY ["/pb/demo.proto", "Accounting/src/protos/demo.proto"]
 WORKDIR /src/Accounting
-RUN git apply --check -p3 elastic/edot.patch && git apply -p3 elastic/edot.patch
 WORKDIR /src
 RUN dotnet restore "./Accounting/Accounting.csproj" -r linux-$TARGETARCH
 WORKDIR "/src/Accounting"
