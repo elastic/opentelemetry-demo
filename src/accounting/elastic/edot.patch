@@ -24,6 +24,6 @@ diff --git a/src/accounting/Directory.Packages.props b/src/accounting/Directory.
      <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.14" />
      <PackageVersion Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
      <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
--    <PackageVersion Include="OpenTelemetry.AutoInstrumentation" Version="1.19.0" />
+-    <PackageVersion Include="OpenTelemetry.AutoInstrumentation" Version="1.19.1" />
    </ItemGroup>
  </Project>
