@@ -9,7 +9,7 @@ on:
         type: boolean
         default: true
   schedule:
-    - cron: '0 9 * * 1,4'
+    - cron: '0 9 * * 4'
 
 jobs:
   create_upstream_pr:
