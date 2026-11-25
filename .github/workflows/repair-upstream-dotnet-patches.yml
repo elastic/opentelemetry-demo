@@ -1,0 +1,168 @@
+# Copyright The OpenTelemetry Authors
+# SPDX-License-Identifier: Apache-2.0
+name: Repair upstream .NET patches
+run-name: 'Repair .NET patches: ${{ github.event.workflow_run.head_sha }}'
+
+on:
+  workflow_run:  # zizmor: ignore[dangerous-triggers] -- Same-repo sync provenance is checked before the isolated agent/build jobs; only the trusted publisher receives write credentials.
+    workflows: [Elastic Integration Tests]
+    types: [completed]
+    branches: ['auto-merge/upstream-*']
+
+permissions: {}
+cache-mode: read
+
+concurrency:
+  group: dotnet-patch-repair-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  inspect:
+    name: Inspect upstream integration failure
+    if: ${{ github.event.workflow_run.conclusion == 'failure' && vars.UPSTREAM_PATCH_REPAIR_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read  # Read workflow runs, job results, and artifacts.
+      contents: read  # Check out repository sources without write access.
+      pull-requests: read  # Verify sync PR state, head, and commit history.
+    outputs:
+      needs_repair: ${{ steps.probe.outputs.needs_repair }}
+      pr_number: ${{ steps.inspect.outputs.pr_number }}
+      head_sha: ${{ steps.inspect.outputs.head_sha }}
+    steps:
+      - name: Checkout trusted tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          path: tooling
+          persist-credentials: false
+      - name: Inspect failed run and sync PR
+        id: inspect
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tooling/.github/scripts/repair_dotnet_patches.py inspect --context "$RUNNER_TEMP/context"
+      - name: Checkout validated PR sources
+        if: steps.inspect.outputs.eligible == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          ref: ${{ steps.inspect.outputs.head_sha }}
+          path: target
+          persist-credentials: false
+      - name: Reproduce patch application failure
+        if: steps.inspect.outputs.eligible == 'true'
+        id: probe
+        run: python3 tooling/.github/scripts/repair_dotnet_patches.py probe --checkout target
+      - name: Upload failure context
+        if: steps.probe.outputs.needs_repair == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: dotnet-repair-context
+          path: ${{ runner.temp }}/context/failure.log
+          retention-days: 7
+
+  repair:
+    name: Propose .NET patch repair
+    needs: inspect
+    if: needs.inspect.outputs.needs_repair == 'true'
+    permissions:
+      actions: read  # Read workflow runs, job results, and artifacts.
+      contents: read  # Check out repository sources without write access.
+    uses: $/.github/workflows/repair-dotnet-patches.lock.yml
+    with:
+      head_sha: ${{ needs.inspect.outputs.head_sha }}
+    secrets:
+      COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+
+  validate:
+    name: Validate .NET patch repair
+    needs: [inspect, repair]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read  # Check out repository sources without write access.
+    outputs:
+      changed: ${{ steps.apply.outputs.changed }}
+      digest: ${{ steps.apply.outputs.digest }}
+    env:
+      INTEGRATION_TEST_IMAGE_NAME: otel-demo-patch-repair
+      UPSTREAM_TEST_IMAGE_NAME: otel-demo-patch-repair-upstream
+      INTEGRATION_TEST_DEMO_VERSION: test
+    steps:
+      - name: Checkout trusted tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          path: tooling
+          persist-credentials: false
+      - name: Checkout validated PR sources
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          ref: ${{ needs.inspect.outputs.head_sha }}
+          path: target
+          persist-credentials: false
+      - name: Download proposed patches
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          name: dotnet-repair-candidate
+          path: ${{ runner.temp }}/candidate
+      - name: Apply and check allowed patch changes
+        id: apply
+        run: python3 tooling/.github/scripts/repair_dotnet_patches.py apply --checkout target --candidate "$RUNNER_TEMP/candidate"
+      - name: Set up Docker Compose
+        if: steps.apply.outputs.changed == 'true'
+        uses: docker/setup-compose-action@2fe291b7677a45ee1269ec56a42604c143505e7e  # v1
+      - name: Validate rendered Docker modes
+        if: steps.apply.outputs.changed == 'true'
+        working-directory: target
+        run: python3 test/elastic/docker_mode_smoke.py --config-only
+      - name: Build .NET images in both modes
+        if: steps.apply.outputs.changed == 'true'
+        working-directory: target
+        run: |
+          IMAGE_NAME="$INTEGRATION_TEST_IMAGE_NAME" DEMO_VERSION="$INTEGRATION_TEST_DEMO_VERSION" \
+            docker compose --env-file .env --env-file .env.override \
+            -f compose.yaml -f compose.full.yaml -f compose.extras.yaml -f docker-compose.elastic.yml build cart accounting
+          IMAGE_NAME="$UPSTREAM_TEST_IMAGE_NAME" DEMO_VERSION="$INTEGRATION_TEST_DEMO_VERSION" \
+            docker compose --env-file .env \
+            -f compose.yaml -f compose.full.yaml -f compose.extras.yaml -f docker-compose.upstream.yml build cart accounting kafka
+      - name: Verify .NET telemetry in both modes
+        if: steps.apply.outputs.changed == 'true'
+        working-directory: target
+        run: python3 test/elastic/docker_mode_smoke.py
+
+  publish:
+    name: Publish validated patch repair
+    needs: [inspect, validate]
+    if: needs.validate.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read  # Read workflow runs, job results, and artifacts.
+      contents: read  # Check out repository sources without write access.
+      id-token: write  # Authenticate to Vault to obtain the publishing App token.
+    steps:
+      - name: Checkout trusted tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Download validated candidate
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          name: dotnet-repair-candidate
+          path: ${{ runner.temp }}/candidate
+      - name: Get publishing token
+        id: token
+        uses: elastic/oblt-actions/github/create-token@fd3d4bb6f88d0f957f474764b7648cd652a9fcba  # v1.42.1
+        with:
+          token-policy: token-policy-e96fbab0a32e
+      - name: Publish patch-only commit if PR head is unchanged
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          PR_NUMBER: ${{ needs.inspect.outputs.pr_number }}
+          HEAD_SHA: ${{ needs.inspect.outputs.head_sha }}
+          CANDIDATE_DIGEST: ${{ needs.validate.outputs.digest }}
+        run: |
+          python3 .github/scripts/repair_dotnet_patches.py publish \
+            --candidate "$RUNNER_TEMP/candidate" --pr "$PR_NUMBER" --sha "$HEAD_SHA" --digest "$CANDIDATE_DIGEST"

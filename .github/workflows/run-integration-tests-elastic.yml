@@ -36,8 +36,8 @@ jobs:
         with:
           version: latest
 
-      - name: Verify Elastic telemetry assertions
-        run: python3 -m unittest discover -s test/elastic -p test_verify_telemetry.py
+      - name: Verify Elastic test and upstream automation helpers
+        run: python3 -m unittest discover -s test/elastic -p 'test_*.py'
 
       - name: Build images from source
         run: |

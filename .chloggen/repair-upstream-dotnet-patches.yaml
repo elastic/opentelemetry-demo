@@ -1,0 +1,4 @@
+change_type: enhancement
+component: ci
+note: Add opt-in automatic repair of stale Elastic Cart and Accounting patches after upstream-sync integration build failures.
+issues: [255]
