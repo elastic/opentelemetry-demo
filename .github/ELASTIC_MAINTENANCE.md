@@ -92,3 +92,59 @@ settings, so review `kubernetes/elastic-helm/demo.yml` when chart defaults,
 ports, or environment variables change. When a test fails, distinguish image
 build failure, deployment failure, and missing telemetry; container health alone
 does not prove that Elastic received data.
+
+## Automatic .NET patch repair
+
+[`Repair upstream .NET patches`](workflows/repair-upstream-dotnet-patches.yml)
+listens for completed `Elastic Integration Tests` runs. It only handles failures
+in `Build images from source` on an open, non-draft, same-repository upstream-sync
+PR targeting `main`. The branch must have been created by a successful run of
+`merge-upstream.yaml`, and the failed run must match the PR's current head.
+Conflict-report branches are excluded. Both patches are checked against the
+source before invoking an agent; if they still apply, the failure needs manual
+investigation.
+
+The Copilot agent proposes edits to `src/cart/elastic/zero-code.patch` and
+`src/accounting/elastic/edot.patch` as an artifact. Separate jobs check the file
+allowlist, apply both patches, build Cart and Accounting in upstream and Elastic
+modes, and run `docker_mode_smoke.py` to verify .NET telemetry. A successful
+validation publishes a patch-only commit to the existing PR branch using the
+GitHub API. The publisher verifies the artifact digest and PR head again, never
+force-updates a branch, and does not execute PR code or use agent-generated Git
+history. The App-authenticated commit triggers the normal integration checks.
+The agent cannot post issues, PR descriptions, or comments, and no PR is merged
+automatically.
+
+Enable this only in the repository that runs the upstream merge workflow:
+
+1. Merge both the controller YAML and the generated agent lock file into the
+   default branch. `workflow_run` does not activate from a feature branch.
+2. Configure `COPILOT_GITHUB_TOKEN` for a Copilot account permitted to use the
+   repository's agentic workflows. Only this secret is forwarded to the agent;
+   its repository token has read access. See
+   [Copilot authentication](https://github.github.com/gh-aw/reference/engines/copilot/).
+3. Verify that `token-policy-e96fbab0a32e`, reused from the merge workflow,
+   permits the new controller's `publish` job to mint a repository-scoped App
+   token with contents write and pull requests read access. The policy may
+   already permit it; otherwise its administrator must update it. The App must
+   be installed in this repository. Publishing fails if authorization is absent.
+4. Set the repository Actions variable `UPSTREAM_PATCH_REPAIR_ENABLED` to `true`.
+   Remove it or set it to `false` to stop new automatic repairs.
+
+There is at most one automatic attempt per PR head SHA, including failed or
+cancelled attempts, and at most one published repair per upstream-sync PR. A
+workflow rerun is skipped. After a failed attempt, investigate manually or push
+a human correction to create a new head SHA. After a published repair, any
+remaining failures require manual investigation. The attempt guard reads the
+repository's Actions run history; deleting that history also removes that guard.
+Diagnostics and proposed patches remain in workflow artifacts for seven days.
+
+The agent source is [`repair-dotnet-patches.md`](workflows/repair-dotnet-patches.md).
+Regenerate its lock file with the pinned compiler and action release:
+
+```sh
+gh extension install github/gh-aw --pin v1.2.2
+gh aw compile repair-dotnet-patches --no-check-update --action-mode action \
+  --action-tag 5c7541d098b1fd0b039865a2e69849b0fe3c679c
+python3 -m unittest discover -s test/elastic -p 'test_*.py'
+```
