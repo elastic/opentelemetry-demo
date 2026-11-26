@@ -133,7 +133,7 @@ When `MCP_ENABLED=True`, the service connects to:
 http://${MCP_ENDPOINT}:${MCP_PORT}/mcp
 ```
 
-Tools are loaded dynamically using `langchain_mcp_adapters.tools.load_mcp_tools`.
+Tools are loaded dynamically using `langchain.mcp.MCPAdapter`.
  In this mode, the built-in tools are not used.
 
 ## Observability
@@ -217,6 +217,13 @@ Both cassettes have been updated with real looping interactions recorded
 with `aiRunawayAgent` enabled, and replay the looping behavior
 deterministically under `USE_VCR=True`.
 
+Each recorded chat completion includes a `usage` block, so token metrics
+(`gen_ai.client.token.usage`) and `gen_ai.usage.*` span attributes are emitted
+during replay. The values are synthetic: they were estimated with the
+`o200k_base` tokenizer from the recorded request messages, tool schemas and
+response content, not reported by the provider. Prompt tokens grow with each
+turn of a looping interaction.
+
 ## File Layout
 
 ```text
@@ -232,7 +239,6 @@ src/agent/
     `-- agents/
         |-- agents.py       # FastAPI app and LangChain agent orchestration
         |-- llm.py          # OpenAI-compatible LLM wrapper and VCR integration
-        |-- mcp_client.py   # MCP streamable HTTP client
         `--patch_vcr.py    # VCR helper integration
 ```
 

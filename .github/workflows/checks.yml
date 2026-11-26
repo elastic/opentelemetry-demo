@@ -138,9 +138,9 @@ jobs:
         with:
           persist-credentials: false
       - name: Set up Go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e  # v7.0.0
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5  # v7.1.0
         with:
-          go-version: '1.27.1'
+          go-version: '1.27.4'
       - name: Validate changelog fragments
         run: make chlog-validate
 
@@ -156,7 +156,7 @@ jobs:
         env:
           GITHUB_WORKSPACE_PATH: ${{ github.workspace }}
         run: |
-          # Reuse the Dependabot-tracked weaver pin from the telemetry-docs Dockerfile so this
+          # Reuse the Renovate-tracked weaver pin from the telemetry-docs Dockerfile so this
           # check never drifts from the version used to actually generate the docs.
           WEAVER_IMAGE=$(grep -oP '(?<=^FROM )\S*otel/weaver\S*' src/telemetry-docs/Dockerfile)
           docker run --rm \
